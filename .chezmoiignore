@@ -7,7 +7,8 @@ bootstrap.sh
 # Ignore machine-specific generated files
 .bash_history
 .cache/
-.local/
+.local/share/
+.local/state/
 
 # IDE/editor files
 .vscode/

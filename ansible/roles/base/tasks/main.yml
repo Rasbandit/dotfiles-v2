@@ -27,3 +27,10 @@
   args:
     creates: /usr/local/bin/starship
   become: true
+
+- name: Set up hourly chezmoi sync cron job
+  ansible.builtin.cron:
+    name: "chezmoi auto sync"
+    minute: "0"
+    job: "{{ ansible_env.HOME }}/.local/bin/auto-add-push.sh"
+    state: present

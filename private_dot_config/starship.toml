@@ -1,18 +1,18 @@
 format = """
 [ $os](bg:4 fg:0)\
-[](bg:12 fg:4)\
+[](bg:12 fg:4)\
 $directory\
-[](fg:12 bg:13)\
+[](fg:12 bg:13)\
 $git_branch\
 $git_status\
-[](fg:13 bg:2)\
+[](fg:13 bg:2)\
 $nodejs\
 $rust\
 $golang\
 $php\
-[](fg:2 bg:14)\
+[](fg:2 bg:14)\
 $custom\
-[ ](fg:14)\
+[ ](fg:14)\
 $cmd_duration\
 \n$character"""
 
@@ -28,9 +28,9 @@ truncation_symbol = "…/"
 
 [directory.substitutions]
 "Documents" = "󰈙"
-"Downloads" = ""
-"Music" = ""
-"Pictures" = ""
+"Downloads" = ""
+"Music" = ""
+"Pictures" = ""
 
 [cmd_duration]
 min_time = 3500
@@ -42,44 +42,44 @@ style = "bg:4"
 disabled = false
 
 [os.symbols]
-AlmaLinux = " "
-Alpine = " "
-Amazon = " "
-Android = " "
+AlmaLinux = " "
+Alpine = " "
+Amazon = " "
+Android = " "
 Arch = "󰣇 "
 Artix = "󰣇 "
-CentOS = " "
-Debian = " "
-DragonFly = " "
-EndeavourOS = " "
-Fedora = " "
-FreeBSD = " "
-Garuda = " "
+CentOS = " "
+Debian = " "
+DragonFly = " "
+EndeavourOS = " "
+Fedora = " "
+FreeBSD = " "
+Garuda = " "
 Gentoo = "󰣨 "
-Illumos = " "
-Kali = " "
-Linux = " "
-Macos = " "
-Manjaro = " "
+Illumos = " "
+Kali = " "
+Linux = " "
+Macos = " "
+Manjaro = " "
 Mint = "󰣭 "
 NixOS = "󱄅 "
-OpenBSD = " "
+OpenBSD = " "
 openEuler = "󰏒 "
-openSUSE = " "
-Pop = " "
-Raspbian = " "
-Redhat = " "
-RedHatEnterprise = " "
-RockyLinux = " "
-Solus = " "
-SUSE = " "
-Ubuntu = " "
-Unknown = " "
-Void = "  "
-Windows = " "
+openSUSE = " "
+Pop = " "
+Raspbian = " "
+Redhat = " "
+RedHatEnterprise = " "
+RockyLinux = " "
+Solus = " "
+SUSE = " "
+Ubuntu = " "
+Unknown = " "
+Void = "  "
+Windows = " "
 
 [git_branch]
-symbol = ""
+symbol = ""
 style = "bg:13"
 format = '[[ $symbol $branch ](fg:0 bg:13)]($style)'
 
@@ -88,7 +88,7 @@ style = "bg:13"
 format = '[[($all_status$ahead_behind )](fg:0 bg:13)]($style)'
 
 [nodejs]
-symbol = ""
+symbol = ""
 format = '[[ $symbol ($version)](fg:0 bg:2)]($style)'
 
 [bun]
@@ -97,17 +97,17 @@ style = "bg:2"
 format = '[[ $symbol ($version)](fg:0 bg:2)]($style)'
 
 [rust]
-symbol = ""
+symbol = ""
 style = "bg:2"
 format = '[[ $symbol ($version)](fg:0 bg:2)]($style)'
 
 [golang]
-symbol = ""
+symbol = ""
 style = "bg:2"
 format = '[[ $symbol ($version)](fg:0 bg:2)]($style)'
 
 [php]
-symbol = ""
+symbol = ""
 style = "bg:2"
 format = '[[ $symbol ($version)](fg:0 bg:2)]($style)'
 
@@ -119,7 +119,7 @@ when = "tailscale status | grep -q 'Tailscale is stopped.' && exit 1 || exit 0"
 
 # [custom.wireguard]
 # command = "wg show interfaces"
-# symbol = ""
+# symbol = ""
 # format = "[[ $symbol $output ](fg:0 bg:6)]($style)"
 # style = "bg:6"
 # when = "wg show interfaces | grep -q . && exit 0 || exit 1"

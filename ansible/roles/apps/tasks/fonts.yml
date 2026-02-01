@@ -1,45 +1,29 @@
 ---
-# Font installation
+# Font installation from Nextcloud
 
 - name: Ensure fonts directory exists
   ansible.builtin.file:
     path: "{{ ansible_env.HOME }}/.local/share/fonts"
     state: directory
     mode: '0755'
-  become: false
 
-- name: Check if Nerd Fonts are installed
-  ansible.builtin.find:
-    paths: "{{ ansible_env.HOME }}/.local/share/fonts"
-    patterns: "*Nerd*"
-  register: nerd_fonts
+- name: Download fonts archive from Nextcloud
+  ansible.builtin.get_url:
+    url: "https://nextcloud.ras.band/public.php/dav/files/GpCq3XxB684b85F/?accept=tar"
+    dest: "{{ ansible_env.HOME }}/.local/share/fonts/fonts.tar"
+    mode: '0644'
 
-- name: Download and install JetBrainsMono Nerd Font
-  when: nerd_fonts.matched == 0
-  block:
-    - name: Create temp directory for fonts
-      ansible.builtin.tempfile:
-        state: directory
-      register: font_temp
+- name: Extract fonts archive
+  ansible.builtin.unarchive:
+    src: "{{ ansible_env.HOME }}/.local/share/fonts/fonts.tar"
+    dest: "{{ ansible_env.HOME }}/.local/share/fonts"
+    remote_src: true
 
-    - name: Download JetBrainsMono Nerd Font
-      ansible.builtin.get_url:
-        url: https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip
-        dest: "{{ font_temp.path }}/JetBrainsMono.zip"
-        mode: '0644'
-
-    - name: Extract JetBrainsMono font
-      ansible.builtin.unarchive:
-        src: "{{ font_temp.path }}/JetBrainsMono.zip"
-        dest: "{{ ansible_env.HOME }}/.local/share/fonts/"
-        remote_src: true
-
-    - name: Cleanup temp directory
-      ansible.builtin.file:
-        path: "{{ font_temp.path }}"
-        state: absent
+- name: Remove fonts archive
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.local/share/fonts/fonts.tar"
+    state: absent
 
 - name: Refresh font cache
   ansible.builtin.command: fc-cache -fv
   changed_when: false
-  become: false

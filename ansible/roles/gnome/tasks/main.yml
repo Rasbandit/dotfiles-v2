@@ -59,7 +59,8 @@
   ansible.builtin.shell: gsettings set {{ item.schema }} {{ item.key }} "{{ item.value }}"
   loop:
     - { schema: "org.gnome.desktop.input-sources", key: "sources", value: "[('xkb', 'us'), ('xkb', 'jp')]" }
-    - { schema: "org.gnome.desktop.input-sources", key: "xkb-options", value: "['caps:escape_shifted_capslock']" }
+    # Note: CapsLock remapping is handled by xremap (see apps role)
+    - { schema: "org.gnome.desktop.input-sources", key: "xkb-options", value: "[]" }
   become: false
   changed_when: false
 
