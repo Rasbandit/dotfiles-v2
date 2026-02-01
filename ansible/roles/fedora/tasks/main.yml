@@ -1,0 +1,114 @@
+---
+# Fedora-specific setup
+
+- name: Configure DNF for faster downloads
+  ansible.builtin.lineinfile:
+    path: /etc/dnf/dnf.conf
+    line: "{{ item }}"
+    create: true
+  loop:
+    - "fastestmirror=true"
+    - "max_parallel_downloads=20"
+    - "installonly_limit=3"
+    - "deltarpm=true"
+    - "metadata_expire=24h"
+  become: true
+
+- name: Add RPM Fusion repository
+  ansible.builtin.dnf:
+    name: "https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-{{ ansible_distribution_major_version }}.noarch.rpm"
+    state: present
+    disable_gpg_check: true
+  become: true
+
+- name: Add Ghostty COPR repository
+  community.general.copr:
+    name: scottames/ghostty
+    state: enabled
+  become: true
+  ignore_errors: true
+
+- name: Install base Fedora packages
+  ansible.builtin.dnf:
+    name:
+      - curl
+      - jq
+      - pavucontrol
+      - traceroute
+      - gnome-tweaks
+      - dconf-editor
+      - htop
+      - fzf
+      - zoxide
+      - python3-pip
+      - nodejs
+      - rust
+      - cargo
+      - ripgrep
+      - ghostty
+      - bat
+      - btop
+      - fastfetch
+      - colordiff
+      - duf
+      - fd-find
+      - iotop
+      - langpacks-core-font-ja
+      - flatpak
+      - dnf-plugin-system-upgrade
+      - vlc
+    state: present
+  become: true
+
+- name: Install eza (modern ls)
+  ansible.builtin.dnf:
+    name: eza
+    state: present
+  become: true
+  ignore_errors: true
+
+- name: Swap mesa drivers for freeworld version
+  ansible.builtin.command: dnf swap mesa-va-drivers mesa-va-drivers-freeworld -y
+  become: true
+  ignore_errors: true
+
+- name: Ensure cargo env file exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.cargo/env"
+    state: touch
+    mode: '0644'
+    modification_time: preserve
+    access_time: preserve
+  become: false
+
+- name: Add Flathub repository
+  community.general.flatpak_remote:
+    name: flathub
+    flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
+    state: present
+  become: true
+
+- name: Install Flatpak applications
+  community.general.flatpak:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - com.discordapp.Discord
+    - md.obsidian.Obsidian
+    - com.spotify.Client
+    - com.obsproject.Studio
+    - org.kde.kdenlive
+  become: true
+
+- name: Include 1Password setup
+  ansible.builtin.include_tasks: 1password.yml
+
+- name: Include VS Code setup
+  ansible.builtin.include_tasks: vscode.yml
+
+- name: Include Vivaldi setup
+  ansible.builtin.include_tasks: vivaldi.yml
+
+- name: Include Tailscale setup
+  ansible.builtin.include_tasks: tailscale.yml
+  tags: [tailscale]

@@ -1,0 +1,29 @@
+---
+# VS Code installation for Debian/Ubuntu
+
+- name: Add Microsoft GPG key
+  ansible.builtin.apt_key:
+    url: https://packages.microsoft.com/keys/microsoft.asc
+    keyring: /usr/share/keyrings/microsoft-archive-keyring.gpg
+    state: present
+  become: true
+
+- name: Add VS Code repository
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/code stable main"
+    filename: vscode
+    state: present
+  become: true
+
+- name: Install VS Code
+  ansible.builtin.apt:
+    name: code
+    state: present
+    update_cache: true
+  become: true
+
+- name: Install VS Code Dracula theme
+  ansible.builtin.command: code --install-extension dracula-theme.theme-dracula
+  become: false
+  ignore_errors: true
+  changed_when: false

@@ -1,0 +1,27 @@
+[user]
+    email = {{ .email }}
+    name = rasbandit
+    signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID/GwbMkX+Q+R3fowyympfs3bRrWNhmRFgEy7G4EkyV1
+
+[gpg]
+    format = ssh
+
+[gpg "ssh"]
+    program = "/opt/1Password/op-ssh-sign"
+
+[commit]
+    gpgsign = true
+
+[init]
+    defaultBranch = main
+
+[core]
+    editor = code --wait
+
+[pull]
+    rebase = true
+
+[alias]
+    st = status -s
+    sta = status
+    pr = pull --rebase

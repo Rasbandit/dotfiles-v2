@@ -1,0 +1,15 @@
+---
+# Cross-platform application installs
+
+- name: Include xremap setup
+  ansible.builtin.include_tasks: xremap.yml
+  tags: [xremap]
+
+- name: Include fonts setup
+  ansible.builtin.include_tasks: fonts.yml
+  tags: [fonts]
+
+- name: Include Japanese input setup
+  ansible.builtin.include_tasks: japanese.yml
+  tags: [japanese]
+  when: ansible_facts['distribution'] == 'Fedora'

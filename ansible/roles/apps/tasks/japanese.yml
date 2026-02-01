@@ -1,0 +1,22 @@
+---
+# Japanese input method setup (Fedora)
+
+- name: Install fcitx5 and Japanese input
+  ansible.builtin.dnf:
+    name:
+      - fcitx5
+      - fcitx5-mozc
+      - fcitx5-configtool
+      - fcitx5-gtk
+      - fcitx5-qt
+    state: present
+  become: true
+
+- name: Install Japanese fonts
+  ansible.builtin.dnf:
+    name:
+      - langpacks-core-font-ja
+      - google-noto-sans-cjk-jp-fonts
+      - google-noto-serif-cjk-jp-fonts
+    state: present
+  become: true

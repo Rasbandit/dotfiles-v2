@@ -1,0 +1,123 @@
+# File system aliases
+alias ls='eza'
+alias lt='eza -alh -s=size'
+alias ldir='eza -d */'
+alias ll='eza -alh --icons --group-directories-first'
+alias lld='eza -alDh --icons'
+alias ..='z ..'
+alias ...='z ../..'
+alias ....='z ../../..'
+alias cdh='z ~'
+alias ~='z ~'
+alias cdw="z ~/Documents/work"
+alias cd='z'
+alias c="clear"
+alias rm='rm -I --preserve-root'
+alias grep="rg"
+alias cat='bat'
+alias sctl='systemctl'
+alias mkdir='mkdir -pv'
+alias diff='colordiff'
+alias mount='mount |column -t'
+alias h='history'
+alias j='jobs -l'
+
+# Edit Files/folders
+alias edit_aliases='code ~/.aliases'
+alias edit_starship='code ~/.config/starship.toml'
+alias edit_alacritty='code ~/.config/alacritty/alacritty.toml'
+alias edit_setup='code ~/.local/share/chezmoi'
+alias edit_bashrc='code ~/.bashrc'
+alias edit_history='code ~/.bash_history'
+alias edit_functions='code ~/.bash_functions'
+alias edit_espanso='code ~/.config/espanso'
+alias edit_autocomplete='code ~/.config/espanso'
+alias sbrc='source ~/.bashrc'
+
+# Generic
+alias e='echo'
+
+# Grep
+alias grep='rg --color=auto'
+alias egrep='rg --color=auto'
+alias fgrep='rg --color=auto'
+
+# Kubernetes
+alias k='kubectl'
+
+# Chezmoi dotfiles management (replaces old config alias)
+alias dots='chezmoi'
+alias dots_edit='chezmoi edit'
+alias dots_diff='chezmoi diff'
+alias dots_apply='chezmoi apply'
+alias dots_update='chezmoi update'
+alias dots_add='chezmoi add'
+alias dots_cd='cd $(chezmoi source-path)'
+
+# NPM
+alias npmr='rm -rf ./node_modules package-lock.json; npm i'
+
+# git
+alias fuck='git reset --soft HEAD^'
+
+# bash
+alias pls='sudo $(history -p !!)'
+
+# Utils
+alias path='echo -e ${PATH//:/\\n}'
+alias now='date +"%T"'
+alias nowtime=now
+alias nowdate='date +"%d-%m-%Y"'
+alias ports='netstat -tulanp'
+
+alias df='df -H'
+alias du='du -ch'
+
+## pass options to free ##
+alias meminfo='free -m -l -t -h'
+
+## get top process eating memory
+alias psmem='ps auxf | sort -nr -k 4'
+alias psmem10='ps auxf | sort -nr -k 4 | head -10'
+
+## get top process eating cpu ##
+alias pscpu='ps auxf | sort -nr -k 3'
+alias pscpu10='ps auxf | sort -nr -k 3 | head -10'
+
+## Get server cpu info ##
+alias cpuinfo='lscpu'
+
+alias extip='curl icanhazip.com'
+alias speedtest='curl -s https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py | python3 -'
+
+alias cs="create_script"
+function create_script() {
+    local SCRIPT_NAME=${1:-"test"}
+
+    touch ./${SCRIPT_NAME}.sh
+    chmod +x ./${SCRIPT_NAME}.sh
+    echo '#!/bin/bash' >> ./${SCRIPT_NAME}.sh
+    code ./${SCRIPT_NAME}.sh
+}
+
+# dnf
+alias i='sudo dnf install'
+alias upd='sudo dnf update'
+alias upg='sudo dnf upgrade --update'
+
+# Docker
+alias dbp="docker_build_publish"
+function docker_build_publish() {
+    local REGISTRY_URL=${1}
+    local IMAGE_NAME=${2}
+    local TAG=${3}
+    local DOCKER_FILE=${4:-"Dockerfile"}
+
+    docker build . -f ${DOCKER_FILE} -t ${IMAGE_NAME}:${TAG}
+    docker tag ${IMAGE_NAME}:${TAG} ${REGISTRY_URL}:${TAG}
+    docker push ${REGISTRY_URL}:${TAG}
+}
+
+alias tsu-home='sudo tailscale up --accept-routes --exit-node=100.82.250.90 --exit-node-allow-lan-access --stateful-filtering'
+alias tsd='sudo tailscale down'
+alias tss='tailscale status'

@@ -1,0 +1,93 @@
+---
+# GNOME desktop environment configuration
+
+- name: Install gnome-extensions-cli
+  ansible.builtin.pip:
+    name: gnome-extensions-cli
+    extra_args: --user --break-system-packages
+  become: false
+
+- name: Install GNOME extensions
+  ansible.builtin.command: gnome-extensions-cli install {{ item }}
+  loop:
+    - blur-my-shell@aunetx
+    - quick-settings-tweaks@qwreey
+    - caffeine@patapon.info
+    - activate-window-by-title@lucaswerkmeister.de
+  become: false
+  ignore_errors: true
+  changed_when: false
+
+- name: Enable user-theme extension
+  ansible.builtin.command: gnome-extensions enable user-theme@gnome-shell-extensions.gcampax.github.com
+  become: false
+  ignore_errors: true
+  changed_when: false
+
+- name: Configure GNOME interface settings
+  ansible.builtin.shell: gsettings set {{ item.schema }} {{ item.key }} "{{ item.value }}"
+  loop:
+    # Interface
+    - { schema: "org.gnome.desktop.interface", key: "enable-hot-corners", value: "false" }
+    - { schema: "org.gnome.desktop.interface", key: "show-battery-percentage", value: "true" }
+    - { schema: "org.gnome.desktop.interface", key: "color-scheme", value: "prefer-dark" }
+    - { schema: "org.gnome.desktop.interface", key: "icon-theme", value: "Papirus-Dark" }
+    - { schema: "org.gnome.desktop.interface", key: "monospace-font-name", value: "JetBrainsMono Nerd Font 13" }
+    # Clock
+    - { schema: "org.gnome.desktop.interface", key: "clock-format", value: "24h" }
+    - { schema: "org.gnome.desktop.interface", key: "clock-show-weekday", value: "true" }
+    - { schema: "org.gnome.desktop.interface", key: "clock-show-date", value: "true" }
+    - { schema: "org.gnome.desktop.interface", key: "clock-show-seconds", value: "true" }
+    # Sound
+    - { schema: "org.gnome.desktop.sound", key: "event-sounds", value: "false" }
+  become: false
+  changed_when: false
+
+- name: Configure mouse settings
+  ansible.builtin.shell: gsettings set {{ item.schema }} {{ item.key }} "{{ item.value }}"
+  loop:
+    - { schema: "org.gnome.desktop.peripherals.mouse", key: "natural-scroll", value: "false" }
+    - { schema: "org.gnome.desktop.peripherals.mouse", key: "accel-profile", value: "flat" }
+    - { schema: "org.gnome.desktop.peripherals.touchpad", key: "tap-to-click", value: "false" }
+    - { schema: "org.gnome.desktop.peripherals.touchpad", key: "natural-scroll", value: "false" }
+    - { schema: "org.gnome.desktop.peripherals.touchpad", key: "two-finger-scrolling-enabled", value: "true" }
+    - { schema: "org.gnome.desktop.peripherals.touchpad", key: "click-method", value: "fingers" }
+  become: false
+  changed_when: false
+
+- name: Configure keyboard and input sources
+  ansible.builtin.shell: gsettings set {{ item.schema }} {{ item.key }} "{{ item.value }}"
+  loop:
+    - { schema: "org.gnome.desktop.input-sources", key: "sources", value: "[('xkb', 'us'), ('xkb', 'jp')]" }
+    - { schema: "org.gnome.desktop.input-sources", key: "xkb-options", value: "['caps:escape_shifted_capslock']" }
+  become: false
+  changed_when: false
+
+- name: Configure window management
+  ansible.builtin.shell: gsettings set {{ item.schema }} {{ item.key }} "{{ item.value }}"
+  loop:
+    - { schema: "org.gnome.desktop.wm.keybindings", key: "switch-applications", value: "[]" }
+    - { schema: "org.gnome.desktop.wm.keybindings", key: "switch-applications-backward", value: "[]" }
+    - { schema: "org.gnome.desktop.wm.keybindings", key: "switch-windows", value: "['<Alt>Tab']" }
+    - { schema: "org.gnome.desktop.wm.keybindings", key: "switch-windows-backward", value: "['<Shift><Alt>Tab']" }
+    - { schema: "org.gnome.mutter", key: "experimental-features", value: "['variable-refresh-rate']" }
+  become: false
+  changed_when: false
+
+- name: Configure extension settings
+  ansible.builtin.shell: gsettings set {{ item.schema }} {{ item.key }} "{{ item.value }}"
+  loop:
+    - { schema: "org.gnome.shell.extensions.quick-settings-tweaks", key: "output-show-selected", value: "true" }
+    - { schema: "org.gnome.shell.extensions.quick-settings-tweaks", key: "input-show-selected", value: "true" }
+  become: false
+  ignore_errors: true
+  changed_when: false
+
+- name: Configure search providers
+  ansible.builtin.shell: |
+    gsettings set org.gnome.desktop.search-providers disabled "['org.gnome.Software.desktop', 'org.gnome.Characters.desktop', 'org.gnome.Contacts.desktop']"
+  become: false
+  changed_when: false
+
+- name: Include custom keybindings setup
+  ansible.builtin.include_tasks: keybindings.yml

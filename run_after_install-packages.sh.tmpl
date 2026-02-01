@@ -1,0 +1,19 @@
+#!/bin/bash
+# This script runs after chezmoi apply
+# It only runs ansible if this is the first apply (packages not installed yet)
+
+# Check if we've already run ansible (marker file)
+MARKER_FILE="$HOME/.config/chezmoi-ansible-done"
+
+if [ ! -f "$MARKER_FILE" ]; then
+    echo "First run detected - would you like to run ansible to install packages? [y/N]"
+    read -r response
+    if [[ "$response" =~ ^[Yy]$ ]]; then
+        cd "{{ .chezmoi.sourceDir }}/ansible"
+        ansible-playbook setup.yml --ask-become-pass
+        touch "$MARKER_FILE"
+    else
+        echo "Skipping ansible. Run manually with:"
+        echo "  cd {{ .chezmoi.sourceDir }}/ansible && ansible-playbook setup.yml --ask-become-pass"
+    fi
+fi

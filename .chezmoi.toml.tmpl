@@ -1,0 +1,15 @@
+# chezmoi configuration
+# This template prompts for machine-specific values on first run
+
+{{- $hostname := promptStringOnce . "hostname" "What is this machine's hostname" -}}
+{{- $machineType := promptChoiceOnce . "machineType" "What type of machine is this" (list "desktop-gaming" "laptop" "server") -}}
+{{- $email := promptStringOnce . "email" "What is your email address" -}}
+
+[data]
+    hostname = {{ $hostname | quote }}
+    machineType = {{ $machineType | quote }}
+    email = {{ $email | quote }}
+
+[onepassword]
+    command = "op"
+    prompt = true

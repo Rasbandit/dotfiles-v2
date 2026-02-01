@@ -1,0 +1,29 @@
+---
+# Base tasks that run on all systems
+
+- name: Ensure common directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "{{ ansible_env.HOME }}/.local/bin"
+    - "{{ ansible_env.HOME }}/.config"
+    - "{{ ansible_env.HOME }}/.config/systemd/user"
+  become: false
+
+- name: Create bash_secrets if it doesn't exist
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.bash_secrets"
+    state: touch
+    mode: '0600'
+    modification_time: preserve
+    access_time: preserve
+  become: false
+
+- name: Install starship prompt
+  ansible.builtin.shell: |
+    curl -sS https://starship.rs/install.sh | sh -s -- -y
+  args:
+    creates: /usr/local/bin/starship
+  become: true

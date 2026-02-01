@@ -1,0 +1,7 @@
+modmap:
+  - name: main
+    remap:
+      CapsLock:
+        held: [leftctrl, leftshift, leftalt] # Required, also accepts arrays
+        alone: esc # Required, also accepts arrays
+        alone_timeout_millis: 160 # Optional
