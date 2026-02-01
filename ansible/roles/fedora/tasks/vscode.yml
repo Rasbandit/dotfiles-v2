@@ -23,8 +23,17 @@
     state: present
   become: true
 
-- name: Install VS Code Dracula theme
-  ansible.builtin.command: code --install-extension dracula-theme.theme-dracula
-  become: false
-  ignore_errors: true
+- name: Download Dracula Pro theme
+  ansible.builtin.get_url:
+    url: "https://nextcloud.ras.band/public.php/dav/files/gaBCyX3XeTbBKyF/?accept=zip"
+    dest: "{{ ansible_env.HOME }}/Downloads/dracula-pro.vsix"
+    mode: '0644'
+
+- name: Install Dracula Pro theme
+  ansible.builtin.command: code --install-extension "{{ ansible_env.HOME }}/Downloads/dracula-pro.vsix"
   changed_when: false
+
+- name: Remove Dracula Pro vsix
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/Downloads/dracula-pro.vsix"
+    state: absent
