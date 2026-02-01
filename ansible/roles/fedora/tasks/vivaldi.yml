@@ -1,0 +1,24 @@
+---
+# Vivaldi browser installation for Fedora
+
+- name: Import Vivaldi GPG key
+  ansible.builtin.rpm_key:
+    key: https://repo.vivaldi.com/archive/linux_signing_key.pub
+    state: present
+  become: true
+
+- name: Add Vivaldi repository
+  ansible.builtin.yum_repository:
+    name: vivaldi
+    description: Vivaldi Browser
+    baseurl: https://repo.vivaldi.com/archive/rpm/$basearch
+    enabled: true
+    gpgcheck: true
+    gpgkey: https://repo.vivaldi.com/archive/linux_signing_key.pub
+  become: true
+
+- name: Install Vivaldi
+  ansible.builtin.dnf:
+    name: vivaldi-stable
+    state: present
+  become: true

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Exec=/opt/Signal/signal-desktop --no-sandbox --start-in-tray %U
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Name[en_US]=Signal Messenger
+Name=Signal Messenger
+Comment[en_US]=
+Comment=

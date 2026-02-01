@@ -1,0 +1,15 @@
+# Files to ignore (not managed by chezmoi)
+README.md
+LICENSE
+ansible/
+bootstrap.sh
+
+# Ignore machine-specific generated files
+.bash_history
+.cache/
+.local/
+
+# IDE/editor files
+.vscode/
+*.swp
+*~

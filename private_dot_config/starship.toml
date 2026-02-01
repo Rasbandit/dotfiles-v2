@@ -1,0 +1,131 @@
+format = """
+[ $os](bg:4 fg:0)\
+[](bg:12 fg:4)\
+$directory\
+[](fg:12 bg:13)\
+$git_branch\
+$git_status\
+[](fg:13 bg:2)\
+$nodejs\
+$rust\
+$golang\
+$php\
+[](fg:2 bg:14)\
+$custom\
+[ ](fg:14)\
+$cmd_duration\
+\n$character"""
+
+[character]
+success_symbol = '[❯](2)'
+error_symbol = '[❯](9)'
+
+[directory]
+style = "fg:0 bg:12"
+format = "[ $path ]($style)"
+truncation_length = 3
+truncation_symbol = "…/"
+
+[directory.substitutions]
+"Documents" = "󰈙"
+"Downloads" = ""
+"Music" = ""
+"Pictures" = ""
+
+[cmd_duration]
+min_time = 3500
+format = '[$duration](3 bold)'
+
+[os]
+format = "[[$symbol](bg:4 fg:0)]($style)"
+style = "bg:4"
+disabled = false
+
+[os.symbols]
+AlmaLinux = " "
+Alpine = " "
+Amazon = " "
+Android = " "
+Arch = "󰣇 "
+Artix = "󰣇 "
+CentOS = " "
+Debian = " "
+DragonFly = " "
+EndeavourOS = " "
+Fedora = " "
+FreeBSD = " "
+Garuda = " "
+Gentoo = "󰣨 "
+Illumos = " "
+Kali = " "
+Linux = " "
+Macos = " "
+Manjaro = " "
+Mint = "󰣭 "
+NixOS = "󱄅 "
+OpenBSD = " "
+openEuler = "󰏒 "
+openSUSE = " "
+Pop = " "
+Raspbian = " "
+Redhat = " "
+RedHatEnterprise = " "
+RockyLinux = " "
+Solus = " "
+SUSE = " "
+Ubuntu = " "
+Unknown = " "
+Void = "  "
+Windows = " "
+
+[git_branch]
+symbol = ""
+style = "bg:13"
+format = '[[ $symbol $branch ](fg:0 bg:13)]($style)'
+
+[git_status]
+style = "bg:13"
+format = '[[($all_status$ahead_behind )](fg:0 bg:13)]($style)'
+
+[nodejs]
+symbol = ""
+format = '[[ $symbol ($version)](fg:0 bg:2)]($style)'
+
+[bun]
+symbol = "🍞"
+style = "bg:2"
+format = '[[ $symbol ($version)](fg:0 bg:2)]($style)'
+
+[rust]
+symbol = ""
+style = "bg:2"
+format = '[[ $symbol ($version)](fg:0 bg:2)]($style)'
+
+[golang]
+symbol = ""
+style = "bg:2"
+format = '[[ $symbol ($version)](fg:0 bg:2)]($style)'
+
+[php]
+symbol = ""
+style = "bg:2"
+format = '[[ $symbol ($version)](fg:0 bg:2)]($style)'
+
+[custom.tailscale]
+symbol = "󰈺"
+format = "[[ $symbol Tailscale ](fg:0 bg:14)]($style)"
+style = "(fg:0 bg:6)"
+when = "tailscale status | grep -q 'Tailscale is stopped.' && exit 1 || exit 0"
+
+# [custom.wireguard]
+# command = "wg show interfaces"
+# symbol = ""
+# format = "[[ $symbol $output ](fg:0 bg:6)]($style)"
+# style = "bg:6"
+# when = "wg show interfaces | grep -q . && exit 0 || exit 1"
+
+[time]
+disabled = false
+time_format = "%.3f" # Hour:Minute Format
+style = "bg:1"
+format = '[[ $time ](fg:0 bg:1)]($style)'

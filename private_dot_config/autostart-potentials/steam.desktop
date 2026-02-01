@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Steam
+Comment=Start Steam in background
+Exec=steam -silent
+Icon=steam
+Terminal=false
+Type=Application
+Categories=Game;
+X-GNOME-Autostart-Delay=2

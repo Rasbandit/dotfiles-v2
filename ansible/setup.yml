@@ -1,0 +1,48 @@
+---
+# Main setup playbook
+# Run with: ansible-playbook setup.yml --ask-become-pass
+# Or with tags: ansible-playbook setup.yml --ask-become-pass --tags "base,apps"
+
+- name: Setup workstation
+  hosts: localhost
+  become: false  # Set per-task, not globally
+
+  vars:
+    machine_type: "{{ lookup('env', 'MACHINE_TYPE') | default('laptop', true) }}"
+
+  pre_tasks:
+    - name: Detect OS family
+      ansible.builtin.set_fact:
+        os_family: "{{ ansible_facts['os_family'] | lower }}"
+        os_distribution: "{{ ansible_facts['distribution'] | lower }}"
+
+    - name: Display detected system
+      ansible.builtin.debug:
+        msg: "Setting up {{ os_distribution }} ({{ os_family }}) as {{ machine_type }}"
+
+  roles:
+    - role: base
+      tags: [base, always]
+
+    - role: fedora
+      when: os_distribution == 'fedora'
+      tags: [fedora, distro]
+
+    - role: debian
+      when: os_family == 'debian'
+      tags: [debian, distro]
+
+    - role: apps
+      tags: [apps]
+
+    - role: gnome
+      tags: [gnome, desktop]
+
+  post_tasks:
+    - name: Setup complete
+      ansible.builtin.debug:
+        msg: |
+          Setup complete! Next steps:
+          1. Log out and back in for group changes to take effect
+          2. Run 'chezmoi apply' to apply dotfiles
+          3. Start services: systemctl --user start xremap

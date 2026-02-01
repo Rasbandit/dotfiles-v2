@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=ES_DE
+Comment=Start EmulationStation-Desktop Edition
+Exec=/home/rasbandit/Applications/ES-DE_x64.AppImage
+Terminal=false
+Type=Application
+Categories=Game;

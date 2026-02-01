@@ -1,0 +1,38 @@
+---
+# Custom GNOME keybindings
+
+- name: Set custom keybindings
+  ansible.builtin.shell: |
+    # Function to add/update custom keybinding
+    add_keybinding() {
+        local NAME="$1"
+        local COMMAND="$2"
+        local BINDING="$3"
+        local INDEX="$4"
+
+        local PATH="/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom${INDEX}/"
+        local SCHEMA="org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:${PATH}"
+
+        gsettings set "${SCHEMA}" name "${NAME}"
+        gsettings set "${SCHEMA}" command "${COMMAND}"
+        gsettings set "${SCHEMA}" binding "${BINDING}"
+    }
+
+    # Define all keybindings
+    add_keybinding "1pass Quick" "1password --quick-access" "<Control><Shift><Alt>space" 0
+    add_keybinding "1pass" "{{ ansible_env.HOME }}/.local/bin/focus-or-run.sh 1Password 1password" "<Control><Shift><Alt>1" 1
+    add_keybinding "Vivaldi" "{{ ansible_env.HOME }}/.local/bin/focus-or-run.sh Vivaldi vivaldi" "<Control><Shift><Alt>v" 2
+    add_keybinding "Spotify" "{{ ansible_env.HOME }}/.local/bin/focus-or-run.sh spotify" "<Control><Shift><Alt>m" 3
+    add_keybinding "Ghostty" "{{ ansible_env.HOME }}/.local/bin/focus-or-run.sh com.mitchellh.ghostty ghostty" "<Control><Shift><Alt>t" 4
+    add_keybinding "VSCode" "{{ ansible_env.HOME }}/.local/bin/focus-or-run.sh Code code" "<Control><Shift><Alt>c" 5
+    add_keybinding "Discord" "{{ ansible_env.HOME }}/.local/bin/focus-or-run.sh discord 'flatpak run com.discordapp.Discord'" "<Control><Shift><Alt>d" 6
+    add_keybinding "Obsidian" "{{ ansible_env.HOME }}/.local/bin/focus-or-run.sh obsidian 'flatpak run md.obsidian.Obsidian'" "<Control><Shift><Alt>q" 7
+    add_keybinding "Slack" "{{ ansible_env.HOME }}/.local/bin/focus-or-run.sh Slack slack" "<Control><Shift><Alt>s" 8
+    add_keybinding "Emoji" "flatpak run com.tomjwatson.Emote" "<Control><Shift><Alt>semicolon" 9
+
+    # Register all keybindings
+    gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom4/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom5/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom6/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom7/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom8/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom9/']"
+  args:
+    executable: /bin/bash
+  become: false
+  changed_when: false

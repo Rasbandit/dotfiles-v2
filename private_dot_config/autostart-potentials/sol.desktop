@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=sleep-on-lan
+Comment=Start sleep on lan
+Exec=/home/rasbandit/Applications/sleep-on-lan/sol
+Terminal=false
+Type=Application
+Categories=Utility
+X-GNOME-Autostart-Delay=10

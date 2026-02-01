@@ -1,0 +1,24 @@
+---
+# Tailscale installation for Fedora
+
+- name: Add Tailscale repository
+  ansible.builtin.yum_repository:
+    name: tailscale-stable
+    description: Tailscale stable
+    baseurl: https://pkgs.tailscale.com/stable/fedora/$basearch
+    enabled: true
+    gpgcheck: false
+  become: true
+
+- name: Install Tailscale
+  ansible.builtin.dnf:
+    name: tailscale
+    state: present
+  become: true
+
+- name: Enable and start Tailscale service
+  ansible.builtin.systemd:
+    name: tailscaled
+    enabled: true
+    state: started
+  become: true

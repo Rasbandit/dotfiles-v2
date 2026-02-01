@@ -1,0 +1,30 @@
+---
+# VS Code installation for Fedora
+
+- name: Import Microsoft GPG key
+  ansible.builtin.rpm_key:
+    key: https://packages.microsoft.com/keys/microsoft.asc
+    state: present
+  become: true
+
+- name: Add VS Code repository
+  ansible.builtin.yum_repository:
+    name: code
+    description: Visual Studio Code
+    baseurl: https://packages.microsoft.com/yumrepos/vscode
+    enabled: true
+    gpgcheck: true
+    gpgkey: https://packages.microsoft.com/keys/microsoft.asc
+  become: true
+
+- name: Install VS Code
+  ansible.builtin.dnf:
+    name: code
+    state: present
+  become: true
+
+- name: Install VS Code Dracula theme
+  ansible.builtin.command: code --install-extension dracula-theme.theme-dracula
+  become: false
+  ignore_errors: true
+  changed_when: false

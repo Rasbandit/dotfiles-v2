@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Sunshine
+Comment=Sunshine Remote Desktop
+Exec=/usr/bin/sunshine
+Terminal=false
+Type=Application
+Categories=Remote Access
+X-GNOME-Autostart-Delay=20
