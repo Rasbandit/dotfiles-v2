@@ -3,18 +3,21 @@ set -euo pipefail
 
 # ============================================================================
 # Dotfiles Bootstrap Script
-# Run with: curl -sL https://bit.ly/bandit-dotfiles-init | bash
+# Run with: curl -sL https://raw.githubusercontent.com/Rasbandit/dotfiles-v2/main/bootstrap.sh | bash
 # ============================================================================
 
-REPO="Rasbandit/dotfiles"  # Change to your repo
+REPO="Rasbandit/dotfiles-v2"
 BRANCH="main"
+RAW_BASE="https://raw.githubusercontent.com/Rasbandit/dotfiles-v2/main"
 
 echo "============================================"
 echo "  Dotfiles Bootstrap - Setting up machine  "
 echo "============================================"
 echo ""
 
+# ============================================================================
 # Detect OS
+# ============================================================================
 if [ -f /etc/os-release ]; then
     . /etc/os-release
     OS=$ID
@@ -27,20 +30,128 @@ echo "Detected OS: $OS"
 echo ""
 
 # ============================================================================
-# Step 1: Install essential packages
+# Elevate sudo early so password isn't prompted mid-script
 # ============================================================================
-echo "[1/5] Installing essential packages..."
+echo "This script requires sudo. Please enter your password:"
+sudo -v
+echo ""
+
+# ============================================================================
+# Prompt: Machine type
+# ============================================================================
+echo "What type of machine is this?"
+echo "  1) temporary  - Quick SSH session, just give me my shell"
+echo "  2) server     - Persistent server, no desktop"
+echo "  3) laptop     - Full setup, no gaming extras"
+echo "  4) desktop    - Full setup with gaming packages"
+echo ""
+read -rp "Enter choice [1-4]: " machine_choice
+
+case $machine_choice in
+    1) MACHINE_TYPE="temporary" ;;
+    2) MACHINE_TYPE="server" ;;
+    3) MACHINE_TYPE="laptop" ;;
+    4) MACHINE_TYPE="desktop" ;;
+    *) echo "Invalid choice. Defaulting to laptop."; MACHINE_TYPE="laptop" ;;
+esac
+
+echo ""
+
+# ============================================================================
+# Prompt: Terminal tools
+# ============================================================================
+read -rp "Install terminal tools? [Y/n]: " tools_choice
+case "${tools_choice:-Y}" in
+    [Yy]*|"") INSTALL_TOOLS=true ;;
+    *) INSTALL_TOOLS=false ;;
+esac
+
+echo ""
+echo "Machine type : $MACHINE_TYPE"
+echo "Install tools: $INSTALL_TOOLS"
+echo ""
+
+# ============================================================================
+# Path 1: Temporary
+# ============================================================================
+if [ "$MACHINE_TYPE" = "temporary" ]; then
+    echo "--- Temporary setup: fast, no git auth, no ansible ---"
+    echo ""
+
+    mkdir -p ~/.config
+
+    echo "[1/4] Downloading config files..."
+    curl -fsSL "$RAW_BASE/dot_aliases"        -o ~/.aliases
+    curl -fsSL "$RAW_BASE/dot_bash_functions" -o ~/.bash_functions
+    curl -fsSL "$RAW_BASE/dot_bashrc"         -o ~/.bashrc
+    curl -fsSL "$RAW_BASE/private_dot_config/starship.toml" -o ~/.config/starship.toml
+
+    echo "[2/4] Writing minimal .gitconfig (no 1Password signing)..."
+    cat > ~/.gitconfig <<'GITCONFIG'
+[user]
+    name = rasbandit
+    email = todd.rasband@gmail.com
+[init]
+    defaultBranch = main
+[pull]
+    rebase = true
+[alias]
+    st = status -s
+    pr = pull --rebase
+GITCONFIG
+
+    echo "[3/4] Installing starship..."
+    curl -sS https://starship.rs/install.sh | sh -s -- -y
+
+    if [ "$INSTALL_TOOLS" = true ]; then
+        echo "[4/4] Installing terminal essentials..."
+        case $OS in
+            fedora)
+                sudo dnf install -y fzf zoxide bat eza ripgrep colordiff jq fastfetch
+                ;;
+            ubuntu|debian)
+                sudo apt update -q
+                sudo apt install -y fzf zoxide bat ripgrep jq colordiff
+                if ! command -v eza &>/dev/null; then
+                    if command -v cargo &>/dev/null; then
+                        cargo install eza
+                    fi
+                fi
+                ;;
+            arch)
+                sudo pacman -Sy --noconfirm fzf zoxide bat eza ripgrep colordiff jq fastfetch
+                ;;
+            *)
+                echo "Warning: unsupported OS '$OS', skipping tool install."
+                ;;
+        esac
+    else
+        echo "[4/4] Skipping tool install."
+    fi
+
+    echo ""
+    echo "============================================"
+    echo "  Done! Run: exec bash                      "
+    echo "============================================"
+    exit 0
+fi
+
+# ============================================================================
+# Shared: install prerequisites (server / laptop / desktop)
+# ============================================================================
+echo "[1] Installing prerequisites..."
 
 case $OS in
     fedora)
         sudo dnf install -y git curl ansible python3-pip
         ;;
     ubuntu|debian)
-        sudo apt update
+        sudo apt update -q
         sudo apt install -y git curl ansible python3-pip
         ;;
     arch)
         sudo pacman -Sy --noconfirm git curl ansible python-pip
+        echo "Warning: no Arch ansible role exists — base tasks only."
         ;;
     *)
         echo "Unsupported OS: $OS"
@@ -48,14 +159,10 @@ case $OS in
         ;;
 esac
 
-# Install ansible community general collection
-ansible-galaxy collection install community.general
-
 # ============================================================================
-# Step 2: Install chezmoi
+# Shared: install chezmoi
 # ============================================================================
-echo ""
-echo "[2/5] Installing chezmoi..."
+echo "[2] Installing chezmoi..."
 
 if ! command -v chezmoi &>/dev/null; then
     sh -c "$(curl -fsLS get.chezmoi.io)" -- -b ~/.local/bin
@@ -63,68 +170,93 @@ if ! command -v chezmoi &>/dev/null; then
 fi
 
 # ============================================================================
-# Step 3: Initialize chezmoi with dotfiles repo
+# Shared: persist machine type for ansible
 # ============================================================================
-echo ""
-echo "[3/5] Initializing chezmoi with dotfiles..."
+mkdir -p ~/.config/chezmoi
+echo "$MACHINE_TYPE" > ~/.config/chezmoi/machine-type
 
-# This will prompt for machine-specific values (hostname, machine type, email)
+# ============================================================================
+# Path 2: Server
+# ============================================================================
+if [ "$MACHINE_TYPE" = "server" ]; then
+    echo "--- Server setup: persistent, no desktop ---"
+    echo ""
+
+    echo "[3] Pre-creating chezmoi config (non-interactive)..."
+    cat > ~/.config/chezmoi/chezmoi.toml <<CHEZMOI
+[data]
+    hostname = "$(hostname)"
+    machineType = "server"
+    email = "todd.rasband@gmail.com"
+[onepassword]
+    command = "op"
+    prompt = false
+CHEZMOI
+
+    # Prevent run_after from prompting — ansible runs below
+    touch ~/.config/chezmoi-ansible-done
+
+    echo "[4] Running chezmoi init --apply..."
+    chezmoi init --apply "$REPO" --branch "$BRANCH"
+
+    if [ "$INSTALL_TOOLS" = true ]; then
+        echo "[5] Running ansible (terminal tag only)..."
+        CHEZMOI_SOURCE=$(chezmoi source-path)
+        cd "$CHEZMOI_SOURCE/ansible"
+        ansible-galaxy collection install community.general
+        MACHINE_TYPE="$MACHINE_TYPE" ansible-playbook setup.yml --tags terminal --ask-become-pass
+    fi
+
+    echo ""
+    echo "============================================"
+    echo "  Server setup complete!                    "
+    echo "============================================"
+    echo ""
+    echo "Next: set up 1Password CLI, then run:"
+    echo "  chezmoi apply"
+    exit 0
+fi
+
+# ============================================================================
+# Path 3+4: Laptop / Desktop (full setup)
+# ============================================================================
+echo "--- Full setup: $MACHINE_TYPE ---"
+echo ""
+
+echo "[3] Installing ansible collections..."
+ansible-galaxy collection install community.general
+
+# Prevent run_after from asking to run ansible — we run it below
+touch ~/.config/chezmoi-ansible-done
+
+echo "[4] Running chezmoi init --apply (interactive)..."
 chezmoi init --apply "$REPO" --branch "$BRANCH"
 
-# ============================================================================
-# Step 4: Run Ansible playbook
-# ============================================================================
-echo ""
-echo "[4/5] Running Ansible playbook..."
-echo "This will prompt for your sudo password."
-echo ""
-
+echo "[5] Running ansible playbook..."
 CHEZMOI_SOURCE=$(chezmoi source-path)
 cd "$CHEZMOI_SOURCE/ansible"
-
-# Prompt for machine type
-echo "What type of machine is this?"
-echo "1) desktop-gaming"
-echo "2) laptop"
-echo "3) server"
-read -p "Enter choice [1-3]: " machine_choice
-
-case $machine_choice in
-    1) MACHINE_TYPE="desktop-gaming" ;;
-    2) MACHINE_TYPE="laptop" ;;
-    3) MACHINE_TYPE="server" ;;
-    *) MACHINE_TYPE="laptop" ;;
-esac
-
-export MACHINE_TYPE
-
-# Run ansible
 ansible-playbook setup.yml --ask-become-pass
-
-# ============================================================================
-# Step 5: Final setup
-# ============================================================================
-echo ""
-echo "[5/5] Final setup..."
-
-# Reload bashrc
-if [ -f ~/.bashrc ]; then
-    source ~/.bashrc 2>/dev/null || true
-fi
 
 echo ""
 echo "============================================"
-echo "  Bootstrap Complete!                       "
+echo "  Phase 1 Complete!                         "
 echo "============================================"
 echo ""
 echo "Next steps:"
+echo ""
 echo "  1. Log out and back in for group changes"
-echo "  2. Start xremap: systemctl --user start xremap"
-echo "  3. Configure 1Password and run: chezmoi apply"
+echo ""
+echo "  2. Set up 1Password:"
+echo "     - Install and sign in to 1Password desktop app"
+echo "     - Settings → Developer → Enable 'Connect with 1Password CLI'"
+echo "     - Open a new terminal, test: op account list"
+echo ""
+echo "  3. Run Phase 2 (after 1Password is ready):"
+echo "     cd ~/.local/share/chezmoi/ansible"
+echo "     ansible-playbook setup.yml --ask-become-pass --tags phase2"
 echo ""
 echo "Useful commands:"
 echo "  dots_diff   - See what would change"
 echo "  dots_apply  - Apply dotfile changes"
 echo "  dots_update - Pull and apply updates"
 echo "  dots_edit   - Edit a managed file"
-echo ""

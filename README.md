@@ -5,18 +5,17 @@ Personal dotfiles managed with [chezmoi](https://chezmoi.io/) + [Ansible](https:
 ## Quick Start (New Machine)
 
 ```bash
-curl -sL https://bit.ly/bandit-dotfiles-init | bash
+curl -sL https://raw.githubusercontent.com/Rasbandit/dotfiles-v2/main/bootstrap.sh | bash
 ```
 
-Or manually:
+The script prompts for machine type and whether to install terminal tools:
 
-```bash
-# Install chezmoi
-sh -c "$(curl -fsLS get.chezmoi.io)"
-
-# Initialize and apply
-chezmoi init --apply Rasbandit/dotfiles
-```
+| Type | What it does |
+|------|-------------|
+| `temporary` | Downloads config files directly, installs starship + ~8 tools. No git auth, no ansible. |
+| `server` | Installs chezmoi, pre-creates config non-interactively, optionally runs ansible `--tags terminal`. |
+| `laptop` | Full chezmoi + ansible setup. No gaming packages. |
+| `desktop` | Full chezmoi + ansible setup with gaming packages. |
 
 ## Daily Usage
 
@@ -34,7 +33,8 @@ chezmoi init --apply Rasbandit/dotfiles
 ```
 .
 ├── .chezmoi.toml.tmpl      # Machine-specific config (hostname, type, email)
-├── .chezmoiignore          # Files to ignore
+├── .chezmoiignore          # Files to ignore (ansible/, bootstrap.sh are NOT dotfiles)
+├── TOOLS.md                # CLI tool runbook — update when adding new tools
 ├── bootstrap.sh            # One-liner setup script
 ├── dot_*                   # Dotfiles (dot_ becomes .)
 ├── private_dot_*           # Private dotfiles (600 permissions)
@@ -45,11 +45,23 @@ chezmoi init --apply Rasbandit/dotfiles
 └── ansible/                # Software installation
     ├── setup.yml           # Main playbook
     └── roles/
-        ├── base/           # Cross-platform basics
-        ├── fedora/         # Fedora-specific
-        ├── debian/         # Debian/Ubuntu-specific
-        └── apps/           # Apps (xremap, fonts, etc.)
+        ├── base/           # Cross-platform basics (starship, cron sync)
+        ├── fedora/         # Fedora-specific packages
+        ├── debian/         # Debian/Ubuntu-specific packages
+        ├── apps/           # Cross-platform apps (xremap, fonts, japanese)
+        └── gnome/          # GNOME settings + extensions (desktop/laptop only)
 ```
+
+### machine_type
+
+Persisted to `~/.config/chezmoi/machine-type` by bootstrap (and chezmoi config).
+Ansible reads this file to apply conditional installs. Valid values:
+
+| Value | Description |
+|-------|-------------|
+| `desktop` | Full setup + gaming packages (OBS, Kdenlive) |
+| `laptop` | Full setup, no gaming extras |
+| `server` | Terminal tools only, no desktop/GNOME |
 
 ## 1Password Integration
 
@@ -84,7 +96,8 @@ ansible-playbook setup.yml --ask-become-pass --tags "apps"
 
 ## Machine Types
 
-Set during init, used by ansible for conditional installs:
-- `desktop-gaming` - Full setup with gaming packages
-- `laptop` - Standard setup without gaming extras
-- `server` - Minimal server setup
+Set during bootstrap, used by chezmoi and ansible for conditional installs:
+- `desktop` - Full setup with gaming packages
+- `laptop` - Full setup without gaming extras
+- `server` - Persistent server, no desktop apps
+- `temporary` - Throwaway SSH session, minimal setup (no chezmoi/ansible)
