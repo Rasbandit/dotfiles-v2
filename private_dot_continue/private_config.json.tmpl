@@ -1,0 +1,80 @@
+{
+  "models": [
+    {
+      "title": "GPT-4.1",
+      "provider": "openai",
+      "model": "gpt-4.1",
+      "apiKey": "{{ onepasswordRead "op://Personal/AI API Keys/openai" }}",
+      "temperature": 0.7,
+      "maxTokens": 4096
+    },
+    {
+      "title": "GPT-4.1 Mini",
+      "provider": "openai",
+      "model": "gpt-4.1-mini",
+      "apiKey": "{{ onepasswordRead "op://Personal/AI API Keys/openai" }}",
+      "temperature": 0.7,
+      "maxTokens": 4096
+    },
+    {
+      "title": "Grok Code Fast 1",
+      "model": "grok-code-fast-1",
+      "contextLength": 256000,
+      "apiKey": "{{ onepasswordRead "op://Personal/AI API Keys/xai" }}",
+      "provider": "xAI"
+    },
+    {
+      "model": "qwen2.5-coder:7b",
+      "title": "Qwen 2.5-coder 7b",
+      "provider": "ollama",
+      "apiBase": "http://10.0.20.214:11434",
+      "baseUrl": "http://10.0.20.214:11434"
+    },
+    {
+      "apiKey": "{{ onepasswordRead "op://Personal/AI API Keys/mistral" }}",
+      "title": "Codestral",
+      "model": "codestral-latest",
+      "provider": "mistral"
+    },
+    {
+      "model": "claude-4-sonnet-latest",
+      "title": "Claude 4 Sonnet",
+      "apiKey": "{{ onepasswordRead "op://Personal/AI API Keys/anthropic" }}",
+      "provider": "anthropic"
+    },
+    {
+      "model": "claude-3-5-haiku-latest",
+      "title": "Claude 3.5 Haiku",
+      "apiKey": "{{ onepasswordRead "op://Personal/AI API Keys/anthropic" }}",
+      "provider": "anthropic"
+    },
+    {
+      "title": "Gemini 2.0 Flash",
+      "model": "gemini-2.0-flash",
+      "contextLength": 1000000,
+      "apiKey": "{{ onepasswordRead "op://Personal/AI API Keys/gemini" }}",
+      "provider": "gemini"
+    }
+  ],
+  "tabAutocompleteModel": {
+    "apiKey": "{{ onepasswordRead "op://Personal/AI API Keys/mistral" }}",
+    "title": "Codestral",
+    "model": "codestral-latest",
+    "provider": "mistral"
+  },
+  "contextProviders": [
+    { "name": "code", "params": {} },
+    { "name": "docs", "params": {} },
+    { "name": "diff", "params": {} },
+    { "name": "terminal", "params": {} },
+    { "name": "problems", "params": {} },
+    { "name": "folder", "params": {} },
+    { "name": "codebase", "params": {} }
+  ],
+  "slashCommands": [
+    { "name": "share", "description": "Export the current chat session to markdown" },
+    { "name": "cmd", "description": "Generate a shell command" },
+    { "name": "commit", "description": "Generate a git commit message" }
+  ],
+  "data": []
+}
