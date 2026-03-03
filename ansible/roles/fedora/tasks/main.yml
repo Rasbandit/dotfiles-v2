@@ -28,37 +28,23 @@
   become: true
   ignore_errors: true
 
-- name: Install base Fedora packages
+- name: Install Fedora terminal packages
   ansible.builtin.dnf:
     name:
       - curl
       - jq
-      - pavucontrol
-      - traceroute
-      - gnome-tweaks
-      - dconf-editor
       - htop
       - fzf
       - zoxide
-      - python3-pip
-      - nodejs
-      - rust
-      - cargo
       - ripgrep
-      - ghostty
       - bat
       - btop
       - fastfetch
       - colordiff
-      - duf
       - fd-find
-      - iotop
-      - langpacks-core-font-ja
-      - flatpak
-      - dnf-plugin-system-upgrade
-      - vlc
     state: present
   become: true
+  tags: [terminal]
 
 - name: Install eza (modern ls)
   ansible.builtin.dnf:
@@ -66,6 +52,29 @@
     state: present
   become: true
   ignore_errors: true
+  tags: [terminal]
+
+- name: Install Fedora desktop packages
+  ansible.builtin.dnf:
+    name:
+      - pavucontrol
+      - traceroute
+      - gnome-tweaks
+      - dconf-editor
+      - python3-pip
+      - nodejs
+      - rust
+      - cargo
+      - ghostty
+      - duf
+      - iotop
+      - langpacks-core-font-ja
+      - flatpak
+      - dnf-plugin-system-upgrade
+      - vlc
+      - wireguard-tools
+    state: present
+  become: true
 
 - name: Swap mesa drivers for freeworld version
   ansible.builtin.command: dnf swap mesa-va-drivers mesa-va-drivers-freeworld -y
@@ -88,7 +97,7 @@
     state: present
   become: true
 
-- name: Install Flatpak applications
+- name: Install Flatpak apps (all desktop types)
   community.general.flatpak:
     name: "{{ item }}"
     state: present
@@ -96,9 +105,17 @@
     - com.discordapp.Discord
     - md.obsidian.Obsidian
     - com.spotify.Client
+  become: true
+
+- name: Install gaming/creative Flatpak apps (desktop only)
+  community.general.flatpak:
+    name: "{{ item }}"
+    state: present
+  loop:
     - com.obsproject.Studio
     - org.kde.kdenlive
   become: true
+  when: machine_type == 'desktop'
 
 - name: Include 1Password setup
   ansible.builtin.include_tasks: 1password.yml

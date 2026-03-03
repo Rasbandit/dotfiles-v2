@@ -35,3 +35,23 @@ decompress_all() {
         esac
     done
 }
+
+create_script() {
+    local SCRIPT_NAME=${1:-"test"}
+
+    touch "./${SCRIPT_NAME}.sh"
+    chmod +x "./${SCRIPT_NAME}.sh"
+    echo '#!/bin/bash' >> "./${SCRIPT_NAME}.sh"
+    code "./${SCRIPT_NAME}.sh"
+}
+
+docker_build_publish() {
+    local REGISTRY_URL=${1}
+    local IMAGE_NAME=${2}
+    local TAG=${3}
+    local DOCKER_FILE=${4:-"Dockerfile"}
+
+    docker build . -f "${DOCKER_FILE}" -t "${IMAGE_NAME}:${TAG}"
+    docker tag "${IMAGE_NAME}:${TAG}" "${REGISTRY_URL}:${TAG}"
+    docker push "${REGISTRY_URL}:${TAG}"
+}
