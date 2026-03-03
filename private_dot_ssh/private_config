@@ -1,0 +1,7 @@
+Host homeassistant
+  Hostname 10.0.20.203
+  Port 22
+  User homeassistant
+
+Host *
+  IdentityAgent ~/.1password/agent.sock
