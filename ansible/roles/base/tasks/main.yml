@@ -11,6 +11,7 @@
     - "{{ ansible_env.HOME }}/.config"
     - "{{ ansible_env.HOME }}/.config/systemd/user"
   become: false
+  tags: [terminal]
 
 - name: Create bash_secrets if it doesn't exist
   ansible.builtin.file:
@@ -27,6 +28,7 @@
   args:
     creates: /usr/local/bin/starship
   become: true
+  tags: [terminal]
 
 - name: Set up hourly chezmoi sync cron job
   ansible.builtin.cron:
