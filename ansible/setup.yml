@@ -1,14 +1,29 @@
 ---
 # Main setup playbook
-# Run with: ansible-playbook setup.yml --ask-become-pass
-# Or with tags: ansible-playbook setup.yml --ask-become-pass --tags "base,apps"
+# Phase 1 (default): ansible-playbook setup.yml --ask-become-pass
+# Phase 2 (after 1Password): ansible-playbook setup.yml --ask-become-pass --tags "phase2"
+# All phases: ansible-playbook setup.yml --ask-become-pass --tags "all"
+#
+# machine_type values: desktop | laptop | server
+# Persisted to ~/.config/chezmoi/machine-type by bootstrap.sh / chezmoi config
 
-- name: Setup workstation
+# ============================================================================
+# Phase 1: Base system setup (no 1Password required)
+# ============================================================================
+- name: "Phase 1: Base system setup"
   hosts: localhost
-  become: false  # Set per-task, not globally
+  become: false
+  tags: [phase1, never_skip]
 
   vars:
-    machine_type: "{{ lookup('env', 'MACHINE_TYPE') | default('laptop', true) }}"
+    # Read from persisted file (written by bootstrap.sh).
+    # Falls back to MACHINE_TYPE env var, then 'laptop'.
+    machine_type: >-
+      {{ lookup('pipe',
+           'cat ' + ansible_env.HOME + '/.config/chezmoi/machine-type 2>/dev/null || echo'
+         ) | trim
+         | default(lookup('env', 'MACHINE_TYPE'), true)
+         | default('laptop', true) }}
 
   pre_tasks:
     - name: Detect OS family
@@ -18,11 +33,11 @@
 
     - name: Display detected system
       ansible.builtin.debug:
-        msg: "Setting up {{ os_distribution }} ({{ os_family }}) as {{ machine_type }}"
+        msg: "Phase 1: Setting up {{ os_distribution }} ({{ os_family }}) as {{ machine_type }}"
 
   roles:
     - role: base
-      tags: [base, always]
+      tags: [base]
 
     - role: fedora
       when: os_distribution == 'fedora'
@@ -33,16 +48,63 @@
       tags: [debian, distro]
 
     - role: apps
+      when: machine_type in ['desktop', 'laptop']
       tags: [apps]
 
     - role: gnome
+      when: machine_type in ['desktop', 'laptop']
       tags: [gnome, desktop]
 
   post_tasks:
-    - name: Setup complete
+    - name: Phase 1 complete
       ansible.builtin.debug:
         msg: |
-          Setup complete! Next steps:
+          Phase 1 complete! Next steps:
           1. Log out and back in for group changes to take effect
-          2. Run 'chezmoi apply' to apply dotfiles
-          3. Start services: systemctl --user start xremap
+          2. Set up 1Password:
+             - Install and sign in to 1Password desktop app
+             - Enable Settings → Developer → "Connect with 1Password CLI"
+             - Run: source ~/.bashrc
+             - Test: op read "op://Personal/AI API Keys/openai"
+          3. Run Phase 2: ansible-playbook setup.yml --ask-become-pass --tags "phase2"
+
+# ============================================================================
+# Phase 2: Secrets-dependent setup (requires 1Password)
+# ============================================================================
+- name: "Phase 2: Secrets-dependent setup"
+  hosts: localhost
+  become: false
+  tags: [phase2, never]
+
+  pre_tasks:
+    - name: Check if 1Password CLI is available
+      ansible.builtin.command: op account list
+      register: op_check
+      changed_when: false
+      failed_when: false
+
+    - name: Fail if 1Password not configured
+      ansible.builtin.fail:
+        msg: |
+          1Password CLI is not configured. Please:
+          1. Install and sign in to 1Password desktop app
+          2. Enable Settings → Developer → "Connect with 1Password CLI"
+          3. Ensure OP_BIOMETRIC_UNLOCK_ENABLED=true is in your environment
+          4. Test with: op account list
+      when: op_check.rc != 0
+
+    - name: 1Password verified
+      ansible.builtin.debug:
+        msg: "1Password CLI is configured and working"
+
+  tasks:
+    - name: Apply chezmoi templates (including 1Password secrets)
+      ansible.builtin.command: chezmoi apply --force
+      changed_when: true
+
+  post_tasks:
+    - name: Phase 2 complete
+      ansible.builtin.debug:
+        msg: |
+          Phase 2 complete! Your secrets-dependent configs are now applied.
+          - ~/.continue/config.json now has your API keys from 1Password

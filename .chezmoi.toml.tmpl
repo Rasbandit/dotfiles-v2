@@ -2,7 +2,7 @@
 # This template prompts for machine-specific values on first run
 
 {{- $hostname := promptStringOnce . "hostname" "What is this machine's hostname" -}}
-{{- $machineType := promptChoiceOnce . "machineType" "What type of machine is this" (list "desktop-gaming" "laptop" "server") -}}
+{{- $machineType := promptChoiceOnce . "machineType" "What type of machine is this" (list "desktop" "laptop" "server") -}}
 {{- $email := promptStringOnce . "email" "What is your email address" -}}
 
 [data]

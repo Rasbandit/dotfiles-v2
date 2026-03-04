@@ -7,28 +7,26 @@
     cache_valid_time: 3600
   become: true
 
-- name: Install base Debian packages
+- name: Install Debian terminal packages
   ansible.builtin.apt:
     name:
       - curl
       - jq
-      - pavucontrol
-      - traceroute
       - htop
       - fzf
-      - python3-pip
-      - nodejs
-      - npm
+      - zoxide
       - ripgrep
       - bat
       - btop
       - colordiff
       - fd-find
+      - duf
       - iotop
-      - flatpak
-      - vlc
+      - tmux
     state: present
   become: true
+  tags: [terminal]
+  ignore_errors: true  # some packages may not exist in older releases
 
 - name: Install rust via rustup
   ansible.builtin.shell: |
@@ -36,18 +34,38 @@
   args:
     creates: "{{ ansible_env.HOME }}/.cargo/bin/cargo"
   become: false
+  tags: [terminal]
 
-- name: Install zoxide via cargo
-  ansible.builtin.command: "{{ ansible_env.HOME }}/.cargo/bin/cargo install zoxide"
-  args:
-    creates: "{{ ansible_env.HOME }}/.cargo/bin/zoxide"
-  become: false
-
-- name: Install eza via cargo
+- name: Install eza via cargo (not always in apt)
   ansible.builtin.command: "{{ ansible_env.HOME }}/.cargo/bin/cargo install eza"
   args:
     creates: "{{ ansible_env.HOME }}/.cargo/bin/eza"
   become: false
+  tags: [terminal]
+
+- name: Install fastfetch (Ubuntu 23.10+/Debian 13+)
+  ansible.builtin.apt:
+    name: fastfetch
+    state: present
+  become: true
+  ignore_errors: true
+
+- name: Install Debian desktop packages
+  ansible.builtin.apt:
+    name:
+      - pavucontrol
+      - traceroute
+      - gnome-tweaks
+      - dconf-editor
+      - python3-pip
+      - nodejs
+      - npm
+      - flatpak
+      - vlc
+      - wireguard-tools
+    state: present
+  become: true
+  when: machine_type in ['desktop', 'laptop']
 
 - name: Add Flathub repository
   community.general.flatpak_remote:
@@ -55,8 +73,9 @@
     flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
     state: present
   become: true
+  when: machine_type in ['desktop', 'laptop']
 
-- name: Install Flatpak applications
+- name: Install Flatpak apps (all desktop types)
   community.general.flatpak:
     name: "{{ item }}"
     state: present
@@ -64,9 +83,18 @@
     - com.discordapp.Discord
     - md.obsidian.Obsidian
     - com.spotify.Client
+  become: true
+  when: machine_type in ['desktop', 'laptop']
+
+- name: Install gaming/creative Flatpak apps (desktop only)
+  community.general.flatpak:
+    name: "{{ item }}"
+    state: present
+  loop:
     - com.obsproject.Studio
     - org.kde.kdenlive
   become: true
+  when: machine_type == 'desktop'
 
 - name: Include 1Password setup
   ansible.builtin.include_tasks: 1password.yml

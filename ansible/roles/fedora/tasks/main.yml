@@ -28,44 +28,64 @@
   become: true
   ignore_errors: true
 
-- name: Install base Fedora packages
+- name: Install Fedora terminal packages
   ansible.builtin.dnf:
     name:
       - curl
       - jq
-      - pavucontrol
-      - traceroute
-      - gnome-tweaks
-      - dconf-editor
       - htop
       - fzf
       - zoxide
-      - python3-pip
-      - nodejs
-      - rust
-      - cargo
       - ripgrep
-      - ghostty
       - bat
       - btop
       - fastfetch
       - colordiff
-      - duf
       - fd-find
+      - tmux
+    state: present
+  become: true
+  tags: [terminal]
+
+- name: Install eza (not in Fedora 42+ repos)
+  tags: [terminal]
+  block:
+    - name: Check if eza is installed
+      ansible.builtin.command: which eza
+      register: eza_check
+      ignore_errors: true
+      changed_when: false
+    - name: Download and install eza from GitHub
+      ansible.builtin.shell: |
+        curl -fsSLo /tmp/eza.tar.gz \
+          https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-musl.tar.gz \
+          && tar -xzf /tmp/eza.tar.gz -C ~/.local/bin \
+          && chmod +x ~/.local/bin/eza
+      args:
+        creates: "{{ ansible_env.HOME }}/.local/bin/eza"
+      when: eza_check.rc != 0
+      become: false
+
+- name: Install Fedora desktop packages
+  ansible.builtin.dnf:
+    name:
+      - pavucontrol
+      - traceroute
+      - gnome-tweaks
+      - dconf-editor
+      - python3-pip
+      - nodejs
+      - rust
+      - cargo
+      - ghostty
+      - duf
       - iotop
-      - langpacks-core-font-ja
       - flatpak
       - dnf-plugin-system-upgrade
       - vlc
+      - wireguard-tools
     state: present
   become: true
-
-- name: Install eza (modern ls)
-  ansible.builtin.dnf:
-    name: eza
-    state: present
-  become: true
-  ignore_errors: true
 
 - name: Swap mesa drivers for freeworld version
   ansible.builtin.command: dnf swap mesa-va-drivers mesa-va-drivers-freeworld -y
@@ -88,7 +108,7 @@
     state: present
   become: true
 
-- name: Install Flatpak applications
+- name: Install Flatpak apps (all desktop types)
   community.general.flatpak:
     name: "{{ item }}"
     state: present
@@ -96,9 +116,17 @@
     - com.discordapp.Discord
     - md.obsidian.Obsidian
     - com.spotify.Client
+  become: true
+
+- name: Install gaming/creative Flatpak apps (desktop only)
+  community.general.flatpak:
+    name: "{{ item }}"
+    state: present
+  loop:
     - com.obsproject.Studio
     - org.kde.kdenlive
   become: true
+  when: machine_type == 'desktop'
 
 - name: Include 1Password setup
   ansible.builtin.include_tasks: 1password.yml
