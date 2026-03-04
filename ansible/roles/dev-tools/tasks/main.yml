@@ -1,5 +1,5 @@
 ---
-# Dev tools: nodejs, npm, python3-pip, rust, cargo, bun
+# Dev tools: nodejs, npm, python3-pip, rust, cargo, bun, chromium
 
 - name: Install dev tools (Fedora)
   ansible.builtin.dnf:
@@ -8,6 +8,7 @@
       - nodejs
       - rust
       - cargo
+      - chromium
     state: present
   become: true
   when: os_distribution == 'fedora'
@@ -18,6 +19,7 @@
       - python3-pip
       - nodejs
       - npm
+      - chromium
     state: present
   become: true
   when: os_family == 'debian'
