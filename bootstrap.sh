@@ -323,46 +323,67 @@ REPO
         esac
     fi
 
-    if command -v op &>/dev/null && op account list &>/dev/null 2>&1; then
+    if command -v op &>/dev/null && op vault list &>/dev/null 2>&1; then
         echo "  ✓ 1Password working."
     else
         echo "  ✗ Not configured."
         echo ""
         if [ "$MACHINE_TYPE" = "server" ]; then
-            echo "Sign in to 1Password CLI:"
-            echo "  op signin"
+            echo "Server detected. Enter your 1Password Service Account token"
+            echo "(create one at https://my.1password.com → Developer → Service Accounts)"
             echo ""
-            echo "(You'll need: sign-in address, email, Secret Key, master password)"
+
+            while true; do
+                read -rp "  Paste token (or 's' to skip): " op_token </dev/tty
+                if [ "${op_token:-}" = "s" ] || [ "${op_token:-}" = "S" ]; then
+                    echo "  Skipping 1Password. Removing from features."
+                    SELECTED_FEATURES=$(echo "$SELECTED_FEATURES" | tr ' ' '\n' \
+                        | grep -vE "^(1password|claude)$" \
+                        | tr '\n' ' ' | sed 's/[[:space:]]*$//')
+                    echo "  Updated features: $SELECTED_FEATURES"
+                    break
+                elif [ -n "${op_token:-}" ]; then
+                    export OP_SERVICE_ACCOUNT_TOKEN="$op_token"
+                    if op vault list &>/dev/null 2>&1; then
+                        echo "  ✓ 1Password working. Continuing."
+                        break
+                    else
+                        unset OP_SERVICE_ACCOUNT_TOKEN
+                        echo "  ✗ Invalid token. Try again, or 's' to skip."
+                    fi
+                else
+                    echo "  ✗ No token entered. Try again, or 's' to skip."
+                fi
+            done
         else
             echo "Set up 1Password now:"
             echo "  1. Install 1Password desktop app"
             echo "  2. Sign in to your account"
             echo "  3. Settings → Developer → Enable 'Connect with 1Password CLI'"
-            echo "  4. Open a new terminal and run: op account list"
-        fi
-        echo ""
-        echo "Press Enter when ready, or 's' to skip 1Password for now..."
+            echo "  4. Open a new terminal and run: op vault list"
+            echo ""
+            echo "Press Enter when ready, or 's' to skip 1Password for now..."
 
-        while true; do
-            read -rp "  > " op_choice </dev/tty
-            if [ "${op_choice:-}" = "s" ] || [ "${op_choice:-}" = "S" ]; then
-                echo "  Skipping 1Password. Removing from features."
-                # claude requires 1password — remove both
-                SELECTED_FEATURES=$(echo "$SELECTED_FEATURES" | tr ' ' '\n' \
-                    | grep -vE "^(1password|claude)$" \
-                    | tr '\n' ' ' | sed 's/[[:space:]]*$//')
-                echo "  Updated features: $SELECTED_FEATURES"
-                break
-            else
-                echo "  [checking op account list...]"
-                if op account list &>/dev/null 2>&1; then
-                    echo "  ✓ 1Password working. Continuing."
+            while true; do
+                read -rp "  > " op_choice </dev/tty
+                if [ "${op_choice:-}" = "s" ] || [ "${op_choice:-}" = "S" ]; then
+                    echo "  Skipping 1Password. Removing from features."
+                    SELECTED_FEATURES=$(echo "$SELECTED_FEATURES" | tr ' ' '\n' \
+                        | grep -vE "^(1password|claude)$" \
+                        | tr '\n' ' ' | sed 's/[[:space:]]*$//')
+                    echo "  Updated features: $SELECTED_FEATURES"
                     break
                 else
-                    echo "  ✗ Still not configured. Press Enter to retry, or 's' to skip."
+                    echo "  [checking op vault list...]"
+                    if op vault list &>/dev/null 2>&1; then
+                        echo "  ✓ 1Password working. Continuing."
+                        break
+                    else
+                        echo "  ✗ Still not configured. Press Enter to retry, or 's' to skip."
+                    fi
                 fi
-            fi
-        done
+            done
+        fi
     fi
     echo ""
 fi
