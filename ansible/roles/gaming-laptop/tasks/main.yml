@@ -1,0 +1,20 @@
+---
+# Gaming (laptop): Steam, Lutris
+
+- name: Install Steam and Lutris (Fedora)
+  ansible.builtin.dnf:
+    name:
+      - steam
+      - lutris
+    state: present
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Install Steam and Lutris (Debian)
+  ansible.builtin.apt:
+    name:
+      - steam
+      - lutris
+    state: present
+  become: true
+  when: os_family == 'debian'

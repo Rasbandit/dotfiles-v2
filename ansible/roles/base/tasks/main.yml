@@ -1,5 +1,6 @@
 ---
-# Base tasks that run on all systems
+# Base tasks: always run on all systems (dirs, cron, bash_secrets)
+# Starship is now in the terminal role.
 
 - name: Ensure common directories exist
   ansible.builtin.file:
@@ -11,7 +12,6 @@
     - "{{ lookup('env', 'HOME') }}/.config"
     - "{{ lookup('env', 'HOME') }}/.config/systemd/user"
   become: false
-  tags: [terminal]
 
 - name: Create bash_secrets if it doesn't exist
   ansible.builtin.file:
@@ -21,14 +21,6 @@
     modification_time: preserve
     access_time: preserve
   become: false
-
-- name: Install starship prompt
-  ansible.builtin.shell: |
-    curl -sS https://starship.rs/install.sh | sh -s -- -y
-  args:
-    creates: /usr/local/bin/starship
-  become: true
-  tags: [terminal]
 
 - name: Set up hourly chezmoi sync cron job
   ansible.builtin.cron:

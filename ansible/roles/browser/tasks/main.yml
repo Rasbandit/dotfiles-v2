@@ -1,0 +1,32 @@
+---
+# Vivaldi browser (Fedora only for now — TODO: add Debian support)
+
+- name: Import Vivaldi GPG key (Fedora)
+  ansible.builtin.rpm_key:
+    key: https://repo.vivaldi.com/archive/linux_signing_key.pub
+    state: present
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Add Vivaldi repository (Fedora)
+  ansible.builtin.yum_repository:
+    name: vivaldi
+    description: Vivaldi Browser
+    baseurl: https://repo.vivaldi.com/archive/rpm/$basearch
+    enabled: true
+    gpgcheck: true
+    gpgkey: https://repo.vivaldi.com/archive/linux_signing_key.pub
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Install Vivaldi (Fedora)
+  ansible.builtin.dnf:
+    name: vivaldi-stable
+    state: present
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Vivaldi not yet supported on this distro
+  ansible.builtin.debug:
+    msg: "Vivaldi installation is currently only supported on Fedora. Skipping."
+  when: os_distribution != 'fedora'

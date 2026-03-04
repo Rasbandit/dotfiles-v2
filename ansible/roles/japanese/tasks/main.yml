@@ -1,0 +1,29 @@
+---
+# Japanese input method: fcitx5, mozc, Japanese fonts (Fedora only)
+
+- name: Install fcitx5 and Japanese input (Fedora)
+  ansible.builtin.dnf:
+    name:
+      - fcitx5
+      - fcitx5-mozc
+      - fcitx5-configtool
+      - fcitx5-gtk
+      - fcitx5-qt
+    state: present
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Install Japanese fonts (Fedora)
+  ansible.builtin.dnf:
+    name:
+      - langpacks-core-font-ja
+      - google-noto-sans-cjk-jp-fonts
+      - google-noto-serif-cjk-jp-fonts
+    state: present
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Japanese input not yet supported on this distro
+  ansible.builtin.debug:
+    msg: "Japanese input (fcitx5/mozc) is currently only configured for Fedora. Skipping."
+  when: os_distribution != 'fedora'
