@@ -293,16 +293,53 @@ echo ""
 if echo "$SELECTED_FEATURES" | grep -qw "1password"; then
     echo "Checking 1Password CLI..."
 
+    # Install op CLI if missing
+    if ! command -v op &>/dev/null; then
+        echo "  Installing 1Password CLI..."
+        case "$OS" in
+            fedora)
+                sudo rpm --import https://downloads.1password.com/linux/keys/1password.asc
+                sudo tee /etc/yum.repos.d/1password.repo > /dev/null <<'REPO'
+[1password]
+name=1Password Stable Channel
+baseurl=https://downloads.1password.com/linux/rpm/stable/$basearch
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://downloads.1password.com/linux/keys/1password.asc
+REPO
+                sudo dnf install -y 1password-cli
+                ;;
+            ubuntu|debian)
+                curl -sS https://downloads.1password.com/linux/keys/1password.asc \
+                    | sudo gpg --dearmor -o /usr/share/keyrings/1password-archive-keyring.gpg
+                echo "deb [arch=amd64 signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/amd64 stable main" \
+                    | sudo tee /etc/apt/sources.list.d/1password.list > /dev/null
+                sudo apt update && sudo apt install -y 1password-cli
+                ;;
+            *)
+                echo "  ⚠ Unsupported OS for auto-install. Install 'op' CLI manually."
+                ;;
+        esac
+    fi
+
     if command -v op &>/dev/null && op account list &>/dev/null 2>&1; then
         echo "  ✓ 1Password working."
     else
         echo "  ✗ Not configured."
         echo ""
-        echo "Set up 1Password now:"
-        echo "  1. Install 1Password desktop app"
-        echo "  2. Sign in to your account"
-        echo "  3. Settings → Developer → Enable 'Connect with 1Password CLI'"
-        echo "  4. Open a new terminal and run: op account list"
+        if [ "$MACHINE_TYPE" = "server" ]; then
+            echo "Sign in to 1Password CLI:"
+            echo "  op signin"
+            echo ""
+            echo "(You'll need: sign-in address, email, Secret Key, master password)"
+        else
+            echo "Set up 1Password now:"
+            echo "  1. Install 1Password desktop app"
+            echo "  2. Sign in to your account"
+            echo "  3. Settings → Developer → Enable 'Connect with 1Password CLI'"
+            echo "  4. Open a new terminal and run: op account list"
+        fi
         echo ""
         echo "Press Enter when ready, or 's' to skip 1Password for now..."
 
