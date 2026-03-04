@@ -11,7 +11,8 @@ $rust\
 $golang\
 $php\
 [](fg:2 bg:14)\
-$custom\
+${custom.ssh}\
+${custom.tailscale}\
 [ ](fg:14)\
 $cmd_duration\
 \n$character"""
@@ -111,11 +112,18 @@ symbol = ""
 style = "bg:2"
 format = '[[ $symbol ($version)](fg:0 bg:2)]($style)'
 
+[custom.ssh]
+symbol = "󰣀"
+description = "Connected via SSH"
+format = "[[ $symbol SSH ](fg:0 bg:14)]($style)"
+style = "fg:0 bg:14"
+when = '[ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]'
+
 [custom.tailscale]
 symbol = "󰈺"
 format = "[[ $symbol Tailscale ](fg:0 bg:14)]($style)"
 style = "(fg:0 bg:6)"
-when = "tailscale status | grep -q 'Tailscale is stopped.' && exit 1 || exit 0"
+when = "command -v tailscale >/dev/null 2>&1 && tailscale status 2>/dev/null | grep -qv 'Tailscale is stopped.'"
 
 # [custom.wireguard]
 # command = "wg show interfaces"
