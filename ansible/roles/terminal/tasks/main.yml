@@ -27,6 +27,7 @@
       - iotop
       - traceroute
       - ghostty
+      - gh
     state: present
   become: true
   when: os_distribution == 'fedora'
@@ -93,6 +94,33 @@
   args:
     creates: "{{ lookup('env', 'HOME') }}/.cargo/bin/eza"
   become: false
+  when: os_family == 'debian'
+
+- name: Add gh CLI GPG key (Debian)
+  ansible.builtin.shell: |
+    curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+      | gpg --dearmor -o /usr/share/keyrings/githubcli-archive-keyring.gpg
+  args:
+    creates: /usr/share/keyrings/githubcli-archive-keyring.gpg
+  become: true
+  when: os_family == 'debian'
+
+- name: Add gh CLI apt repo (Debian)
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [arch=amd64 signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg]
+      https://cli.github.com/packages stable main
+    filename: github-cli
+    state: present
+  become: true
+  when: os_family == 'debian'
+
+- name: Install gh CLI (Debian)
+  ansible.builtin.apt:
+    name: gh
+    state: present
+    update_cache: true
+  become: true
   when: os_family == 'debian'
 
 - name: Install starship prompt
