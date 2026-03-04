@@ -1,5 +1,6 @@
 format = """
 [ $os](bg:4 fg:0)\
+$time\
 [](bg:12 fg:4)\
 $directory\
 [](fg:12 bg:13)\
@@ -10,11 +11,13 @@ $nodejs\
 $rust\
 $golang\
 $php\
+$python\
 [](fg:2 bg:14)\
 ${custom.ssh}\
 ${custom.tailscale}\
 ${custom.wireguard}\
-[ ](fg:14)\
+$docker_context\
+[](fg:14)\
 $cmd_duration\
 \n$character"""
 
@@ -36,8 +39,8 @@ truncation_symbol = "…/"
 "Pictures" = ""
 
 [cmd_duration]
-min_time = 3500
-format = '[$duration](3 bold)'
+min_time = 2000
+format = ' [$duration](3 bold)'
 
 [os]
 format = "[[$symbol](bg:4 fg:0)]($style)"
@@ -55,7 +58,7 @@ CentOS = " "
 Debian = " "
 DragonFly = " "
 EndeavourOS = " "
-Fedora = " "
+Fedora = ""
 FreeBSD = " "
 Garuda = " "
 Gentoo = "󰣨 "
@@ -114,6 +117,11 @@ symbol = ""
 style = "bg:2"
 format = '[[ $symbol ($version)](fg:0 bg:2)]($style)'
 
+[python]
+symbol = ""
+style = "bg:2"
+format = '[[ $symbol ($version)(\($virtualenv\))](fg:0 bg:2)]($style)'
+
 [custom.ssh]
 symbol = "󰢹"
 description = "Connected via SSH"
@@ -124,19 +132,26 @@ when = '[ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]'
 
 [custom.tailscale]
 symbol = "󰈺"
-format = "[[ $symbol Tailscale ](fg:0 bg:14)]($style)"
+command = "tailscale status 2>/dev/null | awk '/exit node/{print $2; exit}'"
+format = "[[ $symbol $output ](fg:0 bg:14)]($style)"
 style = "(fg:0 bg:6)"
-when = "command -v tailscale >/dev/null 2>&1 && tailscale status 2>/dev/null | grep -qv 'Tailscale is stopped.'"
+when = "tailscale status 2>/dev/null | grep -q 'exit node'"
 
-# [custom.wireguard]
-# command = "wg show interfaces"
-# symbol = ""
-# format = "[[ $symbol $output ](fg:0 bg:6)]($style)"
-# style = "bg:6"
-# when = "wg show interfaces | grep -q . && exit 0 || exit 1"
+[custom.wireguard]
+symbol = " "
+command = "wg show interfaces"
+format = "[[ $symbol $output ](fg:0 bg:14)]($style)"
+style = "(fg:0 bg:14)"
+when = "wg show interfaces | grep -q ."
 
 [time]
 disabled = false
-time_format = "%.3f" # Hour:Minute Format
-style = "bg:1"
-format = '[[ $time ](fg:0 bg:1)]($style)'
+time_format = "%H:%M"
+style = "bg:4"
+format = '[ $time ](fg:0 bg:4)'
+
+[docker_context]
+symbol = " "
+style = "bg:14"
+format = '[[ $symbol $context ](fg:0 bg:14)]($style)'
+only_with_files = false
