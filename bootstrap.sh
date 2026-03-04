@@ -110,10 +110,11 @@ GITCONFIG
                 sudo dnf install -y fzf zoxide bat ripgrep colordiff jq fastfetch
                 if ! command -v eza &>/dev/null; then
                     echo "Installing eza from GitHub releases (not in Fedora 42+ repos)..."
+                    mkdir -p ~/.local/bin
                     curl -fsSLo /tmp/eza.tar.gz \
                         https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-musl.tar.gz \
-                        && tar -xzf /tmp/eza.tar.gz -C /tmp \
-                        && sudo mv /tmp/eza /usr/local/bin/eza \
+                        && tar -xzf /tmp/eza.tar.gz -C ~/.local/bin \
+                        && chmod +x ~/.local/bin/eza \
                         || echo "Warning: eza install failed, skipping."
                 fi
                 ;;
