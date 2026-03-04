@@ -13,7 +13,10 @@ main() {
 
 read -rsp "This script requires sudo. Enter your password: " SUDO_PASS </dev/tty
 echo ""
-echo "$SUDO_PASS" | sudo -Sv 2>/dev/null
+if ! echo "$SUDO_PASS" | sudo -Sv 2>/dev/null; then
+    echo "Incorrect password. Exiting."
+    exit 1
+fi
 
 # Keep sudo token alive in the background for the duration of the script
 ( while true; do echo "$SUDO_PASS" | sudo -Sv 2>/dev/null; sleep 50; done ) &
