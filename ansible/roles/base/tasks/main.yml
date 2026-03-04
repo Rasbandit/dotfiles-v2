@@ -28,3 +28,4 @@
     minute: "0"
     job: "{{ lookup('env', 'HOME') }}/.local/bin/auto-add-push.sh"
     state: present
+  when: "'auto-sync' in features"

@@ -6,6 +6,9 @@ set -euo pipefail
 # Run with: curl -sL https://s.ras.band/setup | bash
 # ============================================================================
 
+# Reattach stdin to the terminal (required when run via curl | bash)
+exec </dev/tty
+
 read -rsp "This script requires sudo. Enter your password: " SUDO_PASS
 echo ""
 echo "$SUDO_PASS" | sudo -Sv 2>/dev/null
@@ -207,6 +210,8 @@ feature_default() {
             [ "$type" = "workstation" ] && echo "ask" || echo "N" ;;
         gaming-desktop)
             [ "$type" = "workstation" ] && echo "ask" || echo "N" ;;
+        auto-sync)
+            [ "$type" = "temporary" ] && echo "N" || echo "Y" ;;
         *)
             echo "N" ;;
     esac
@@ -221,7 +226,7 @@ feature_installed() {
 # ============================================================================
 # Feature prompts
 # ============================================================================
-ALL_FEATURES="terminal 1password vscode browser vpn dev-tools gnome openbox claude japanese apps gaming-laptop gaming-desktop"
+ALL_FEATURES="terminal 1password vscode browser vpn dev-tools gnome openbox claude japanese apps gaming-laptop gaming-desktop auto-sync"
 
 echo "Configure features for $MACHINE_TYPE:"
 echo "(Press Enter to accept default, or type y/n to change)"
