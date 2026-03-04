@@ -13,6 +13,7 @@ $php\
 [](fg:2 bg:14)\
 ${custom.ssh}\
 ${custom.tailscale}\
+${custom.wireguard}\
 [ ](fg:14)\
 $cmd_duration\
 \n$character"""
@@ -28,6 +29,7 @@ truncation_length = 3
 truncation_symbol = "…/"
 
 [directory.substitutions]
+"~" = "󰋜"
 "Documents" = "󰈙"
 "Downloads" = ""
 "Music" = ""
