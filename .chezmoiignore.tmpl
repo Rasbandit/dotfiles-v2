@@ -1,0 +1,26 @@
+# Files to ignore (not managed by chezmoi)
+README.md
+LICENSE
+ansible/
+bootstrap.sh
+
+# Ignore machine-specific generated files
+.bash_history
+.cache/
+.local/share/
+.local/state/
+
+# IDE/editor files
+.vscode/
+*.swp
+*~
+
+# Continue extension config — only deploy when vscode feature is selected
+{{- $features := "" }}
+{{- $featuresFile := joinPath .chezmoi.homeDir ".config/chezmoi/features" }}
+{{- if stat $featuresFile }}
+{{-   $features = include $featuresFile }}
+{{- end }}
+{{- if not (contains "vscode" $features) }}
+.continue/
+{{- end }}
