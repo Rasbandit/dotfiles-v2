@@ -8,7 +8,6 @@ set -euo pipefail
 
 REPO="Rasbandit/dotfiles-v2"
 BRANCH="main"
-RAW_BASE="https://raw.githubusercontent.com/Rasbandit/dotfiles-v2/main"
 
 echo "============================================"
 echo "  Dotfiles Bootstrap - Setting up machine  "
@@ -75,18 +74,29 @@ echo ""
 # Path 1: Temporary
 # ============================================================================
 if [ "$MACHINE_TYPE" = "temporary" ]; then
-    echo "--- Temporary setup: fast, no git auth, no ansible ---"
+    echo "--- Temporary setup: ansible-managed, no auth needed ---"
     echo ""
 
+    echo "[1/5] Installing prerequisites (git + ansible)..."
+    case $OS in
+        fedora)        sudo dnf install -y git ansible ;;
+        ubuntu|debian) sudo apt update -q && sudo apt install -y git ansible ;;
+        arch)          sudo pacman -Sy --noconfirm git ansible ;;
+        *)             echo "Unsupported OS: $OS"; exit 1 ;;
+    esac
+
+    echo "[2/5] Cloning dotfiles (shallow)..."
+    TMPCLONE=$(mktemp -d)
+    git clone --depth=1 --branch "$BRANCH" "https://github.com/$REPO.git" "$TMPCLONE/dotfiles"
+
+    echo "[3/5] Copying config files..."
     mkdir -p ~/.config
+    cp "$TMPCLONE/dotfiles/dot_aliases"        ~/.aliases
+    cp "$TMPCLONE/dotfiles/dot_bash_functions" ~/.bash_functions
+    cp "$TMPCLONE/dotfiles/dot_bashrc"         ~/.bashrc
+    cp "$TMPCLONE/dotfiles/private_dot_config/starship.toml" ~/.config/starship.toml
 
-    echo "[1/4] Downloading config files..."
-    curl -fsSL "$RAW_BASE/dot_aliases"        -o ~/.aliases
-    curl -fsSL "$RAW_BASE/dot_bash_functions" -o ~/.bash_functions
-    curl -fsSL "$RAW_BASE/dot_bashrc"         -o ~/.bashrc
-    curl -fsSL "$RAW_BASE/private_dot_config/starship.toml" -o ~/.config/starship.toml
-
-    echo "[2/4] Writing minimal .gitconfig (no 1Password signing)..."
+    echo "[4/5] Writing minimal .gitconfig (no 1Password signing)..."
     cat > ~/.gitconfig <<'GITCONFIG'
 [user]
     name = rasbandit
@@ -100,43 +110,20 @@ if [ "$MACHINE_TYPE" = "temporary" ]; then
     pr = pull --rebase
 GITCONFIG
 
-    echo "[3/4] Installing starship..."
-    curl -sS https://starship.rs/install.sh | sh -s -- -y
+    mkdir -p ~/.config/chezmoi
+    echo "temporary" > ~/.config/chezmoi/machine-type
 
     if [ "$INSTALL_TOOLS" = true ]; then
-        echo "[4/4] Installing terminal essentials..."
-        case $OS in
-            fedora)
-                sudo dnf install -y fzf zoxide bat ripgrep colordiff jq fastfetch tmux
-                if ! command -v eza &>/dev/null; then
-                    echo "Installing eza from GitHub releases (not in Fedora 42+ repos)..."
-                    mkdir -p ~/.local/bin
-                    curl -fsSLo /tmp/eza.tar.gz \
-                        https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-musl.tar.gz \
-                        && tar -xzf /tmp/eza.tar.gz -C ~/.local/bin \
-                        && chmod +x ~/.local/bin/eza \
-                        || echo "Warning: eza install failed, skipping."
-                fi
-                ;;
-            ubuntu|debian)
-                sudo apt update -q
-                sudo apt install -y fzf zoxide bat ripgrep jq colordiff tmux
-                if ! command -v eza &>/dev/null; then
-                    if command -v cargo &>/dev/null; then
-                        cargo install eza
-                    fi
-                fi
-                ;;
-            arch)
-                sudo pacman -Sy --noconfirm fzf zoxide bat eza ripgrep colordiff jq fastfetch tmux
-                ;;
-            *)
-                echo "Warning: unsupported OS '$OS', skipping tool install."
-                ;;
-        esac
+        echo "[5/5] Running ansible (terminal tag)..."
+        mkdir -p ~/.local/bin
+        cd "$TMPCLONE/dotfiles/ansible"
+        ansible-galaxy collection install community.general
+        MACHINE_TYPE=temporary ansible-playbook setup.yml --tags terminal --ask-become-pass
     else
-        echo "[4/4] Skipping tool install."
+        echo "[5/5] Skipping tool install."
     fi
+
+    rm -rf "$TMPCLONE"
 
     echo ""
     echo "============================================"
