@@ -110,3 +110,8 @@ alias k='kubectl'
 alias tsu-home='sudo tailscale up --accept-routes --exit-node=100.82.250.90 --exit-node-allow-lan-access --stateful-filtering'
 alias tsd='sudo tailscale down'
 alias tss='tailscale status'
+
+# ============================================================================
+# AI
+# ============================================================================
+alias claude='claude --dangerously-skip-permissions'
