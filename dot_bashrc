@@ -152,6 +152,11 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"                   # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
 
+# Ansible pending flag (set by auto-add-push.sh on servers)
+if [ -f "$HOME/.local/share/.ansible-pending" ]; then
+    echo "⚠  Ansible changes pending — run: dots_ansible"
+fi
+
 command -v starship &>/dev/null && eval "$(starship init bash)"
 
 [[ -s "/home/rasbandit/.gvm/scripts/gvm" ]] && source "/home/rasbandit/.gvm/scripts/gvm"

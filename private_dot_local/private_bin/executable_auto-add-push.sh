@@ -29,6 +29,7 @@ git fetch origin
 LOCAL_COMMIT=$(git rev-parse "$LOCAL_BRANCH")
 REMOTE_COMMIT=$(git rev-parse "$REMOTE_BRANCH")
 BASE_COMMIT=$(git merge-base "$LOCAL_BRANCH" "$REMOTE_BRANCH")
+OLD_HEAD="$LOCAL_COMMIT"
 
 if [ "$LOCAL_COMMIT" = "$REMOTE_COMMIT" ]; then
     echo "Local and remote are up to date."
@@ -45,6 +46,19 @@ else
     if ! git rebase "$REMOTE_BRANCH"; then
         notify-send "Chezmoi sync ERROR" "Rebase failed! Resolve manually in $CHEZMOI_DIR"
         exit 1
+    fi
+fi
+
+# --- 3a. Check if pulled changes include ansible updates ---
+ANSIBLE_FLAG="$HOME/.local/share/.ansible-pending"
+if git diff --name-only "$OLD_HEAD" HEAD -- ansible/ | grep -q .; then
+    MACHINE_TYPE=$(cat "$HOME/.config/chezmoi/machine-type" 2>/dev/null || echo "desktop")
+    if [ "$MACHINE_TYPE" = "server" ]; then
+        touch "$ANSIBLE_FLAG"
+        echo "Ansible changes detected — flag written for login warning."
+    else
+        notify-send "Dotfiles: Ansible changes pending" "Run 'dots_ansible' to install/update packages."
+        echo "Ansible changes detected — notification sent."
     fi
 fi
 
