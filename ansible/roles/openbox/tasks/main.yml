@@ -1,0 +1,16 @@
+---
+# Openbox window manager (stub — expand later)
+
+- name: Install openbox (Fedora)
+  ansible.builtin.dnf:
+    name: openbox
+    state: present
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Install openbox (Debian)
+  ansible.builtin.apt:
+    name: openbox
+    state: present
+  become: true
+  when: os_family == 'debian'

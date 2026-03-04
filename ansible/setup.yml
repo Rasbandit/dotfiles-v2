@@ -1,39 +1,47 @@
 ---
-# Main setup playbook
-# Phase 1 (default): ansible-playbook setup.yml --ask-become-pass
-# Phase 2 (after 1Password): ansible-playbook setup.yml --ask-become-pass --tags "phase2"
-# All phases: ansible-playbook setup.yml --ask-become-pass --tags "all"
+# Main setup playbook — Feature-based tags
 #
-# machine_type values: desktop | laptop | server
-# Persisted to ~/.config/chezmoi/machine-type by bootstrap.sh / chezmoi config
+# Usage:
+#   ansible-playbook setup.yml --tags terminal,vpn --ask-become-pass
+#   ansible-playbook setup.yml --tags all --ask-become-pass
+#
+# Features: terminal, 1password, vscode, browser, vpn, dev-tools,
+#           gnome, openbox, claude, japanese, apps, gaming-laptop, gaming-desktop,
+#           auto-sync
+#
+# Base role always runs (tagged 'always').
+# Fedora/debian roles always run for distro-specific repo setup.
+# Feature roles only run when their tag is specified.
+#
+# machine_type values: temporary | server | workstation
+# features: space-separated list in ~/.config/chezmoi/features
 
-# ============================================================================
-# Phase 1: Base system setup (no 1Password required)
-# ============================================================================
-- name: "Phase 1: Base system setup"
+- name: Machine Setup
   hosts: localhost
   become: false
-  tags: [phase1, never_skip]
 
   vars:
-    # Read from persisted file (written by bootstrap.sh).
-    # Falls back to MACHINE_TYPE env var, then 'laptop'.
     machine_type: >-
       {{ lookup('pipe',
            'cat ' + lookup('env', 'HOME') + '/.config/chezmoi/machine-type 2>/dev/null || echo'
          ) | trim
          | default(lookup('env', 'MACHINE_TYPE'), true)
-         | default('laptop', true) }}
+         | default('workstation', true) }}
+
+    features: >-
+      {{ lookup('pipe',
+           'cat ' + lookup('env', 'HOME') + '/.config/chezmoi/features 2>/dev/null || echo'
+         ) | trim }}
 
   pre_tasks:
-    - name: Detect OS distribution from /etc/os-release
+    - name: Detect OS distribution
       ansible.builtin.shell: |
         . /etc/os-release && echo "$ID"
       register: os_id_raw
       changed_when: false
       tags: always
 
-    - name: Detect OS version from /etc/os-release
+    - name: Detect OS version
       ansible.builtin.shell: |
         . /etc/os-release && echo "${VERSION_ID%%.*}"
       register: os_version_raw
@@ -47,81 +55,61 @@
         os_major_version: "{{ os_version_raw.stdout | trim }}"
       tags: always
 
-    - name: Display detected system
+    - name: Display setup info
       ansible.builtin.debug:
-        msg: "Phase 1: Setting up {{ os_distribution }} ({{ os_family }}) as {{ machine_type }}"
+        msg: "Setting up {{ os_distribution }} ({{ os_family }}) — type: {{ machine_type }}"
       tags: always
 
   roles:
+    # Always runs: dirs, cron, bash_secrets
     - role: base
-      tags: [base]
+      tags: [always]
 
+    # Distro-specific base setup: repos, DNF config, Flathub (always runs)
     - role: fedora
       when: os_distribution == 'fedora'
-      tags: [fedora, distro]
+      tags: [always]
 
     - role: debian
       when: os_family == 'debian'
-      tags: [debian, distro]
+      tags: [always]
 
-    - role: apps
-      when: machine_type in ['desktop', 'laptop']
-      tags: [apps]
+    # Feature roles — run only when their tag is specified
+    - role: terminal
+      tags: [terminal]
+
+    - role: 1password
+      tags: ['1password']
+
+    - role: vscode
+      tags: [vscode]
+
+    - role: browser
+      tags: [browser]
+
+    - role: vpn
+      tags: [vpn]
+
+    - role: dev-tools
+      tags: [dev-tools]
 
     - role: gnome
-      when: machine_type in ['desktop', 'laptop']
-      tags: [gnome, desktop]
+      tags: [gnome]
 
-  post_tasks:
-    - name: Phase 1 complete
-      ansible.builtin.debug:
-        msg: |
-          Phase 1 complete! Next steps:
-          1. Log out and back in for group changes to take effect
-          2. Set up 1Password:
-             - Install and sign in to 1Password desktop app
-             - Enable Settings → Developer → "Connect with 1Password CLI"
-             - Run: source ~/.bashrc
-             - Test: op read "op://Personal/AI API Keys/openai"
-          3. Run Phase 2: ansible-playbook setup.yml --ask-become-pass --tags "phase2"
+    - role: openbox
+      tags: [openbox]
 
-# ============================================================================
-# Phase 2: Secrets-dependent setup (requires 1Password)
-# ============================================================================
-- name: "Phase 2: Secrets-dependent setup"
-  hosts: localhost
-  become: false
-  tags: [phase2, never]
+    - role: claude
+      tags: [claude]
 
-  pre_tasks:
-    - name: Check if 1Password CLI is available
-      ansible.builtin.command: op account list
-      register: op_check
-      changed_when: false
-      failed_when: false
+    - role: japanese
+      tags: [japanese]
 
-    - name: Fail if 1Password not configured
-      ansible.builtin.fail:
-        msg: |
-          1Password CLI is not configured. Please:
-          1. Install and sign in to 1Password desktop app
-          2. Enable Settings → Developer → "Connect with 1Password CLI"
-          3. Ensure OP_BIOMETRIC_UNLOCK_ENABLED=true is in your environment
-          4. Test with: op account list
-      when: op_check.rc != 0
+    - role: apps
+      tags: [apps]
 
-    - name: 1Password verified
-      ansible.builtin.debug:
-        msg: "1Password CLI is configured and working"
+    - role: gaming-laptop
+      tags: [gaming-laptop]
 
-  tasks:
-    - name: Apply chezmoi templates (including 1Password secrets)
-      ansible.builtin.command: chezmoi apply --force
-      changed_when: true
-
-  post_tasks:
-    - name: Phase 2 complete
-      ansible.builtin.debug:
-        msg: |
-          Phase 2 complete! Your secrets-dependent configs are now applied.
-          - ~/.continue/config.json now has your API keys from 1Password
+    - role: gaming-desktop
+      tags: [gaming-desktop]

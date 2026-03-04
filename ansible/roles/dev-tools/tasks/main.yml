@@ -1,0 +1,125 @@
+---
+# Dev tools: nodejs, npm, python3-pip, rust, cargo, bun
+
+- name: Install dev tools (Fedora)
+  ansible.builtin.dnf:
+    name:
+      - python3-pip
+      - nodejs
+      - rust
+      - cargo
+    state: present
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Install dev tools (Debian)
+  ansible.builtin.apt:
+    name:
+      - python3-pip
+      - nodejs
+      - npm
+    state: present
+  become: true
+  when: os_family == 'debian'
+
+- name: Install rust via rustup (Debian)
+  ansible.builtin.shell: |
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  args:
+    creates: "{{ lookup('env', 'HOME') }}/.cargo/bin/cargo"
+  become: false
+  when: os_family == 'debian'
+
+- name: Ensure cargo env file exists
+  ansible.builtin.file:
+    path: "{{ lookup('env', 'HOME') }}/.cargo/env"
+    state: touch
+    mode: '0644'
+    modification_time: preserve
+    access_time: preserve
+  become: false
+
+# Docker CE
+
+- name: Add Docker CE repo (Fedora)
+  ansible.builtin.command:
+    cmd: dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+    creates: /etc/yum.repos.d/docker-ce.repo
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Install Docker CE (Fedora)
+  ansible.builtin.dnf:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Ensure Docker keyring dir exists (Debian)
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+  become: true
+  when: os_family == 'debian'
+
+- name: Add Docker GPG key (Debian)
+  ansible.builtin.shell: |
+    curl -fsSL https://download.docker.com/linux/debian/gpg \
+      | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+  args:
+    creates: /etc/apt/keyrings/docker.gpg
+  become: true
+  when: os_family == 'debian'
+
+- name: Add Docker apt repo (Debian)
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg]
+      https://download.docker.com/linux/debian
+      {{ ansible_distribution_release }} stable
+    filename: docker
+    state: present
+  become: true
+  when: os_family == 'debian'
+
+- name: Install Docker CE (Debian)
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+    update_cache: true
+  become: true
+  when: os_family == 'debian'
+
+- name: Add user to docker group
+  ansible.builtin.user:
+    name: "{{ lookup('env', 'USER') }}"
+    groups: docker
+    append: true
+  become: true
+
+- name: Enable and start Docker service
+  ansible.builtin.systemd:
+    name: docker
+    enabled: true
+    state: started
+  become: true
+
+# Bun
+
+- name: Install bun
+  ansible.builtin.shell: |
+    curl -fsSL https://bun.sh/install | bash
+  args:
+    creates: "{{ lookup('env', 'HOME') }}/.bun/bin/bun"
+  become: false

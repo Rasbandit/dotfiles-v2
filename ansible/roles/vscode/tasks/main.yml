@@ -1,0 +1,76 @@
+---
+# VS Code + Dracula Pro theme
+
+# --- Fedora ---
+- name: Import Microsoft GPG key (Fedora)
+  ansible.builtin.rpm_key:
+    key: https://packages.microsoft.com/keys/microsoft.asc
+    state: present
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Add VS Code repository (Fedora)
+  ansible.builtin.yum_repository:
+    name: code
+    description: Visual Studio Code
+    baseurl: https://packages.microsoft.com/yumrepos/vscode
+    enabled: true
+    gpgcheck: true
+    gpgkey: https://packages.microsoft.com/keys/microsoft.asc
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Install VS Code (Fedora)
+  ansible.builtin.dnf:
+    name: code
+    state: present
+  become: true
+  when: os_distribution == 'fedora'
+
+# --- Debian/Ubuntu ---
+- name: Add Microsoft GPG key (Debian)
+  ansible.builtin.apt_key:
+    url: https://packages.microsoft.com/keys/microsoft.asc
+    keyring: /usr/share/keyrings/microsoft-archive-keyring.gpg
+    state: present
+  become: true
+  when: os_family == 'debian'
+
+- name: Add VS Code repository (Debian)
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/code stable main"
+    filename: vscode
+    state: present
+  become: true
+  when: os_family == 'debian'
+
+- name: Install VS Code (Debian)
+  ansible.builtin.apt:
+    name: code
+    state: present
+    update_cache: true
+  become: true
+  when: os_family == 'debian'
+
+# --- Cross-distro: Dracula Pro theme ---
+- name: Ensure Downloads directory exists
+  ansible.builtin.file:
+    path: "{{ lookup('env', 'HOME') }}/Downloads"
+    state: directory
+    mode: '0755'
+  become: false
+
+- name: Download Dracula Pro theme
+  ansible.builtin.get_url:
+    url: "https://nextcloud.ras.band/public.php/dav/files/gaBCyX3XeTbBKyF/?accept=zip"
+    dest: "{{ lookup('env', 'HOME') }}/Downloads/dracula-pro.vsix"
+    mode: '0644'
+
+- name: Install Dracula Pro theme
+  ansible.builtin.command: code --install-extension "{{ lookup('env', 'HOME') }}/Downloads/dracula-pro.vsix"
+  changed_when: false
+
+- name: Remove Dracula Pro vsix
+  ansible.builtin.file:
+    path: "{{ lookup('env', 'HOME') }}/Downloads/dracula-pro.vsix"
+    state: absent

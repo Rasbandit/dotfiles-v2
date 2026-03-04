@@ -50,7 +50,22 @@ alias dots_apply='chezmoi apply'
 alias dots_update='chezmoi update'
 alias dots_add='chezmoi add'
 alias dots_cd='cd $(chezmoi source-path)'
+alias dots_features='cat ~/.config/chezmoi/features'
 alias dots_ansible='ansible-playbook ~/.local/share/chezmoi/ansible/setup.yml -K && rm -f ~/.local/share/.ansible-pending'
+
+# ============================================================================
+# Config management (chezmoi — friendly aliases)
+# ============================================================================
+alias config_add='chezmoi add'               # config_add ~/.tmux.conf
+alias config_edit='chezmoi edit'             # config_edit ~/.bashrc
+alias config_remove='chezmoi unmanage'       # config_remove ~/.tmux.conf
+alias config_status='chezmoi status'         # config_status
+alias config_list='chezmoi managed'          # config_list
+alias config_diff='chezmoi diff'             # config_diff
+alias config_apply='chezmoi apply'           # config_apply
+alias config_sync='chezmoi update'           # config_sync
+alias config_dir='cd $(chezmoi source-path)' # config_dir
+alias config_data='chezmoi data'             # config_data
 
 # ============================================================================
 # Generic
@@ -63,6 +78,7 @@ alias nowdate='date +"%d-%m-%Y"'
 alias ports='netstat -tulanp'
 alias df='df -H'
 alias du='du -ch'
+alias sizes='du -hs ./*'
 alias meminfo='free -m -l -t -h'
 alias psmem='ps auxf | sort -nr -k 4'
 alias psmem10='ps auxf | sort -nr -k 4 | head -10'
@@ -99,6 +115,9 @@ alias cs="create_script"
 # Docker
 # ============================================================================
 alias dbp="docker_build_publish"
+alias dcup='docker compose up -d'
+alias dcdn='docker compose down'
+dkrm() { docker stop "$1" && docker rm "$1"; }
 
 # ============================================================================
 # Kubernetes
