@@ -25,5 +25,23 @@
     - com.spotify.Client
   become: true
 
+- name: Install remmina and freerdp (Fedora)
+  ansible.builtin.dnf:
+    name:
+      - remmina
+      - freerdp
+    state: present
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Install remmina and freerdp (Debian)
+  ansible.builtin.apt:
+    name:
+      - remmina
+      - freerdp2-x11
+    state: present
+  become: true
+  when: os_family == 'debian'
+
 - name: Include fonts setup
   ansible.builtin.include_tasks: fonts.yml
