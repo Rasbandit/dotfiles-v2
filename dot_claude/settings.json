@@ -1,0 +1,37 @@
+{
+  "env": {
+    "ENABLE_TOOL_SEARCH": "true"
+  },
+  "permissions": {
+    "allow": [
+      "Git",
+      "Dotnet",
+      "Npm",
+      "Npx",
+      "Node",
+      "Pnpm",
+      "Yarn",
+      "Cargo",
+      "Python",
+      "Pip",
+      "Pipx",
+      "Bash",
+      "Sh",
+      "Powershell",
+      "Pwsh"
+    ],
+    "allowMCPServers": [
+      "git",
+      "memory",
+      "sequential-thinking",
+      "filesystem",
+      "chrome-devtools",
+      "obsidian",
+      "brain"
+    ]
+  },
+  "model": "sonnet",
+  "skipDangerousModePermissionPrompt": true,
+  "bypassPermissionsAllowed": true,
+  "effortLevel": "medium"
+}
