@@ -6,7 +6,8 @@
 #   ansible-playbook setup.yml --tags all --ask-become-pass
 #
 # Features: terminal, 1password, vscode, browser, vpn, dev-tools,
-#           gnome, openbox, claude, japanese, apps, gaming-laptop, gaming-desktop
+#           gnome, openbox, claude, japanese, apps, gaming-laptop, gaming-desktop,
+#           auto-sync
 #
 # Base role always runs (tagged 'always').
 # Fedora/debian roles always run for distro-specific repo setup.
