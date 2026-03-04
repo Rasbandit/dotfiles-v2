@@ -7,15 +7,15 @@
     state: directory
     mode: '0755'
   loop:
-    - "{{ ansible_env.HOME }}/.local/bin"
-    - "{{ ansible_env.HOME }}/.config"
-    - "{{ ansible_env.HOME }}/.config/systemd/user"
+    - "{{ lookup('env', 'HOME') }}/.local/bin"
+    - "{{ lookup('env', 'HOME') }}/.config"
+    - "{{ lookup('env', 'HOME') }}/.config/systemd/user"
   become: false
   tags: [terminal]
 
 - name: Create bash_secrets if it doesn't exist
   ansible.builtin.file:
-    path: "{{ ansible_env.HOME }}/.bash_secrets"
+    path: "{{ lookup('env', 'HOME') }}/.bash_secrets"
     state: touch
     mode: '0600'
     modification_time: preserve
@@ -34,5 +34,5 @@
   ansible.builtin.cron:
     name: "chezmoi auto sync"
     minute: "0"
-    job: "{{ ansible_env.HOME }}/.local/bin/auto-add-push.sh"
+    job: "{{ lookup('env', 'HOME') }}/.local/bin/auto-add-push.sh"
     state: present

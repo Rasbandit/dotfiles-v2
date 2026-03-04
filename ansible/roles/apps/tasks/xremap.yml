@@ -3,7 +3,7 @@
 
 - name: Check if xremap is installed
   ansible.builtin.stat:
-    path: "{{ ansible_env.HOME }}/.cargo/bin/xremap"
+    path: "{{ lookup('env', 'HOME') }}/.cargo/bin/xremap"
   register: xremap_binary
 
 - name: Install xremap from crates.io
@@ -13,21 +13,21 @@
 
 - name: Add user to input group
   ansible.builtin.user:
-    name: "{{ ansible_env.USER }}"
+    name: "{{ lookup('env', 'USER') }}"
     groups: input
     append: true
   become: true
 
 - name: Ensure xremap config directory exists
   ansible.builtin.file:
-    path: "{{ ansible_env.HOME }}/.config/xremap"
+    path: "{{ lookup('env', 'HOME') }}/.config/xremap"
     state: directory
     mode: '0755'
   become: false
 
 - name: Create xremap systemd service
   ansible.builtin.copy:
-    dest: "{{ ansible_env.HOME }}/.config/systemd/user/xremap.service"
+    dest: "{{ lookup('env', 'HOME') }}/.config/systemd/user/xremap.service"
     mode: '0644'
     content: |
       [Unit]
@@ -36,10 +36,10 @@
 
       [Service]
       Type=simple
-      Environment=PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/bin:{{ ansible_env.HOME }}/.cargo/bin
+      Environment=PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/bin:{{ lookup('env', 'HOME') }}/.cargo/bin
       Environment=DISPLAY=:0
-      Environment=HOME={{ ansible_env.HOME }}
-      ExecStart={{ ansible_env.HOME }}/.cargo/bin/xremap --watch {{ ansible_env.HOME }}/.config/xremap/config.yml
+      Environment=HOME={{ lookup('env', 'HOME') }}
+      ExecStart={{ lookup('env', 'HOME') }}/.cargo/bin/xremap --watch {{ lookup('env', 'HOME') }}/.config/xremap/config.yml
       Restart=always
 
       [Install]

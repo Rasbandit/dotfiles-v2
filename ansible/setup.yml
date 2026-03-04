@@ -20,7 +20,7 @@
     # Falls back to MACHINE_TYPE env var, then 'laptop'.
     machine_type: >-
       {{ lookup('pipe',
-           'cat ' + ansible_env.HOME + '/.config/chezmoi/machine-type 2>/dev/null || echo'
+           'cat ' + lookup('env', 'HOME') + '/.config/chezmoi/machine-type 2>/dev/null || echo'
          ) | trim
          | default(lookup('env', 'MACHINE_TYPE'), true)
          | default('laptop', true) }}

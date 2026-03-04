@@ -62,7 +62,7 @@
           && tar -xzf /tmp/eza.tar.gz -C ~/.local/bin \
           && chmod +x ~/.local/bin/eza
       args:
-        creates: "{{ ansible_env.HOME }}/.local/bin/eza"
+        creates: "{{ lookup('env', 'HOME') }}/.local/bin/eza"
       when: eza_check.rc != 0
       become: false
 
@@ -94,7 +94,7 @@
 
 - name: Ensure cargo env file exists
   ansible.builtin.file:
-    path: "{{ ansible_env.HOME }}/.cargo/env"
+    path: "{{ lookup('env', 'HOME') }}/.cargo/env"
     state: touch
     mode: '0644'
     modification_time: preserve

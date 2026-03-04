@@ -3,25 +3,25 @@
 
 - name: Ensure fonts directory exists
   ansible.builtin.file:
-    path: "{{ ansible_env.HOME }}/.local/share/fonts"
+    path: "{{ lookup('env', 'HOME') }}/.local/share/fonts"
     state: directory
     mode: '0755'
 
 - name: Download fonts archive from Nextcloud
   ansible.builtin.get_url:
     url: "https://nextcloud.ras.band/public.php/dav/files/GpCq3XxB684b85F/?accept=tar"
-    dest: "{{ ansible_env.HOME }}/.local/share/fonts/fonts.tar"
+    dest: "{{ lookup('env', 'HOME') }}/.local/share/fonts/fonts.tar"
     mode: '0644'
 
 - name: Extract fonts archive
   ansible.builtin.unarchive:
-    src: "{{ ansible_env.HOME }}/.local/share/fonts/fonts.tar"
-    dest: "{{ ansible_env.HOME }}/.local/share/fonts"
+    src: "{{ lookup('env', 'HOME') }}/.local/share/fonts/fonts.tar"
+    dest: "{{ lookup('env', 'HOME') }}/.local/share/fonts"
     remote_src: true
 
 - name: Remove fonts archive
   ansible.builtin.file:
-    path: "{{ ansible_env.HOME }}/.local/share/fonts/fonts.tar"
+    path: "{{ lookup('env', 'HOME') }}/.local/share/fonts/fonts.tar"
     state: absent
 
 - name: Refresh font cache
