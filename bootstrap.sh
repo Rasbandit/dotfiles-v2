@@ -196,12 +196,19 @@ CHEZMOI
     # Prevent run_after from prompting — ansible runs below
     touch ~/.config/chezmoi-ansible-done
 
-    echo "[4] Running chezmoi init --apply..."
-    chezmoi init --apply "$REPO" --branch "$BRANCH"
+    echo "[4] Cloning dotfiles repo (no apply — 1Password not set up yet)..."
+    chezmoi init "$REPO" --branch "$BRANCH"
+
+    CHEZMOI_SOURCE=$(chezmoi source-path)
+
+    if [ ! -d "$CHEZMOI_SOURCE/ansible" ]; then
+        echo "ERROR: chezmoi source dir missing — clone may have failed."
+        echo "  Expected: $CHEZMOI_SOURCE/ansible"
+        exit 1
+    fi
 
     if [ "$INSTALL_TOOLS" = true ]; then
         echo "[5] Running ansible (terminal tag only)..."
-        CHEZMOI_SOURCE=$(chezmoi source-path)
         cd "$CHEZMOI_SOURCE/ansible"
         ansible-galaxy collection install community.general
         MACHINE_TYPE="$MACHINE_TYPE" ansible-playbook setup.yml --tags terminal --ask-become-pass
