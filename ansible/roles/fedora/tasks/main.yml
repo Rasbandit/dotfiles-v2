@@ -1,5 +1,6 @@
 ---
-# Fedora-specific setup
+# Fedora-specific base setup: DNF config, repos, system-level packages
+# Feature packages (terminal, 1password, etc.) are handled by feature roles.
 
 - name: Configure DNF for faster downloads
   ansible.builtin.lineinfile:
@@ -28,78 +29,13 @@
   become: true
   ignore_errors: true
 
-- name: Install Fedora terminal packages
+- name: Install Fedora system packages
   ansible.builtin.dnf:
     name:
-      - curl
-      - jq
-      - htop
-      - fzf
-      - zoxide
-      - ripgrep
-      - bat
-      - btop
-      - fastfetch
-      - colordiff
-      - fd-find
-      - tmux
-    state: present
-  become: true
-  tags: [terminal]
-
-- name: Install eza (not in Fedora 42+ repos)
-  tags: [terminal]
-  block:
-    - name: Check if eza is installed
-      ansible.builtin.command: which eza
-      register: eza_check
-      ignore_errors: true
-      changed_when: false
-    - name: Download and install eza from GitHub
-      ansible.builtin.shell: |
-        curl -fsSLo /tmp/eza.tar.gz \
-          https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-musl.tar.gz \
-          && tar -xzf /tmp/eza.tar.gz -C ~/.local/bin \
-          && chmod +x ~/.local/bin/eza
-      args:
-        creates: "{{ lookup('env', 'HOME') }}/.local/bin/eza"
-      when: eza_check.rc != 0
-      become: false
-
-- name: Install Fedora desktop packages
-  ansible.builtin.dnf:
-    name:
-      - pavucontrol
-      - traceroute
-      - gnome-tweaks
-      - dconf-editor
-      - python3-pip
-      - nodejs
-      - rust
-      - cargo
-      - ghostty
-      - duf
-      - iotop
       - flatpak
       - dnf-plugin-system-upgrade
-      - vlc
-      - wireguard-tools
     state: present
   become: true
-
-- name: Swap mesa drivers for freeworld version
-  ansible.builtin.command: dnf swap mesa-va-drivers mesa-va-drivers-freeworld -y
-  become: true
-  ignore_errors: true
-
-- name: Ensure cargo env file exists
-  ansible.builtin.file:
-    path: "{{ lookup('env', 'HOME') }}/.cargo/env"
-    state: touch
-    mode: '0644'
-    modification_time: preserve
-    access_time: preserve
-  become: false
 
 - name: Add Flathub repository
   community.general.flatpak_remote:
@@ -108,35 +44,7 @@
     state: present
   become: true
 
-- name: Install Flatpak apps (all desktop types)
-  community.general.flatpak:
-    name: "{{ item }}"
-    state: present
-  loop:
-    - com.discordapp.Discord
-    - md.obsidian.Obsidian
-    - com.spotify.Client
+- name: Swap mesa drivers for freeworld version
+  ansible.builtin.command: dnf swap mesa-va-drivers mesa-va-drivers-freeworld -y
   become: true
-
-- name: Install gaming/creative Flatpak apps (desktop only)
-  community.general.flatpak:
-    name: "{{ item }}"
-    state: present
-  loop:
-    - com.obsproject.Studio
-    - org.kde.kdenlive
-  become: true
-  when: machine_type == 'desktop'
-
-- name: Include 1Password setup
-  ansible.builtin.include_tasks: 1password.yml
-
-- name: Include VS Code setup
-  ansible.builtin.include_tasks: vscode.yml
-
-- name: Include Vivaldi setup
-  ansible.builtin.include_tasks: vivaldi.yml
-
-- name: Include Tailscale setup
-  ansible.builtin.include_tasks: tailscale.yml
-  tags: [tailscale]
+  ignore_errors: true

@@ -1,0 +1,22 @@
+---
+# Gaming (desktop): Steam, Lutris
+# TODO: ES-DE frontend
+# TODO: NFS game library mounts (home network only — configure on desktop directly)
+
+- name: Install Steam and Lutris (Fedora)
+  ansible.builtin.dnf:
+    name:
+      - steam
+      - lutris
+    state: present
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Install Steam and Lutris (Debian)
+  ansible.builtin.apt:
+    name:
+      - steam
+      - lutris
+    state: present
+  become: true
+  when: os_family == 'debian'

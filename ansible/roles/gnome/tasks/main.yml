@@ -59,7 +59,7 @@
   ansible.builtin.shell: gsettings set {{ item.schema }} {{ item.key }} "{{ item.value }}"
   loop:
     - { schema: "org.gnome.desktop.input-sources", key: "sources", value: "[('xkb', 'us'), ('xkb', 'jp')]" }
-    # Note: CapsLock remapping is handled by xremap (see apps role)
+    # Note: CapsLock remapping is handled by xremap (included below)
     - { schema: "org.gnome.desktop.input-sources", key: "xkb-options", value: "[]" }
   become: false
   changed_when: false
@@ -92,3 +92,24 @@
 
 - name: Include custom keybindings setup
   ansible.builtin.include_tasks: keybindings.yml
+
+- name: Install gnome-tweaks and dconf-editor
+  ansible.builtin.dnf:
+    name:
+      - gnome-tweaks
+      - dconf-editor
+    state: present
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Install gnome-tweaks and dconf-editor (Debian)
+  ansible.builtin.apt:
+    name:
+      - gnome-tweaks
+      - dconf-editor
+    state: present
+  become: true
+  when: os_family == 'debian'
+
+- name: Include xremap setup
+  ansible.builtin.include_tasks: xremap.yml

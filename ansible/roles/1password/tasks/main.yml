@@ -1,0 +1,58 @@
+---
+# 1Password app + CLI installation
+
+# --- Fedora ---
+- name: Import 1Password GPG key (Fedora)
+  ansible.builtin.rpm_key:
+    key: https://downloads.1password.com/linux/keys/1password.asc
+    state: present
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Add 1Password repository (Fedora)
+  ansible.builtin.yum_repository:
+    name: 1password
+    description: 1Password Stable Channel
+    baseurl: https://downloads.1password.com/linux/rpm/stable/$basearch
+    enabled: true
+    gpgcheck: true
+    repo_gpgcheck: true
+    gpgkey: https://downloads.1password.com/linux/keys/1password.asc
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Install 1Password (Fedora)
+  ansible.builtin.dnf:
+    name:
+      - 1password
+      - 1password-cli
+    state: present
+  become: true
+  when: os_distribution == 'fedora'
+
+# --- Debian/Ubuntu ---
+- name: Add 1Password GPG key (Debian)
+  ansible.builtin.apt_key:
+    url: https://downloads.1password.com/linux/keys/1password.asc
+    keyring: /usr/share/keyrings/1password-archive-keyring.gpg
+    state: present
+  become: true
+  when: os_family == 'debian'
+
+- name: Add 1Password repository (Debian)
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/amd64 stable main"
+    filename: 1password
+    state: present
+  become: true
+  when: os_family == 'debian'
+
+- name: Install 1Password (Debian)
+  ansible.builtin.apt:
+    name:
+      - 1password
+      - 1password-cli
+    state: present
+    update_cache: true
+  become: true
+  when: os_family == 'debian'

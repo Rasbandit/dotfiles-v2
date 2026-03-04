@@ -1,15 +1,29 @@
 ---
-# Cross-platform application installs
+# Apps: Discord, Obsidian, Spotify (Flatpaks), pavucontrol, fonts
 
-- name: Include xremap setup
-  ansible.builtin.include_tasks: xremap.yml
-  tags: [xremap]
+- name: Install pavucontrol
+  ansible.builtin.dnf:
+    name: pavucontrol
+    state: present
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Install pavucontrol (Debian)
+  ansible.builtin.apt:
+    name: pavucontrol
+    state: present
+  become: true
+  when: os_family == 'debian'
+
+- name: Install Flatpak apps (Discord, Obsidian, Spotify)
+  community.general.flatpak:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - com.discordapp.Discord
+    - md.obsidian.Obsidian
+    - com.spotify.Client
+  become: true
 
 - name: Include fonts setup
   ansible.builtin.include_tasks: fonts.yml
-  tags: [fonts]
-
-- name: Include Japanese input setup
-  ansible.builtin.include_tasks: japanese.yml
-  tags: [japanese]
-  when: ansible_facts['distribution'] == 'Fedora'

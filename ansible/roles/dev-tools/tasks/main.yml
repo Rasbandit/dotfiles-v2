@@ -1,0 +1,40 @@
+---
+# Dev tools: nodejs, npm, python3-pip, rust, cargo
+
+- name: Install dev tools (Fedora)
+  ansible.builtin.dnf:
+    name:
+      - python3-pip
+      - nodejs
+      - rust
+      - cargo
+    state: present
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Install dev tools (Debian)
+  ansible.builtin.apt:
+    name:
+      - python3-pip
+      - nodejs
+      - npm
+    state: present
+  become: true
+  when: os_family == 'debian'
+
+- name: Install rust via rustup (Debian)
+  ansible.builtin.shell: |
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  args:
+    creates: "{{ lookup('env', 'HOME') }}/.cargo/bin/cargo"
+  become: false
+  when: os_family == 'debian'
+
+- name: Ensure cargo env file exists
+  ansible.builtin.file:
+    path: "{{ lookup('env', 'HOME') }}/.cargo/env"
+    state: touch
+    mode: '0644'
+    modification_time: preserve
+    access_time: preserve
+  become: false
