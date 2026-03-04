@@ -197,6 +197,11 @@ CHEZMOI
 
     CHEZMOI_SOURCE=$(chezmoi source-path)
 
+    echo "[4b] Copying shell config files..."
+    cp "$CHEZMOI_SOURCE/dot_aliases"        ~/.aliases
+    cp "$CHEZMOI_SOURCE/dot_bash_functions" ~/.bash_functions
+    cp "$CHEZMOI_SOURCE/dot_bashrc"         ~/.bashrc
+
     if [ ! -d "$CHEZMOI_SOURCE/ansible" ]; then
         echo "ERROR: chezmoi source dir missing — clone may have failed."
         echo "  Expected: $CHEZMOI_SOURCE/ansible"
