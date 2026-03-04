@@ -386,30 +386,31 @@ if [ "$UPDATE_MODE" = true ] && chezmoi source-path &>/dev/null 2>&1; then
     echo "Updating chezmoi source..."
     chezmoi update --force || chezmoi init --force "$REPO" --branch "$BRANCH"
     echo "Using chezmoi source: $CHEZMOI_SOURCE"
-elif [ "$MACHINE_TYPE" = "server" ]; then
+else
     echo "[3] Pre-creating chezmoi config (non-interactive)..."
-    cat > "$CHEZMOI_DIR/chezmoi.toml" <<CHEZMOI
-[data]
-    hostname = "$(hostname)"
-    machineType = "server"
-    email = "todd.rasband@gmail.com"
-[onepassword]
-    command = "op"
-    prompt = false
-CHEZMOI
+    {
+        echo '[data]'
+        echo "    hostname = \"$(hostname)\""
+        echo "    machineType = \"$MACHINE_TYPE\""
+        echo '    email = "todd.rasband@gmail.com"'
+        if echo "$SELECTED_FEATURES" | grep -qw "1password"; then
+            echo ''
+            echo '[onepassword]'
+            echo '    command = "op"'
+            echo '    prompt = true'
+        fi
+    } > "$CHEZMOI_DIR/chezmoi.toml"
 
     echo "[3b] Cloning dotfiles repo..."
     chezmoi init --force "$REPO" --branch "$BRANCH"
     CHEZMOI_SOURCE=$(chezmoi source-path)
 
-    # Copy shell files immediately for usability
-    cp "$CHEZMOI_SOURCE/dot_aliases"        ~/.aliases
-    cp "$CHEZMOI_SOURCE/dot_bash_functions" ~/.bash_functions
-    cp "$CHEZMOI_SOURCE/dot_bashrc"         ~/.bashrc
-else
-    echo "[3] Running chezmoi init --apply (interactive)..."
-    chezmoi init --apply "$REPO" --branch "$BRANCH"
-    CHEZMOI_SOURCE=$(chezmoi source-path)
+    if [ "$MACHINE_TYPE" = "server" ]; then
+        # Copy shell files immediately for usability
+        cp "$CHEZMOI_SOURCE/dot_aliases"        ~/.aliases
+        cp "$CHEZMOI_SOURCE/dot_bash_functions" ~/.bash_functions
+        cp "$CHEZMOI_SOURCE/dot_bashrc"         ~/.bashrc
+    fi
 fi
 
 # ============================================================================
