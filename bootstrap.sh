@@ -107,7 +107,7 @@ GITCONFIG
         echo "[4/4] Installing terminal essentials..."
         case $OS in
             fedora)
-                sudo dnf install -y fzf zoxide bat ripgrep colordiff jq fastfetch
+                sudo dnf install -y fzf zoxide bat ripgrep colordiff jq fastfetch tmux
                 if ! command -v eza &>/dev/null; then
                     echo "Installing eza from GitHub releases (not in Fedora 42+ repos)..."
                     mkdir -p ~/.local/bin
@@ -120,7 +120,7 @@ GITCONFIG
                 ;;
             ubuntu|debian)
                 sudo apt update -q
-                sudo apt install -y fzf zoxide bat ripgrep jq colordiff
+                sudo apt install -y fzf zoxide bat ripgrep jq colordiff tmux
                 if ! command -v eza &>/dev/null; then
                     if command -v cargo &>/dev/null; then
                         cargo install eza
@@ -128,7 +128,7 @@ GITCONFIG
                 fi
                 ;;
             arch)
-                sudo pacman -Sy --noconfirm fzf zoxide bat eza ripgrep colordiff jq fastfetch
+                sudo pacman -Sy --noconfirm fzf zoxide bat eza ripgrep colordiff jq fastfetch tmux
                 ;;
             *)
                 echo "Warning: unsupported OS '$OS', skipping tool install."
