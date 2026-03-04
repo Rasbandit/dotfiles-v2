@@ -26,10 +26,25 @@
          | default('laptop', true) }}
 
   pre_tasks:
-    - name: Detect OS family
+    - name: Detect OS distribution from /etc/os-release
+      ansible.builtin.shell: |
+        . /etc/os-release && echo "$ID"
+      register: os_id_raw
+      changed_when: false
+      tags: always
+
+    - name: Detect OS version from /etc/os-release
+      ansible.builtin.shell: |
+        . /etc/os-release && echo "${VERSION_ID%%.*}"
+      register: os_version_raw
+      changed_when: false
+      tags: always
+
+    - name: Set OS facts
       ansible.builtin.set_fact:
-        os_family: "{{ ansible_facts['os_family'] | lower }}"
-        os_distribution: "{{ ansible_facts['distribution'] | lower }}"
+        os_distribution: "{{ os_id_raw.stdout | trim }}"
+        os_family: "{{ 'debian' if os_id_raw.stdout | trim in ['debian', 'ubuntu'] else 'redhat' }}"
+        os_major_version: "{{ os_version_raw.stdout | trim }}"
       tags: always
 
     - name: Display detected system
