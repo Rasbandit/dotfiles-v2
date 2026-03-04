@@ -8,6 +8,10 @@ cd "$CHEZMOI_DIR"
 REMOTE_BRANCH="origin/main"
 LOCAL_BRANCH="main"
 
+# --- Ensure correct remote URLs for push/pull ---
+git remote set-url origin https://github.com/Rasbandit/dotfiles-v2.git
+git remote set-url --push origin git@github.com:Rasbandit/dotfiles-v2.git
+
 # --- 1. Sync actual dotfiles back to chezmoi source ---
 chezmoi re-add
 

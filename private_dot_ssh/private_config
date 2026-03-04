@@ -3,5 +3,10 @@ Host homeassistant
   Port 22
   User homeassistant
 
+Host claw
+  Hostname 10.0.20.172
+  Port 22
+  User open-claw
+
 Host *
   IdentityAgent ~/.1password/agent.sock

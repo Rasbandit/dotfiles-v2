@@ -105,11 +105,119 @@ alias dbp="docker_build_publish"
 alias k='kubectl'
 
 # ============================================================================
+# WireGuard
+# ============================================================================
+alias wgu='sudo wg-quick up fast-raid'
+alias wgu-alt='sudo wg-quick up slow-raid'
+alias wgd='sudo wg-quick down fast-raid 2>/dev/null; sudo wg-quick down slow-raid 2>/dev/null; true'
+
+# ============================================================================
 # Tailscale
 # ============================================================================
+alias tsu='sudo tailscale up'
 alias tsu-home='sudo tailscale up --accept-routes --exit-node=100.82.250.90 --exit-node-allow-lan-access --stateful-filtering'
+# alias tsu-alt='sudo tailscale up --accept-routes --exit-node=<slowraid-ip> --exit-node-allow-lan-access --stateful-filtering'
 alias tsd='sudo tailscale down'
 alias tss='tailscale status'
+
+# ============================================================================
+# ch / dh — Connect Home / Disconnect Home
+# Cascade: WG fast-raid → (blocked)      → Tailscale fast-raid → Tailscale slow-raid
+#                        → (server down) → WG slow-raid → Tailscale fast-raid → Tailscale slow-raid
+# ============================================================================
+
+# Poll for a recent WireGuard handshake, checking every 0.5s up to 5s.
+# Exits immediately on success for speed.
+_ch_wg_poll() {
+    local iface=$1 last_hs now deadline
+    deadline=$(( $(date +%s) + 5 ))
+    while [[ $(date +%s) -lt $deadline ]]; do
+        last_hs=$(sudo wg show "$iface" latest-handshakes 2>/dev/null | awk '{print $2}' | head -1)
+        now=$(date +%s)
+        [[ -n "$last_hs" && "$last_hs" -gt 0 && $(( now - last_hs )) -lt 15 ]] && return 0
+        sleep 0.5
+    done
+    return 1
+}
+
+# Extract endpoint IP from a WireGuard config (strips port).
+_ch_endpoint_ip() {
+    grep -i '^\s*Endpoint' "/etc/wireguard/${1}.conf" 2>/dev/null \
+        | head -1 | sed 's/.*=\s*//' | cut -d: -f1 | tr -d ' '
+}
+
+# Try to connect via WireGuard. Pings the endpoint in parallel while polling
+# for a handshake so we can distinguish "blocked" from "server down" for free.
+# Returns: 0=connected, 1=WG UDP blocked (server pingable), 2=server unreachable
+_ch_try_wg() {
+    local iface=$1 endpoint ping_pid=
+    echo "[ch] Trying WireGuard ($iface)..."
+    sudo wg-quick up "$iface" 2>/dev/null || { echo "[ch] wg-quick failed ($iface)."; return 2; }
+
+    endpoint=$(_ch_endpoint_ip "$iface")
+    [[ -n "$endpoint" ]] && { ping -c 3 -W 2 "$endpoint" &>/dev/null & ping_pid=$!; }
+
+    _ch_wg_poll "$iface"
+    local wg_ok=$?
+
+    if [[ $wg_ok -eq 0 ]]; then
+        [[ -n "$ping_pid" ]] && { kill "$ping_pid" 2>/dev/null; wait "$ping_pid" 2>/dev/null; }
+        echo "[ch] Connected via WireGuard ($iface)."
+        return 0
+    fi
+
+    sudo wg-quick down "$iface" 2>/dev/null
+    [[ -n "$ping_pid" ]] && wait "$ping_pid"
+    local ping_ok=$?
+    [[ $ping_ok -eq 0 ]] && return 1 || return 2
+}
+
+_ch_try_ts() {
+    local node=$1 label=$2
+    echo "[ch] Trying Tailscale ($label)..."
+    sudo tailscale up --accept-routes --exit-node="$node" \
+        --exit-node-allow-lan-access --stateful-filtering \
+        && { echo "[ch] Connected via Tailscale ($label)."; return 0; }
+    return 1
+}
+
+ch() {
+    local TS_FAST=100.82.250.90
+    # local TS_SLOW=<slowraid-tailscale-ip>  # uncomment when known
+
+    # Clean up any stale WG interfaces from previous attempts
+    sudo wg-quick down fast-raid 2>/dev/null
+    sudo wg-quick down slow-raid 2>/dev/null
+
+    _ch_try_wg fast-raid
+    local r=$?
+    [[ $r -eq 0 ]] && return 0
+
+    if [[ $r -eq 1 ]]; then
+        # WG UDP is blocked on this network — slow-raid would hit the same wall
+        echo "[ch] WireGuard UDP appears blocked. Skipping slow-raid, going to Tailscale..."
+        _ch_try_ts "$TS_FAST" "fast-raid" && return 0
+        # _ch_try_ts "$TS_SLOW" "slow-raid" && return 0
+    else
+        # fast-raid server unreachable — slow-raid may be on different hardware/ISP
+        _ch_try_wg slow-raid
+        r=$?
+        [[ $r -eq 0 ]] && return 0
+        _ch_try_ts "$TS_FAST" "fast-raid" && return 0
+        # _ch_try_ts "$TS_SLOW" "slow-raid" && return 0
+    fi
+
+    echo "[ch] All VPN connection methods failed."
+    return 1
+}
+
+dh() {
+    echo "[dh] Disconnecting..."
+    sudo wg-quick down fast-raid 2>/dev/null
+    sudo wg-quick down slow-raid 2>/dev/null
+    sudo tailscale down 2>/dev/null
+    echo "[dh] Done."
+}
 
 # ============================================================================
 # AI
