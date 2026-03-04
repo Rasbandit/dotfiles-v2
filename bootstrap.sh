@@ -3,8 +3,19 @@ set -euo pipefail
 
 # ============================================================================
 # Dotfiles Bootstrap Script
-# Run with: curl -sL https://raw.githubusercontent.com/Rasbandit/dotfiles-v2/main/bootstrap.sh | bash
+# Run with: curl -sL https://s.ras.band/setup | bash
 # ============================================================================
+
+read -rsp "This script requires sudo. Enter your password: " SUDO_PASS
+echo ""
+echo "$SUDO_PASS" | sudo -Sv 2>/dev/null
+
+# Keep sudo token alive in the background for the duration of the script
+( while true; do echo "$SUDO_PASS" | sudo -Sv 2>/dev/null; sleep 50; done ) &
+SUDO_KEEPALIVE_PID=$!
+trap 'kill "$SUDO_KEEPALIVE_PID" 2>/dev/null' EXIT
+
+export ANSIBLE_BECOME_PASS="$SUDO_PASS"
 
 REPO="Rasbandit/dotfiles-v2"
 BRANCH="main"
@@ -30,13 +41,6 @@ else
 fi
 
 echo "Detected OS: $OS"
-echo ""
-
-# ============================================================================
-# Elevate sudo early so password isn't prompted mid-script
-# ============================================================================
-echo "This script requires sudo. Please enter your password:"
-sudo -v
 echo ""
 
 # ============================================================================
@@ -150,8 +154,7 @@ GITCONFIG
     mkdir -p ~/.local/bin
     cd "$TMPCLONE/dotfiles/ansible"
     ansible-galaxy collection install community.general
-    ansible-playbook setup.yml --tags terminal --ask-become-pass
-
+    ansible-playbook setup.yml --tags terminal
     cd ~
     rm -rf "$TMPCLONE"
 
@@ -430,7 +433,7 @@ if [ -n "${ANSIBLE_TAGS:-}" ]; then
     ansible-galaxy collection install community.general
 
     echo "[4] Running ansible --tags $ANSIBLE_TAGS ..."
-    ansible-playbook setup.yml --tags "$ANSIBLE_TAGS" --ask-become-pass
+    ansible-playbook setup.yml --tags "$ANSIBLE_TAGS"
 fi
 
 # ============================================================================
