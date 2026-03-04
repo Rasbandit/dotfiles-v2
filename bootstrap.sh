@@ -6,10 +6,7 @@ set -euo pipefail
 # Run with: curl -sL https://s.ras.band/setup | bash
 # ============================================================================
 
-# Reattach stdin to the terminal (required when run via curl | bash)
-exec </dev/tty
-
-read -rsp "This script requires sudo. Enter your password: " SUDO_PASS
+read -rsp "This script requires sudo. Enter your password: " SUDO_PASS </dev/tty
 echo ""
 echo "$SUDO_PASS" | sudo -Sv 2>/dev/null
 
@@ -63,7 +60,7 @@ if [ -f "$MACHINE_TYPE_FILE" ]; then
     echo "  Type:     $EXISTING_TYPE"
     echo "  Features: ${EXISTING_FEATURES:-none}"
     echo ""
-    read -rp "Update this machine? [Y/n]: " update_choice
+    read -rp "Update this machine? [Y/n]: " update_choice </dev/tty
     case "${update_choice:-Y}" in
         [Yy]*|"") : ;;
         *) echo "Exiting."; exit 0 ;;
@@ -81,7 +78,7 @@ if [ "$UPDATE_MODE" = true ]; then
     echo "  2) server      — persistent, headless"
     echo "  3) workstation — full setup (laptop or desktop)"
     echo ""
-    read -rp "Enter choice [1-3, or Enter to keep]: " machine_choice
+    read -rp "Enter choice [1-3, or Enter to keep]: " machine_choice </dev/tty
     if [ -z "$machine_choice" ]; then
         MACHINE_TYPE="$EXISTING_TYPE"
     else
@@ -98,7 +95,7 @@ else
     echo "  2) server      — persistent, headless"
     echo "  3) workstation — full setup (laptop or desktop)"
     echo ""
-    read -rp "Enter choice [1-3]: " machine_choice
+    read -rp "Enter choice [1-3]: " machine_choice </dev/tty
     case $machine_choice in
         1) MACHINE_TYPE="temporary" ;;
         2) MACHINE_TYPE="server" ;;
@@ -265,7 +262,7 @@ for feature in $ALL_FEATURES; do
         prompt_str="[y/N]"
     fi
 
-    read -rp "  ${feature}? ${prompt_str}: " choice
+    read -rp "  ${feature}? ${prompt_str}: " choice </dev/tty
     case "${choice:-$prefill}" in
         [Yy]*|Y) SELECTED_FEATURES="$SELECTED_FEATURES $feature" ;;
         *) : ;;
@@ -298,7 +295,7 @@ if echo "$SELECTED_FEATURES" | grep -qw "1password"; then
         echo "Press Enter when ready, or 's' to skip 1Password for now..."
 
         while true; do
-            read -rp "  > " op_choice
+            read -rp "  > " op_choice </dev/tty
             if [ "${op_choice:-}" = "s" ] || [ "${op_choice:-}" = "S" ]; then
                 echo "  Skipping 1Password. Removing from features."
                 # claude requires 1password — remove both
