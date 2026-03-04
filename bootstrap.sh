@@ -190,7 +190,7 @@ feature_default() {
         browser)
             [ "$type" = "workstation" ] && echo "Y" || echo "N" ;;
         vpn)
-            [ "$type" = "workstation" ] && echo "Y" || echo "ask" ;;
+            [ "$type" = "workstation" ] && echo "Y" || echo "N" ;;
         dev-tools)
             [ "$type" = "workstation" ] && echo "Y" || echo "ask" ;;
         gnome)
@@ -259,9 +259,13 @@ for feature in $ALL_FEATURES; do
     # Collapse "ask" → "N" for the prompt default
     [ "$prefill" = "ask" ] && prefill="N"
 
-    # On fresh install, skip features that are hard N (no ask, not shown)
-    if [ "$UPDATE_MODE" = false ] && [ "$default" = "N" ]; then
-        continue
+    # Skip features that are N and weren't previously installed
+    if [ "$default" = "N" ]; then
+        if [ "$UPDATE_MODE" = false ]; then
+            continue
+        elif [ "$(feature_installed "$feature")" = "N" ]; then
+            continue
+        fi
     fi
 
     if [ "$prefill" = "Y" ]; then
@@ -379,7 +383,9 @@ touch ~/.config/chezmoi-ansible-done
 
 if [ "$UPDATE_MODE" = true ] && chezmoi source-path &>/dev/null 2>&1; then
     CHEZMOI_SOURCE=$(chezmoi source-path)
-    echo "Using existing chezmoi source: $CHEZMOI_SOURCE"
+    echo "Updating chezmoi source..."
+    chezmoi update --force || chezmoi init --force "$REPO" --branch "$BRANCH"
+    echo "Using chezmoi source: $CHEZMOI_SOURCE"
 elif [ "$MACHINE_TYPE" = "server" ]; then
     echo "[3] Pre-creating chezmoi config (non-interactive)..."
     cat > "$CHEZMOI_DIR/chezmoi.toml" <<CHEZMOI
