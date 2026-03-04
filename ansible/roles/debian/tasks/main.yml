@@ -32,14 +32,14 @@
   ansible.builtin.shell: |
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
   args:
-    creates: "{{ ansible_env.HOME }}/.cargo/bin/cargo"
+    creates: "{{ lookup('env', 'HOME') }}/.cargo/bin/cargo"
   become: false
   tags: [terminal]
 
 - name: Install eza via cargo (not always in apt)
-  ansible.builtin.command: "{{ ansible_env.HOME }}/.cargo/bin/cargo install eza"
+  ansible.builtin.command: "{{ lookup('env', 'HOME') }}/.cargo/bin/cargo install eza"
   args:
-    creates: "{{ ansible_env.HOME }}/.cargo/bin/eza"
+    creates: "{{ lookup('env', 'HOME') }}/.cargo/bin/eza"
   become: false
   tags: [terminal]
 

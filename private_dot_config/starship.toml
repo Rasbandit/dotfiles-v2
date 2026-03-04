@@ -115,7 +115,7 @@ format = '[[ $symbol ($version)](fg:0 bg:2)]($style)'
 [custom.ssh]
 symbol = "󰢹"
 description = "Connected via SSH"
-command = "hostname"
+command = "hostname -s"
 format = "[[ $symbol $output ](fg:0 bg:14)]($style)"
 style = "fg:0 bg:14"
 when = '[ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]'

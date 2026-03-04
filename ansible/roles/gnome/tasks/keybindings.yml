@@ -20,14 +20,14 @@
 
     # Define all keybindings
     add_keybinding "1pass Quick" "1password --quick-access" "<Control><Shift><Alt>space" 0
-    add_keybinding "1pass" "{{ ansible_env.HOME }}/.local/bin/focus-or-run.sh 1Password 1password" "<Control><Shift><Alt>1" 1
-    add_keybinding "Vivaldi" "{{ ansible_env.HOME }}/.local/bin/focus-or-run.sh Vivaldi vivaldi" "<Control><Shift><Alt>v" 2
-    add_keybinding "Spotify" "{{ ansible_env.HOME }}/.local/bin/focus-or-run.sh spotify" "<Control><Shift><Alt>m" 3
-    add_keybinding "Ghostty" "{{ ansible_env.HOME }}/.local/bin/focus-or-run.sh com.mitchellh.ghostty ghostty" "<Control><Shift><Alt>t" 4
-    add_keybinding "VSCode" "{{ ansible_env.HOME }}/.local/bin/focus-or-run.sh Code code" "<Control><Shift><Alt>c" 5
-    add_keybinding "Discord" "{{ ansible_env.HOME }}/.local/bin/focus-or-run.sh discord 'flatpak run com.discordapp.Discord'" "<Control><Shift><Alt>d" 6
-    add_keybinding "Obsidian" "{{ ansible_env.HOME }}/.local/bin/focus-or-run.sh obsidian 'flatpak run md.obsidian.Obsidian'" "<Control><Shift><Alt>q" 7
-    add_keybinding "Slack" "{{ ansible_env.HOME }}/.local/bin/focus-or-run.sh Slack slack" "<Control><Shift><Alt>s" 8
+    add_keybinding "1pass" "{{ lookup('env', 'HOME') }}/.local/bin/focus-or-run.sh 1Password 1password" "<Control><Shift><Alt>1" 1
+    add_keybinding "Vivaldi" "{{ lookup('env', 'HOME') }}/.local/bin/focus-or-run.sh Vivaldi vivaldi" "<Control><Shift><Alt>v" 2
+    add_keybinding "Spotify" "{{ lookup('env', 'HOME') }}/.local/bin/focus-or-run.sh spotify" "<Control><Shift><Alt>m" 3
+    add_keybinding "Ghostty" "{{ lookup('env', 'HOME') }}/.local/bin/focus-or-run.sh com.mitchellh.ghostty ghostty" "<Control><Shift><Alt>t" 4
+    add_keybinding "VSCode" "{{ lookup('env', 'HOME') }}/.local/bin/focus-or-run.sh Code code" "<Control><Shift><Alt>c" 5
+    add_keybinding "Discord" "{{ lookup('env', 'HOME') }}/.local/bin/focus-or-run.sh discord 'flatpak run com.discordapp.Discord'" "<Control><Shift><Alt>d" 6
+    add_keybinding "Obsidian" "{{ lookup('env', 'HOME') }}/.local/bin/focus-or-run.sh obsidian 'flatpak run md.obsidian.Obsidian'" "<Control><Shift><Alt>q" 7
+    add_keybinding "Slack" "{{ lookup('env', 'HOME') }}/.local/bin/focus-or-run.sh Slack slack" "<Control><Shift><Alt>s" 8
     add_keybinding "Emoji" "flatpak run com.tomjwatson.Emote" "<Control><Shift><Alt>semicolon" 9
 
     # Register all keybindings

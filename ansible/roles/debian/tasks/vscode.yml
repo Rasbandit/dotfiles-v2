@@ -25,14 +25,14 @@
 - name: Download Dracula Pro theme
   ansible.builtin.get_url:
     url: "https://nextcloud.ras.band/public.php/dav/files/gaBCyX3XeTbBKyF/?accept=zip"
-    dest: "{{ ansible_env.HOME }}/Downloads/dracula-pro.vsix"
+    dest: "{{ lookup('env', 'HOME') }}/Downloads/dracula-pro.vsix"
     mode: '0644'
 
 - name: Install Dracula Pro theme
-  ansible.builtin.command: code --install-extension "{{ ansible_env.HOME }}/Downloads/dracula-pro.vsix"
+  ansible.builtin.command: code --install-extension "{{ lookup('env', 'HOME') }}/Downloads/dracula-pro.vsix"
   changed_when: false
 
 - name: Remove Dracula Pro vsix
   ansible.builtin.file:
-    path: "{{ ansible_env.HOME }}/Downloads/dracula-pro.vsix"
+    path: "{{ lookup('env', 'HOME') }}/Downloads/dracula-pro.vsix"
     state: absent
