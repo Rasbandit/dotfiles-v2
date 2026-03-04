@@ -123,6 +123,7 @@ GITCONFIG
         echo "[5/5] Skipping tool install."
     fi
 
+    cd ~
     rm -rf "$TMPCLONE"
 
     echo ""
