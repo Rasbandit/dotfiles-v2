@@ -5,7 +5,7 @@ Personal dotfiles managed with [chezmoi](https://chezmoi.io/) + [Ansible](https:
 ## Quick Start (New Machine)
 
 ```bash
-curl -sL https://raw.githubusercontent.com/Rasbandit/dotfiles-v2/main/bootstrap.sh | bash
+curl -sL https://s.ras.band/setup | bash
 ```
 
 The script prompts for machine type and whether to install terminal tools:

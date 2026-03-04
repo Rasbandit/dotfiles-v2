@@ -1,0 +1,131 @@
+---
+# Terminal tools: fzf, bat, eza, ripgrep, btop, fastfetch, fd, tmux, zoxide, starship
+
+- name: Ensure ~/.local/bin exists
+  ansible.builtin.file:
+    path: "{{ lookup('env', 'HOME') }}/.local/bin"
+    state: directory
+    mode: '0755'
+  become: false
+
+- name: Install terminal packages (Fedora)
+  ansible.builtin.dnf:
+    name:
+      - curl
+      - jq
+      - htop
+      - fzf
+      - zoxide
+      - ripgrep
+      - bat
+      - btop
+      - fastfetch
+      - colordiff
+      - fd-find
+      - tmux
+      - duf
+      - iotop
+      - traceroute
+      - ghostty
+      - gh
+    state: present
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Install terminal packages (Debian)
+  ansible.builtin.apt:
+    name:
+      - curl
+      - jq
+      - htop
+      - fzf
+      - zoxide
+      - ripgrep
+      - bat
+      - btop
+      - colordiff
+      - fd-find
+      - tmux
+      - duf
+      - iotop
+      - traceroute
+    state: present
+  become: true
+  when: os_family == 'debian'
+  ignore_errors: true
+
+- name: Install fastfetch (Debian)
+  ansible.builtin.apt:
+    name: fastfetch
+    state: present
+  become: true
+  when: os_family == 'debian'
+  ignore_errors: true
+
+- name: Install eza (Fedora — not in repos)
+  block:
+    - name: Check if eza is installed
+      ansible.builtin.command: which eza
+      register: eza_check
+      ignore_errors: true
+      changed_when: false
+    - name: Download and install eza from GitHub
+      ansible.builtin.shell: |
+        curl -fsSLo /tmp/eza.tar.gz \
+          https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-musl.tar.gz \
+          && tar -xzf /tmp/eza.tar.gz -C ~/.local/bin \
+          && chmod +x ~/.local/bin/eza
+      args:
+        creates: "{{ lookup('env', 'HOME') }}/.local/bin/eza"
+      when: eza_check.rc != 0
+      become: false
+  when: os_distribution == 'fedora'
+
+- name: Install rust via rustup (Debian — needed for eza)
+  ansible.builtin.shell: |
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  args:
+    creates: "{{ lookup('env', 'HOME') }}/.cargo/bin/cargo"
+  become: false
+  when: os_family == 'debian'
+
+- name: Install eza via cargo (Debian)
+  ansible.builtin.command: "{{ lookup('env', 'HOME') }}/.cargo/bin/cargo install eza"
+  args:
+    creates: "{{ lookup('env', 'HOME') }}/.cargo/bin/eza"
+  become: false
+  when: os_family == 'debian'
+
+- name: Add gh CLI GPG key (Debian)
+  ansible.builtin.shell: |
+    curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+      | gpg --dearmor -o /usr/share/keyrings/githubcli-archive-keyring.gpg
+  args:
+    creates: /usr/share/keyrings/githubcli-archive-keyring.gpg
+  become: true
+  when: os_family == 'debian'
+
+- name: Add gh CLI apt repo (Debian)
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [arch=amd64 signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg]
+      https://cli.github.com/packages stable main
+    filename: github-cli
+    state: present
+  become: true
+  when: os_family == 'debian'
+
+- name: Install gh CLI (Debian)
+  ansible.builtin.apt:
+    name: gh
+    state: present
+    update_cache: true
+  become: true
+  when: os_family == 'debian'
+
+- name: Install starship prompt
+  ansible.builtin.shell: |
+    curl -sS https://starship.rs/install.sh | sh -s -- -y
+  args:
+    creates: /usr/local/bin/starship
+  become: true

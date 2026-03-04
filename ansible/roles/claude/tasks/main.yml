@@ -1,0 +1,13 @@
+---
+# Claude Code CLI installation
+
+- name: Check if Claude Code is installed
+  ansible.builtin.command: which claude
+  register: claude_check
+  ignore_errors: true
+  changed_when: false
+
+- name: Install Claude Code CLI via npm
+  ansible.builtin.command: npm install -g @anthropic-ai/claude-code
+  become: false
+  when: claude_check.rc != 0
