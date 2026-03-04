@@ -107,7 +107,12 @@ GITCONFIG
         echo "[4/4] Installing terminal essentials..."
         case $OS in
             fedora)
-                sudo dnf install -y fzf zoxide bat eza ripgrep colordiff jq fastfetch
+                sudo dnf install -y fzf zoxide bat ripgrep colordiff jq fastfetch
+                if ! command -v eza &>/dev/null; then
+                    sudo dnf install -y eza 2>/dev/null || \
+                        { command -v cargo &>/dev/null && cargo install eza; } || \
+                        echo "Warning: eza not available, skipping."
+                fi
                 ;;
             ubuntu|debian)
                 sudo apt update -q
