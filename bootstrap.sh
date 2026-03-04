@@ -4,7 +4,12 @@ set -euo pipefail
 # ============================================================================
 # Dotfiles Bootstrap Script
 # Run with: curl -sL https://s.ras.band/setup | bash
+#
+# Wrapped in main() so bash fully buffers the script before executing.
+# This prevents curl | bash from stalling on interactive reads.
 # ============================================================================
+
+main() {
 
 read -rsp "This script requires sudo. Enter your password: " SUDO_PASS </dev/tty
 echo ""
@@ -458,3 +463,7 @@ echo "  dots_diff     — See what would change"
 echo "  dots_apply    — Apply dotfile changes"
 echo "  dots_update   — Pull and apply updates"
 echo "  dots_features — Show installed features"
+
+}
+
+main "$@"
