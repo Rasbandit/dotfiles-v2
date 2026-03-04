@@ -43,3 +43,4 @@
 
 show_notifications: false
 auto_restart: true
+search_shortcut: off

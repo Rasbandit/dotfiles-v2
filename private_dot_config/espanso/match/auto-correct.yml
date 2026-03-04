@@ -1268,14 +1268,8 @@ matches:
 - trigger: isnt
   replace: isn't
   word: true
-- trigger: ok
-  replace: OK
-  word: true
 - trigger: wiht
   replace: with
-  word: true
-- trigger: todd
-  replace: Todd
   word: true
 - trigger: tr@
   replace: todd.rasband@gmail.com

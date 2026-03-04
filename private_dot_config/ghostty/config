@@ -1,6 +1,27 @@
 # Ghostty terminal configuration
 
 theme = dark:dracula,light:alucard
+
+# Rebind tab switching from alt+N to ctrl+alt+N (frees alt+N for tmux)
+keybind = alt+one=unbind
+keybind = alt+two=unbind
+keybind = alt+three=unbind
+keybind = alt+four=unbind
+keybind = alt+five=unbind
+keybind = alt+six=unbind
+keybind = alt+seven=unbind
+keybind = alt+eight=unbind
+keybind = alt+nine=unbind
+
+keybind = ctrl+alt+one=goto_tab:1
+keybind = ctrl+alt+two=goto_tab:2
+keybind = ctrl+alt+three=goto_tab:3
+keybind = ctrl+alt+four=goto_tab:4
+keybind = ctrl+alt+five=goto_tab:5
+keybind = ctrl+alt+six=goto_tab:6
+keybind = ctrl+alt+seven=goto_tab:7
+keybind = ctrl+alt+eight=goto_tab:8
+keybind = ctrl+alt+nine=goto_tab:9
 window-decoration = auto
 background-opacity = 1
 background-blur = true
