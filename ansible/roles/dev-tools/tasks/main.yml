@@ -1,5 +1,5 @@
 ---
-# Dev tools: nodejs, npm, python3-pip, rust, cargo
+# Dev tools: nodejs, npm, python3-pip, rust, cargo, bun
 
 - name: Install dev tools (Fedora)
   ansible.builtin.dnf:
@@ -114,3 +114,12 @@
     enabled: true
     state: started
   become: true
+
+# Bun
+
+- name: Install bun
+  ansible.builtin.shell: |
+    curl -fsSL https://bun.sh/install | bash
+  args:
+    creates: "{{ lookup('env', 'HOME') }}/.bun/bin/bun"
+  become: false
