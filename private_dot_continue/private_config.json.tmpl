@@ -4,7 +4,7 @@
       "title": "GPT-4.1",
       "provider": "openai",
       "model": "gpt-4.1",
-      "apiKey": "{{ onepasswordRead "op://Personal/AI API Keys/openai" }}",
+      "apiKey": "{{ if (get . "openaiApiKey") }}{{ .openaiApiKey }}{{ else }}REPLACE_ME{{ end }}",
       "temperature": 0.7,
       "maxTokens": 4096
     },
@@ -12,7 +12,7 @@
       "title": "GPT-4.1 Mini",
       "provider": "openai",
       "model": "gpt-4.1-mini",
-      "apiKey": "{{ onepasswordRead "op://Personal/AI API Keys/openai" }}",
+      "apiKey": "{{ if (get . "openaiApiKey") }}{{ .openaiApiKey }}{{ else }}REPLACE_ME{{ end }}",
       "temperature": 0.7,
       "maxTokens": 4096
     },
@@ -20,7 +20,7 @@
       "title": "Grok Code Fast 1",
       "model": "grok-code-fast-1",
       "contextLength": 256000,
-      "apiKey": "{{ onepasswordRead "op://Personal/AI API Keys/xai" }}",
+      "apiKey": "{{ if (get . "xaiApiKey") }}{{ .xaiApiKey }}{{ else }}REPLACE_ME{{ end }}",
       "provider": "xAI"
     },
     {
@@ -31,7 +31,7 @@
       "baseUrl": "http://10.0.20.214:11434"
     },
     {
-      "apiKey": "{{ onepasswordRead "op://Personal/AI API Keys/mistral" }}",
+      "apiKey": "{{ if (get . "mistralApiKey") }}{{ .mistralApiKey }}{{ else }}REPLACE_ME{{ end }}",
       "title": "Codestral",
       "model": "codestral-latest",
       "provider": "mistral"
@@ -39,25 +39,25 @@
     {
       "model": "claude-4-sonnet-latest",
       "title": "Claude 4 Sonnet",
-      "apiKey": "{{ onepasswordRead "op://Personal/AI API Keys/anthropic" }}",
+      "apiKey": "{{ if (get . "anthropicApiKey") }}{{ .anthropicApiKey }}{{ else }}REPLACE_ME{{ end }}",
       "provider": "anthropic"
     },
     {
       "model": "claude-3-5-haiku-latest",
       "title": "Claude 3.5 Haiku",
-      "apiKey": "{{ onepasswordRead "op://Personal/AI API Keys/anthropic" }}",
+      "apiKey": "{{ if (get . "anthropicApiKey") }}{{ .anthropicApiKey }}{{ else }}REPLACE_ME{{ end }}",
       "provider": "anthropic"
     },
     {
       "title": "Gemini 2.0 Flash",
       "model": "gemini-2.0-flash",
       "contextLength": 1000000,
-      "apiKey": "{{ onepasswordRead "op://Personal/AI API Keys/gemini" }}",
+      "apiKey": "{{ if (get . "geminiApiKey") }}{{ .geminiApiKey }}{{ else }}REPLACE_ME{{ end }}",
       "provider": "gemini"
     }
   ],
   "tabAutocompleteModel": {
-    "apiKey": "{{ onepasswordRead "op://Personal/AI API Keys/mistral" }}",
+    "apiKey": "{{ if (get . "mistralApiKey") }}{{ .mistralApiKey }}{{ else }}REPLACE_ME{{ end }}",
     "title": "Codestral",
     "model": "codestral-latest",
     "provider": "mistral"

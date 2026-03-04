@@ -1,15 +1,26 @@
 # chezmoi configuration
-# This template prompts for machine-specific values on first run
-
-{{- $hostname := promptStringOnce . "hostname" "What is this machine's hostname" -}}
-{{- $machineType := promptChoiceOnce . "machineType" "What type of machine is this" (list "desktop" "laptop" "server") -}}
-{{- $email := promptStringOnce . "email" "What is your email address" -}}
+# Values are set by bootstrap.sh or read from existing config
 
 [data]
-    hostname = {{ $hostname | quote }}
-    machineType = {{ $machineType | quote }}
-    email = {{ $email | quote }}
+    hostname = {{ .chezmoi.hostname | quote }}
+    machineType = {{ get . "machineType" | default "workstation" | quote }}
+    email = "todd.rasband@gmail.com"
+{{ if lookPath "op" -}}
+    openaiApiKey = {{ onepasswordRead "op://Personal/AI API Keys/openai" | quote }}
+    xaiApiKey = {{ onepasswordRead "op://Personal/AI API Keys/xai" | quote }}
+    mistralApiKey = {{ onepasswordRead "op://Personal/AI API Keys/mistral" | quote }}
+    anthropicApiKey = {{ onepasswordRead "op://Personal/AI API Keys/anthropic" | quote }}
+    geminiApiKey = {{ onepasswordRead "op://Personal/AI API Keys/gemini" | quote }}
+{{ else -}}
+    openaiApiKey = {{ promptStringOnce . "openaiApiKey" "OpenAI API key (Enter to skip)" | quote }}
+    xaiApiKey = {{ promptStringOnce . "xaiApiKey" "xAI API key (Enter to skip)" | quote }}
+    mistralApiKey = {{ promptStringOnce . "mistralApiKey" "Mistral API key (Enter to skip)" | quote }}
+    anthropicApiKey = {{ promptStringOnce . "anthropicApiKey" "Anthropic API key (Enter to skip)" | quote }}
+    geminiApiKey = {{ promptStringOnce . "geminiApiKey" "Gemini API key (Enter to skip)" | quote }}
+{{ end -}}
 
+{{ if lookPath "op" -}}
 [onepassword]
     command = "op"
     prompt = true
+{{ end -}}
