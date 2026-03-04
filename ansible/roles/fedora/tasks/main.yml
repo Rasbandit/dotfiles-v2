@@ -42,17 +42,29 @@
       - fastfetch
       - colordiff
       - fd-find
+      - tmux
     state: present
   become: true
   tags: [terminal]
 
-- name: Install eza (modern ls)
-  ansible.builtin.dnf:
-    name: eza
-    state: present
-  become: true
-  ignore_errors: true
+- name: Install eza (not in Fedora 42+ repos)
   tags: [terminal]
+  block:
+    - name: Check if eza is installed
+      ansible.builtin.command: which eza
+      register: eza_check
+      ignore_errors: true
+      changed_when: false
+    - name: Download and install eza from GitHub
+      ansible.builtin.shell: |
+        curl -fsSLo /tmp/eza.tar.gz \
+          https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-musl.tar.gz \
+          && tar -xzf /tmp/eza.tar.gz -C ~/.local/bin \
+          && chmod +x ~/.local/bin/eza
+      args:
+        creates: "{{ ansible_env.HOME }}/.local/bin/eza"
+      when: eza_check.rc != 0
+      become: false
 
 - name: Install Fedora desktop packages
   ansible.builtin.dnf:
@@ -68,7 +80,6 @@
       - ghostty
       - duf
       - iotop
-      - langpacks-core-font-ja
       - flatpak
       - dnf-plugin-system-upgrade
       - vlc
