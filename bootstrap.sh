@@ -197,7 +197,7 @@ CHEZMOI
     touch ~/.config/chezmoi-ansible-done
 
     echo "[4] Cloning dotfiles repo (no apply — 1Password not set up yet)..."
-    chezmoi init "$REPO" --branch "$BRANCH"
+    chezmoi init --force "$REPO" --branch "$BRANCH"
 
     CHEZMOI_SOURCE=$(chezmoi source-path)
 
