@@ -51,6 +51,7 @@ alias dots_update='chezmoi update'
 alias dots_add='chezmoi add'
 alias dots_cd='cd $(chezmoi source-path)'
 alias dots_features='cat ~/.config/chezmoi/features'
+alias dots_readd='chezmoi re-add'
 alias dots_ansible='ansible-playbook ~/.local/share/chezmoi/ansible/setup.yml -K && rm -f ~/.local/share/.ansible-pending'
 
 # ============================================================================
