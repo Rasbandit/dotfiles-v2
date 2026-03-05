@@ -52,6 +52,326 @@ echo "Detected OS: $OS"
 echo ""
 
 # ============================================================================
+# Environment detection functions
+# ============================================================================
+
+detect_environment() {
+    # Virtualization
+    ENV_VIRT_TYPE=""
+    if command -v systemd-detect-virt &>/dev/null; then
+        ENV_VIRT_TYPE=$(systemd-detect-virt 2>/dev/null || true)
+    fi
+    ENV_IS_CONTAINER=false
+    if [ -f /.dockerenv ] || [ -f /run/.containerenv ]; then
+        ENV_IS_CONTAINER=true
+    elif [ "$ENV_VIRT_TYPE" = "docker" ] || [ "$ENV_VIRT_TYPE" = "podman" ] \
+      || [ "$ENV_VIRT_TYPE" = "lxc" ] || [ "$ENV_VIRT_TYPE" = "lxc-libvirt" ] \
+      || [ "$ENV_VIRT_TYPE" = "systemd-nspawn" ] || [ "$ENV_VIRT_TYPE" = "wsl" ]; then
+        ENV_IS_CONTAINER=true
+    fi
+
+    # WSL
+    ENV_IS_WSL=false
+    if grep -qi microsoft /proc/version 2>/dev/null; then
+        ENV_IS_WSL=true
+    fi
+
+    # Cloud provider
+    ENV_CLOUD=""
+    if [ -f /sys/class/dmi/id/product_name ]; then
+        local product
+        product=$(cat /sys/class/dmi/id/product_name 2>/dev/null || true)
+        case "$product" in
+            *"Google Compute"*|*"Google"*)   ENV_CLOUD="gcp" ;;
+            *"Amazon"*|*"aws"*)              ENV_CLOUD="aws" ;;
+            *"Microsoft"*|*"Virtual Machine"*) ENV_CLOUD="azure" ;;
+            *"Droplet"*|*"DigitalOcean"*)    ENV_CLOUD="digitalocean" ;;
+            *"Vultr"*)                       ENV_CLOUD="vultr" ;;
+            *"Linode"*|*"Akamai"*)           ENV_CLOUD="linode" ;;
+        esac
+    fi
+    if [ -z "$ENV_CLOUD" ] && command -v cloud-init &>/dev/null; then
+        ENV_CLOUD="cloud-init-present"
+    fi
+
+    # Desktop environment
+    ENV_DESKTOP="${XDG_CURRENT_DESKTOP:-}"
+    [ -z "$ENV_DESKTOP" ] && ENV_DESKTOP="${DESKTOP_SESSION:-}"
+
+    # Display server
+    ENV_DISPLAY=""
+    if [ -n "${WAYLAND_DISPLAY:-}" ]; then
+        ENV_DISPLAY="Wayland (${WAYLAND_DISPLAY})"
+    elif [ -n "${DISPLAY:-}" ]; then
+        ENV_DISPLAY="X11 (${DISPLAY})"
+    fi
+
+    # Systemd target
+    ENV_SYSTEMD_TARGET=""
+    if command -v systemctl &>/dev/null; then
+        ENV_SYSTEMD_TARGET=$(systemctl get-default 2>/dev/null || true)
+    fi
+
+    # DE packages installed
+    ENV_DE_PACKAGES=""
+    command -v gnome-shell &>/dev/null && ENV_DE_PACKAGES="gnome-shell"
+    command -v plasmashell &>/dev/null && ENV_DE_PACKAGES="${ENV_DE_PACKAGES:+$ENV_DE_PACKAGES }plasmashell"
+    command -v xfce4-session &>/dev/null && ENV_DE_PACKAGES="${ENV_DE_PACKAGES:+$ENV_DE_PACKAGES }xfce4-session"
+
+    # SSH
+    ENV_VIA_SSH=false
+    if [ -n "${SSH_CONNECTION:-}" ] || [ -n "${SSH_TTY:-}" ]; then
+        ENV_VIA_SSH=true
+    fi
+
+    # Chassis type
+    ENV_CHASSIS=""
+    ENV_CHASSIS_TYPE=""
+    if [ -f /sys/class/dmi/id/chassis_type ]; then
+        local chassis_id
+        chassis_id=$(cat /sys/class/dmi/id/chassis_type 2>/dev/null || true)
+        case "$chassis_id" in
+            3|4|5|6|7)    ENV_CHASSIS="desktop";  ENV_CHASSIS_TYPE="$chassis_id" ;;
+            8|9|10|11|14) ENV_CHASSIS="laptop";   ENV_CHASSIS_TYPE="$chassis_id" ;;
+            17|23)        ENV_CHASSIS="server";   ENV_CHASSIS_TYPE="$chassis_id" ;;
+            *)            ENV_CHASSIS="unknown";  ENV_CHASSIS_TYPE="$chassis_id" ;;
+        esac
+    fi
+
+    # Battery
+    ENV_HAS_BATTERY=false
+    if ls /sys/class/power_supply/BAT* &>/dev/null 2>&1; then
+        ENV_HAS_BATTERY=true
+    fi
+
+    # Raspberry Pi
+    ENV_IS_RPI=false
+    ENV_RPI_MODEL=""
+    if [ -f /proc/device-tree/model ]; then
+        ENV_RPI_MODEL=$(cat /proc/device-tree/model 2>/dev/null | tr -d '\0' || true)
+        case "$ENV_RPI_MODEL" in
+            *"Raspberry Pi"*) ENV_IS_RPI=true ;;
+        esac
+    fi
+
+    # Platform summary
+    ENV_PLATFORM="bare metal"
+    if [ "$ENV_IS_CONTAINER" = true ]; then
+        ENV_PLATFORM="container (${ENV_VIRT_TYPE:-detected})"
+    elif [ "$ENV_IS_WSL" = true ]; then
+        ENV_PLATFORM="WSL"
+    elif [ -n "$ENV_CLOUD" ]; then
+        ENV_PLATFORM="cloud VM ($ENV_CLOUD)"
+    elif [ -n "$ENV_VIRT_TYPE" ] && [ "$ENV_VIRT_TYPE" != "none" ]; then
+        ENV_PLATFORM="VM ($ENV_VIRT_TYPE)"
+    fi
+}
+
+determine_machine_type() {
+    SUGGESTED_TYPE=""
+    CONFIDENCE=""
+    REASONS=()
+
+    # Rule 1: Container (not WSL) → temporary
+    if [ "$ENV_IS_CONTAINER" = true ] && [ "$ENV_IS_WSL" = false ]; then
+        SUGGESTED_TYPE="temporary"
+        CONFIDENCE="high"
+        REASONS+=("Container environment (${ENV_VIRT_TYPE:-detected}) — ephemeral by nature")
+        return
+    fi
+
+    # Rule 2: WSL → workstation
+    if [ "$ENV_IS_WSL" = true ]; then
+        SUGGESTED_TYPE="workstation"
+        CONFIDENCE="medium"
+        REASONS+=("Windows Subsystem for Linux — dev environment parity with host")
+        return
+    fi
+
+    # Rule 3: Active desktop session (DE + display) → workstation
+    if [ -n "$ENV_DESKTOP" ] && [ -n "$ENV_DISPLAY" ]; then
+        SUGGESTED_TYPE="workstation"
+        CONFIDENCE="high"
+        REASONS+=("Active desktop session: $ENV_DESKTOP on $ENV_DISPLAY")
+        [ "$ENV_HAS_BATTERY" = true ] && REASONS+=("Battery present (laptop hardware)")
+        [ "$ENV_VIA_SSH" = true ] && REASONS+=("Note: connected via SSH")
+        return
+    fi
+
+    # Rule 4: Cloud VM + no desktop + multi-user target → server
+    if [ -n "$ENV_CLOUD" ] && [ -z "$ENV_DESKTOP" ] \
+      && [ "$ENV_SYSTEMD_TARGET" = "multi-user.target" ]; then
+        SUGGESTED_TYPE="server"
+        CONFIDENCE="high"
+        REASONS+=("Cloud VM ($ENV_CLOUD) with no desktop environment")
+        REASONS+=("Systemd target: multi-user.target")
+        return
+    fi
+
+    # Rule 5: Headless (no graphical target + no DE + no DE packages) → server
+    if [ "$ENV_SYSTEMD_TARGET" != "graphical.target" ] \
+      && [ -z "$ENV_DESKTOP" ] && [ -z "$ENV_DE_PACKAGES" ]; then
+        SUGGESTED_TYPE="server"
+        CONFIDENCE="high"
+        REASONS+=("No graphical target, no desktop environment, no DE packages")
+        [ "$ENV_IS_RPI" = true ] && REASONS+=("Raspberry Pi: $ENV_RPI_MODEL")
+        [ -n "$ENV_CLOUD" ] && REASONS+=("Cloud provider: $ENV_CLOUD")
+        return
+    fi
+
+    # Rule 6: Graphical target set but no active session → workstation
+    if [ "$ENV_SYSTEMD_TARGET" = "graphical.target" ]; then
+        SUGGESTED_TYPE="workstation"
+        if [ -n "$ENV_DE_PACKAGES" ]; then
+            CONFIDENCE="high"
+            REASONS+=("Graphical target with DE packages installed: $ENV_DE_PACKAGES")
+        else
+            CONFIDENCE="medium"
+            REASONS+=("Graphical target set, but no DE packages detected")
+        fi
+        [ "$ENV_VIA_SSH" = true ] && REASONS+=("Note: connected via SSH (session may not be visible)")
+        return
+    fi
+
+    # Rule 7: DE packages installed but multi-user target → workstation (low)
+    if [ -n "$ENV_DE_PACKAGES" ] && [ "$ENV_SYSTEMD_TARGET" = "multi-user.target" ]; then
+        SUGGESTED_TYPE="workstation"
+        CONFIDENCE="low"
+        REASONS+=("DE packages installed ($ENV_DE_PACKAGES) but multi-user target")
+        return
+    fi
+
+    # Rule 8: Battery present → workstation (medium)
+    if [ "$ENV_HAS_BATTERY" = true ]; then
+        SUGGESTED_TYPE="workstation"
+        CONFIDENCE="medium"
+        REASONS+=("Battery present (laptop hardware) but no GUI signals")
+        return
+    fi
+
+    # Rule 9: Chassis hint
+    if [ -n "$ENV_CHASSIS" ] && [ "$ENV_CHASSIS" != "unknown" ]; then
+        case "$ENV_CHASSIS" in
+            laptop|desktop)
+                SUGGESTED_TYPE="workstation"
+                CONFIDENCE="low"
+                REASONS+=("Chassis type: $ENV_CHASSIS (DMI type $ENV_CHASSIS_TYPE)")
+                ;;
+            server)
+                SUGGESTED_TYPE="server"
+                CONFIDENCE="medium"
+                REASONS+=("Chassis type: server (DMI type $ENV_CHASSIS_TYPE)")
+                ;;
+        esac
+        if [ -n "$SUGGESTED_TYPE" ]; then
+            return
+        fi
+    fi
+
+    # Rule 10: Fallback
+    SUGGESTED_TYPE="workstation"
+    CONFIDENCE="low"
+    REASONS+=("No strong signals detected — defaulting to workstation")
+}
+
+show_detection_and_prompt() {
+    local update_mode="$1"
+    local existing_type="${2:-}"
+
+    echo "============================================"
+    echo "  Environment Detection"
+    echo "============================================"
+    echo "  Platform:       $ENV_PLATFORM"
+    [ -n "$ENV_CHASSIS" ] && [ "$ENV_CHASSIS" != "unknown" ] \
+        && echo "  Chassis:        $ENV_CHASSIS"
+    [ "$ENV_HAS_BATTERY" = true ] \
+        && echo "  Battery:        present"
+    [ -n "$ENV_DESKTOP" ] \
+        && echo "  Desktop:        $ENV_DESKTOP"
+    [ -n "$ENV_DISPLAY" ] \
+        && echo "  Session:        $ENV_DISPLAY"
+    [ -n "$ENV_SYSTEMD_TARGET" ] \
+        && echo "  Systemd target: $ENV_SYSTEMD_TARGET"
+    [ "$ENV_VIA_SSH" = true ] \
+        && echo "  SSH:            yes"
+    [ "$ENV_IS_RPI" = true ] \
+        && echo "  Hardware:       $ENV_RPI_MODEL"
+    echo ""
+
+    # Confidence indicator
+    local indicator=">"
+    case "$CONFIDENCE" in
+        high)   indicator=">>>" ;;
+        medium) indicator=">>" ;;
+        low)    indicator=">" ;;
+    esac
+
+    echo "  $indicator Suggestion: $SUGGESTED_TYPE ($CONFIDENCE confidence)"
+    for reason in "${REASONS[@]}"; do
+        echo "      - $reason"
+    done
+    echo ""
+
+    # Build ordered option list (suggestion first)
+    local -a types=("workstation" "server" "temporary")
+    local -a labels=("workstation — full setup (laptop or desktop)"
+                     "server      — persistent, headless"
+                     "temporary   — creature comforts, no auth")
+    local -a ordered_types=()
+    local -a ordered_labels=()
+
+    # Put suggested type first
+    for i in 0 1 2; do
+        if [ "${types[$i]}" = "$SUGGESTED_TYPE" ]; then
+            ordered_types=("${types[$i]}")
+            ordered_labels=("${labels[$i]}")
+        fi
+    done
+    for i in 0 1 2; do
+        if [ "${types[$i]}" != "$SUGGESTED_TYPE" ]; then
+            ordered_types+=("${types[$i]}")
+            ordered_labels+=("${labels[$i]}")
+        fi
+    done
+
+    if [ "$update_mode" = true ]; then
+        echo "Current type: $existing_type"
+        echo "Change type? (Enter keeps '$existing_type')"
+    else
+        echo "What type of machine is this?"
+    fi
+
+    for i in 0 1 2; do
+        local marker="  "
+        [ "$i" -eq 0 ] && marker="* "
+        echo "${marker}$((i+1))) ${ordered_labels[$i]}"
+    done
+    echo ""
+
+    if [ "$update_mode" = true ]; then
+        read -rp "Enter choice [1-3, Enter=$existing_type]: " machine_choice </dev/tty
+        if [ -z "$machine_choice" ]; then
+            MACHINE_TYPE="$existing_type"
+        else
+            case $machine_choice in
+                1) MACHINE_TYPE="${ordered_types[0]}" ;;
+                2) MACHINE_TYPE="${ordered_types[1]}" ;;
+                3) MACHINE_TYPE="${ordered_types[2]}" ;;
+                *) echo "Invalid choice. Keeping $existing_type."; MACHINE_TYPE="$existing_type" ;;
+            esac
+        fi
+    else
+        read -rp "Enter choice [1-3, Enter=1]: " machine_choice </dev/tty
+        case "${machine_choice:-1}" in
+            1) MACHINE_TYPE="${ordered_types[0]}" ;;
+            2) MACHINE_TYPE="${ordered_types[1]}" ;;
+            3) MACHINE_TYPE="${ordered_types[2]}" ;;
+            *) echo "Invalid choice. Defaulting to ${ordered_types[0]}."; MACHINE_TYPE="${ordered_types[0]}" ;;
+        esac
+    fi
+}
+
+# ============================================================================
 # Detect existing setup (update mode)
 # ============================================================================
 EXISTING_TYPE=""
@@ -77,40 +397,11 @@ if [ -f "$MACHINE_TYPE_FILE" ]; then
 fi
 
 # ============================================================================
-# Prompt: Machine type
+# Detect environment and prompt for machine type
 # ============================================================================
-if [ "$UPDATE_MODE" = true ]; then
-    echo "Current type: $EXISTING_TYPE"
-    echo "Change type? (leave blank to keep '$EXISTING_TYPE')"
-    echo "  1) temporary   — creature comforts, no auth"
-    echo "  2) server      — persistent, headless"
-    echo "  3) workstation — full setup (laptop or desktop)"
-    echo ""
-    read -rp "Enter choice [1-3, or Enter to keep]: " machine_choice </dev/tty
-    if [ -z "$machine_choice" ]; then
-        MACHINE_TYPE="$EXISTING_TYPE"
-    else
-        case $machine_choice in
-            1) MACHINE_TYPE="temporary" ;;
-            2) MACHINE_TYPE="server" ;;
-            3) MACHINE_TYPE="workstation" ;;
-            *) echo "Invalid choice. Keeping $EXISTING_TYPE."; MACHINE_TYPE="$EXISTING_TYPE" ;;
-        esac
-    fi
-else
-    echo "What type of machine is this?"
-    echo "  1) temporary   — creature comforts, no auth"
-    echo "  2) server      — persistent, headless"
-    echo "  3) workstation — full setup (laptop or desktop)"
-    echo ""
-    read -rp "Enter choice [1-3]: " machine_choice </dev/tty
-    case $machine_choice in
-        1) MACHINE_TYPE="temporary" ;;
-        2) MACHINE_TYPE="server" ;;
-        3) MACHINE_TYPE="workstation" ;;
-        *) echo "Invalid choice. Defaulting to workstation."; MACHINE_TYPE="workstation" ;;
-    esac
-fi
+detect_environment
+determine_machine_type
+show_detection_and_prompt "$UPDATE_MODE" "$EXISTING_TYPE"
 
 echo ""
 
