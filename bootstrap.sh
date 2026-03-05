@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -uo pipefail
 
 # ============================================================================
 # Dotfiles Bootstrap Script
@@ -292,21 +292,16 @@ arrow_select() {
     local hide_cursor="\033[?25l"
     local show_cursor="\033[?25h"
 
-    # Draw options, moving cursor up to redraw in place
+    # Draw all options + instruction line, each on its own line
     _draw_options() {
         for i in $(seq 0 $((count - 1))); do
             if [ "$i" -eq "$selected" ]; then
-                printf "  ${rev}${bold} > %s ${reset}\n" "${labels[$i]}" >/dev/tty
+                printf "\r\033[2K  ${rev}${bold} > %s ${reset}\n" "${labels[$i]}" >/dev/tty
             else
-                printf "    ${dim}%s${reset}\n" "${labels[$i]}" >/dev/tty
+                printf "\r\033[2K    ${dim}%s${reset}\n" "${labels[$i]}" >/dev/tty
             fi
         done
-        printf "  ↑/↓ to move, Enter to confirm" >/dev/tty
-    }
-
-    # Move cursor up N+1 lines (N options + instruction line) to redraw
-    _move_up() {
-        printf "\033[%dA\r" "$((count + 1))" >/dev/tty
+        printf "\r\033[2K  ↑/↓ to move, Enter to confirm" >/dev/tty
     }
 
     printf "$hide_cursor" >/dev/tty
@@ -314,7 +309,7 @@ arrow_select() {
 
     while true; do
         # Read a single character (raw mode)
-        IFS= read -rsn1 key </dev/tty
+        IFS= read -rsn1 key </dev/tty || true
 
         if [ "$key" = "" ]; then
             # Enter pressed
@@ -330,13 +325,14 @@ arrow_select() {
                     selected=$(( (selected + 1) % count ))
                     ;;
             esac
-            _move_up
+            # Move cursor up: count lines for options (instruction line has no \n)
+            printf "\033[%dA" "$count" >/dev/tty
             _draw_options
         fi
     done
 
     # Clear the instruction line, show cursor
-    printf "\r\033[K" >/dev/tty
+    printf "\r\033[2K" >/dev/tty
     printf "$show_cursor" >/dev/tty
 
     eval "$result_var=$selected"
