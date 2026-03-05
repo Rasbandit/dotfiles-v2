@@ -162,7 +162,8 @@ GITCONFIG
     mkdir -p ~/.local/bin
     cd "$TMPCLONE/dotfiles/ansible"
     ansible-galaxy collection install community.general
-    ansible-playbook setup.yml --tags terminal
+    ansible-playbook setup.yml --tags terminal \
+        --extra-vars "ansible_become_password=$SUDO_PASS"
     cd ~
     rm -rf "$TMPCLONE"
 
@@ -508,7 +509,8 @@ if [ -n "${ANSIBLE_TAGS:-}" ]; then
     ansible-galaxy collection install community.general
 
     echo "[4] Running ansible --tags $ANSIBLE_TAGS ..."
-    ansible-playbook setup.yml --tags "$ANSIBLE_TAGS"
+    ansible-playbook setup.yml --tags "$ANSIBLE_TAGS" \
+        --extra-vars "ansible_become_password=$SUDO_PASS"
 fi
 
 # ============================================================================
