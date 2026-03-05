@@ -278,97 +278,68 @@ show_detection_and_prompt() {
     local update_mode="$1"
     local existing_type="${2:-}"
 
-    echo "============================================"
-    echo "  Environment Detection"
-    echo "============================================"
-    echo "  Platform:       $ENV_PLATFORM"
-    [ -n "$ENV_CHASSIS" ] && [ "$ENV_CHASSIS" != "unknown" ] \
-        && echo "  Chassis:        $ENV_CHASSIS"
-    [ "$ENV_HAS_BATTERY" = true ] \
-        && echo "  Battery:        present"
-    [ -n "$ENV_DESKTOP" ] \
-        && echo "  Desktop:        $ENV_DESKTOP"
-    [ -n "$ENV_DISPLAY" ] \
-        && echo "  Session:        $ENV_DISPLAY"
-    [ -n "$ENV_SYSTEMD_TARGET" ] \
-        && echo "  Systemd target: $ENV_SYSTEMD_TARGET"
-    [ "$ENV_VIA_SSH" = true ] \
-        && echo "  SSH:            yes"
-    [ "$ENV_IS_RPI" = true ] \
-        && echo "  Hardware:       $ENV_RPI_MODEL"
-    echo ""
+    # Build one-line detection summary
+    local -a signals=("$ENV_PLATFORM")
+    [ -n "$ENV_CHASSIS" ] && [ "$ENV_CHASSIS" != "unknown" ] && signals+=("$ENV_CHASSIS")
+    [ "$ENV_HAS_BATTERY" = true ] && signals+=("battery")
+    [ -n "$ENV_DESKTOP" ] && signals+=("$ENV_DESKTOP")
+    [ -n "$ENV_DISPLAY" ] && signals+=("$ENV_DISPLAY")
+    [ -n "$ENV_SYSTEMD_TARGET" ] && signals+=("$ENV_SYSTEMD_TARGET")
+    [ "$ENV_VIA_SSH" = true ] && signals+=("via SSH")
+    [ "$ENV_IS_RPI" = true ] && signals+=("$ENV_RPI_MODEL")
 
-    # Confidence indicator
-    local indicator=">"
-    case "$CONFIDENCE" in
-        high)   indicator=">>>" ;;
-        medium) indicator=">>" ;;
-        low)    indicator=">" ;;
-    esac
-
-    echo "  $indicator Suggestion: $SUGGESTED_TYPE ($CONFIDENCE confidence)"
-    for reason in "${REASONS[@]}"; do
-        echo "      - $reason"
+    local summary=""
+    for s in "${signals[@]}"; do
+        summary="${summary:+$summary · }$s"
     done
+    echo "  Detected: $summary"
     echo ""
 
-    # Build ordered option list (suggestion first)
+    # Fixed option order — labels and tags added inline
     local -a types=("workstation" "server" "temporary")
-    local -a labels=("workstation — full setup (laptop or desktop)"
-                     "server      — persistent, headless"
-                     "temporary   — creature comforts, no auth")
-    local -a ordered_types=()
-    local -a ordered_labels=()
-
-    # Put suggested type first
-    for i in 0 1 2; do
-        if [ "${types[$i]}" = "$SUGGESTED_TYPE" ]; then
-            ordered_types=("${types[$i]}")
-            ordered_labels=("${labels[$i]}")
-        fi
-    done
-    for i in 0 1 2; do
-        if [ "${types[$i]}" != "$SUGGESTED_TYPE" ]; then
-            ordered_types+=("${types[$i]}")
-            ordered_labels+=("${labels[$i]}")
-        fi
-    done
+    local -a descs=("full setup" "persistent headless" "creature comforts")
 
     if [ "$update_mode" = true ]; then
-        echo "Current type: $existing_type"
-        echo "Change type? (Enter keeps '$existing_type')"
+        echo "  Machine type?  (currently: $existing_type)"
     else
-        echo "What type of machine is this?"
+        echo "  Machine type?"
     fi
 
     for i in 0 1 2; do
-        local marker="  "
-        [ "$i" -eq 0 ] && marker="* "
-        echo "${marker}$((i+1))) ${ordered_labels[$i]}"
+        local tag=""
+        if [ "${types[$i]}" = "$SUGGESTED_TYPE" ] && [ "${types[$i]}" = "$existing_type" ]; then
+            tag=" [current, suggested]"
+        elif [ "${types[$i]}" = "$SUGGESTED_TYPE" ]; then
+            tag=" [suggested]"
+        elif [ "${types[$i]}" = "$existing_type" ] && [ "$update_mode" = true ]; then
+            tag=" [current]"
+        fi
+        printf "    %d) %-12s — %-20s%s\n" "$((i+1))" "${types[$i]}" "${descs[$i]}" "$tag"
     done
     echo ""
 
-    if [ "$update_mode" = true ]; then
-        read -rp "Enter choice [1-3, Enter=$existing_type]: " machine_choice </dev/tty
-        if [ -z "$machine_choice" ]; then
-            MACHINE_TYPE="$existing_type"
-        else
-            case $machine_choice in
-                1) MACHINE_TYPE="${ordered_types[0]}" ;;
-                2) MACHINE_TYPE="${ordered_types[1]}" ;;
-                3) MACHINE_TYPE="${ordered_types[2]}" ;;
-                *) echo "Invalid choice. Keeping $existing_type."; MACHINE_TYPE="$existing_type" ;;
-            esac
+    # Determine default: in update mode keep existing, otherwise use suggestion
+    local default_type="$SUGGESTED_TYPE"
+    [ "$update_mode" = true ] && default_type="$existing_type"
+
+    # Find default number
+    local default_num=1
+    for i in 0 1 2; do
+        if [ "${types[$i]}" = "$default_type" ]; then
+            default_num="$((i+1))"
         fi
-    else
-        read -rp "Enter choice [1-3, Enter=1]: " machine_choice </dev/tty
-        case "${machine_choice:-1}" in
-            1) MACHINE_TYPE="${ordered_types[0]}" ;;
-            2) MACHINE_TYPE="${ordered_types[1]}" ;;
-            3) MACHINE_TYPE="${ordered_types[2]}" ;;
-            *) echo "Invalid choice. Defaulting to ${ordered_types[0]}."; MACHINE_TYPE="${ordered_types[0]}" ;;
-        esac
-    fi
+    done
+
+    read -rp "  Enter [1-3, Enter=$default_num]: " machine_choice </dev/tty
+    case "${machine_choice:-$default_num}" in
+        1) MACHINE_TYPE="${types[0]}" ;;
+        2) MACHINE_TYPE="${types[1]}" ;;
+        3) MACHINE_TYPE="${types[2]}" ;;
+        *)
+            echo "  Invalid choice. Using $default_type."
+            MACHINE_TYPE="$default_type"
+            ;;
+    esac
 }
 
 # ============================================================================
