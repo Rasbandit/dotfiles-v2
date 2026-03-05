@@ -44,7 +44,27 @@
     state: present
   become: true
 
-- name: Swap mesa drivers for freeworld version
+- name: Check for AMD GPU
+  ansible.builtin.shell: lspci | grep -iE 'vga|3d|display' | grep -qiE 'amd|ati|advanced micro'
+  register: has_amd_gpu
+  changed_when: false
+  failed_when: false
+
+- name: Gather package facts for mesa driver detection
+  ansible.builtin.package_facts:
+    manager: rpm
+  when: has_amd_gpu.rc == 0
+
+- name: Swap mesa VA-API drivers for freeworld version
   ansible.builtin.command: dnf swap mesa-va-drivers mesa-va-drivers-freeworld -y
   become: true
-  ignore_errors: true
+  when:
+    - has_amd_gpu.rc == 0
+    - "'mesa-va-drivers' in ansible_facts.packages"
+
+- name: Swap mesa Vulkan drivers for freeworld version
+  ansible.builtin.command: dnf swap mesa-vulkan-drivers mesa-vulkan-drivers-freeworld -y
+  become: true
+  when:
+    - has_amd_gpu.rc == 0
+    - "'mesa-vulkan-drivers' in ansible_facts.packages"
