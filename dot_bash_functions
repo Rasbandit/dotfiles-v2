@@ -35,3 +35,12 @@ decompress_all() {
         esac
     done
 }
+
+dots_push() {
+  chezmoi re-add && \
+  cd "$(chezmoi source-path)" && \
+  git add -A && \
+  git commit -m "update: $(date '+%Y-%m-%d %H:%M')" && \
+  git push && \
+  cd - > /dev/null
+}
