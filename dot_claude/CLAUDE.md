@@ -39,10 +39,24 @@
 ## Environment
 - Assume Fedora Linux.
 
-## Brain / Knowledge Vault
-- **Aggressively** ask after resolving any problem, learning something new, or completing a task: "Should I document this in your brain?"
+## Daily Work Log
+- Maintain a running daily work log in the Obsidian vault at `4. Work Log/`.
+- File per day, named `YYYY-MM-DD.md` (e.g., `2026-03-04.md`).
+- On every commit or completed small task, append an entry to today's log file using `mcp__engram__write_note`.
+  - If today's file doesn't exist yet, create it with a `# Work Log — YYYY-MM-DD` heading first.
+  - Path: `4. Work Log/YYYY-MM-DD.md`
+- Entry format: `[HH:MM] <concise description of what was done and which project it belongs to>`
+  - Use 24-hour time from the system clock.
+  - Be ultra concise but specific — make it clear what was worked on AND what project/repo it belongs to.
+  - Example: `[10:45] Refined selection flow on doTERRA customer selection page (gobigger-doterra)`
+  - Example: `[14:22] Fixed broken auth redirect after token expiry (home-server)`
+- This logging is **automatic** — do not ask for permission, just log it alongside commits/task completions.
+- Do NOT log meta-tasks like "updated CLAUDE.md" or "ran tests" unless they are the primary deliverable.
+
+## Engram / Knowledge Vault
+- **Aggressively** ask after resolving any problem, learning something new, or completing a task: "Want me to save that as an engram?" or "Should I store that in your vault?"
 - Prompt to save: solutions to non-obvious problems, setup steps, config quirks, commands worth remembering, and any how-to that took effort to figure out.
-- Use `/brain-save` skill or `mcp__brain__*` tools to save notes to the Obsidian vault.
+- Use `/engram-save` skill or `mcp__engram__*` tools to save notes to the Obsidian vault.
 - When unsure, ask anyway — over-prompting is better than letting useful knowledge go undocumented.
 
 ## Exploration & Tools

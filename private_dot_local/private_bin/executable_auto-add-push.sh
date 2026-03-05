@@ -5,14 +5,6 @@ CHEZMOI_DIR="$HOME/.local/share/chezmoi"
 
 cd "$CHEZMOI_DIR"
 
-# Directories to auto-add (new files get tracked automatically).
-# chezmoi add on already-tracked files is a safe no-op.
-AUTO_ADD_DIRS=(
-    "$HOME/.claude/commands"
-    # "$HOME/.config/espanso/match"
-    # "$HOME/.local/bin"
-)
-
 REMOTE_BRANCH="origin/main"
 LOCAL_BRANCH="main"
 
@@ -20,14 +12,7 @@ LOCAL_BRANCH="main"
 git remote set-url origin https://github.com/Rasbandit/dotfiles-v2.git
 git remote set-url --push origin git@github.com:Rasbandit/dotfiles-v2.git
 
-# --- 0. Auto-add new files in tracked directories ---
-for dir in "${AUTO_ADD_DIRS[@]}"; do
-    if [ -d "$dir" ]; then
-        chezmoi add "$dir"
-    fi
-done
-
-# --- 1. Re-sync already-tracked dotfiles back to chezmoi source ---
+# --- 1. Sync actual dotfiles back to chezmoi source ---
 chezmoi re-add
 
 # --- 2. Stage and commit local changes ---

@@ -27,11 +27,10 @@
       "filesystem",
       "chrome-devtools",
       "obsidian",
-      "brain"
+      "engram"
     ]
   },
-  "model": "sonnet",
+  "model": "opus",
   "skipDangerousModePermissionPrompt": true,
-  "bypassPermissionsAllowed": true,
-  "effortLevel": "medium"
+  "bypassPermissionsAllowed": true
 }
