@@ -13,7 +13,7 @@ main() {
 
 read -rsp "This script requires sudo. Enter your password: " SUDO_PASS </dev/tty
 echo ""
-if ! echo "$SUDO_PASS" | sudo -Sv 2>/dev/null; then
+if ! echo "$SUDO_PASS" | sudo -S true 2>/dev/null; then
     echo "Incorrect password. Exiting."
     exit 1
 fi
@@ -274,6 +274,74 @@ determine_machine_type() {
     REASONS+=("No strong signals detected — defaulting to workstation")
 }
 
+# Arrow-key interactive selector
+# Usage: arrow_select RESULT_VAR selected_index label1 label2 [label3 ...]
+# Reads from /dev/tty. Sets RESULT_VAR to the chosen index (0-based).
+arrow_select() {
+    local result_var="$1"
+    local selected="$2"
+    shift 2
+    local -a labels=("$@")
+    local count=${#labels[@]}
+
+    # ANSI codes
+    local bold="\033[1m"
+    local rev="\033[7m"
+    local dim="\033[2m"
+    local reset="\033[0m"
+    local hide_cursor="\033[?25l"
+    local show_cursor="\033[?25h"
+
+    # Draw options, moving cursor up to redraw in place
+    _draw_options() {
+        for i in $(seq 0 $((count - 1))); do
+            if [ "$i" -eq "$selected" ]; then
+                printf "  ${rev}${bold} > %s ${reset}\n" "${labels[$i]}" >/dev/tty
+            else
+                printf "    ${dim}%s${reset}\n" "${labels[$i]}" >/dev/tty
+            fi
+        done
+        printf "  ↑/↓ to move, Enter to confirm" >/dev/tty
+    }
+
+    # Move cursor up N+1 lines (N options + instruction line) to redraw
+    _move_up() {
+        printf "\033[%dA\r" "$((count + 1))" >/dev/tty
+    }
+
+    printf "$hide_cursor" >/dev/tty
+    _draw_options
+
+    while true; do
+        # Read a single character (raw mode)
+        IFS= read -rsn1 key </dev/tty
+
+        if [ "$key" = "" ]; then
+            # Enter pressed
+            break
+        elif [ "$key" = $'\x1b' ]; then
+            # Escape sequence — read next two chars
+            IFS= read -rsn2 seq </dev/tty
+            case "$seq" in
+                "[A") # Up arrow
+                    selected=$(( (selected - 1 + count) % count ))
+                    ;;
+                "[B") # Down arrow
+                    selected=$(( (selected + 1) % count ))
+                    ;;
+            esac
+            _move_up
+            _draw_options
+        fi
+    done
+
+    # Clear the instruction line, show cursor
+    printf "\r\033[K" >/dev/tty
+    printf "$show_cursor" >/dev/tty
+
+    eval "$result_var=$selected"
+}
+
 show_detection_and_prompt() {
     local update_mode="$1"
     local existing_type="${2:-}"
@@ -295,7 +363,7 @@ show_detection_and_prompt() {
     echo "  Detected: $summary"
     echo ""
 
-    # Fixed option order — labels and tags added inline
+    # Fixed option order with inline tags
     local -a types=("workstation" "server" "temporary")
     local -a descs=("full setup" "persistent headless" "creature comforts")
 
@@ -304,42 +372,35 @@ show_detection_and_prompt() {
     else
         echo "  Machine type?"
     fi
+    echo ""
 
+    # Build display labels with tags
+    local -a labels=()
     for i in 0 1 2; do
         local tag=""
         if [ "${types[$i]}" = "$SUGGESTED_TYPE" ] && [ "${types[$i]}" = "$existing_type" ]; then
-            tag=" [current, suggested]"
+            tag="  [current, suggested]"
         elif [ "${types[$i]}" = "$SUGGESTED_TYPE" ]; then
-            tag=" [suggested]"
+            tag="  [suggested]"
         elif [ "${types[$i]}" = "$existing_type" ] && [ "$update_mode" = true ]; then
-            tag=" [current]"
+            tag="  [current]"
         fi
-        printf "    %d) %-12s — %-20s%s\n" "$((i+1))" "${types[$i]}" "${descs[$i]}" "$tag"
+        labels+=("$(printf "%-12s — %-20s%s" "${types[$i]}" "${descs[$i]}" "$tag")")
     done
-    echo ""
 
-    # Determine default: in update mode keep existing, otherwise use suggestion
+    # Determine which option to pre-select
     local default_type="$SUGGESTED_TYPE"
     [ "$update_mode" = true ] && default_type="$existing_type"
 
-    # Find default number
-    local default_num=1
+    local default_idx=0
     for i in 0 1 2; do
-        if [ "${types[$i]}" = "$default_type" ]; then
-            default_num="$((i+1))"
-        fi
+        [ "${types[$i]}" = "$default_type" ] && default_idx="$i"
     done
 
-    read -rp "  Enter [1-3, Enter=$default_num]: " machine_choice </dev/tty
-    case "${machine_choice:-$default_num}" in
-        1) MACHINE_TYPE="${types[0]}" ;;
-        2) MACHINE_TYPE="${types[1]}" ;;
-        3) MACHINE_TYPE="${types[2]}" ;;
-        *)
-            echo "  Invalid choice. Using $default_type."
-            MACHINE_TYPE="$default_type"
-            ;;
-    esac
+    local chosen_idx
+    arrow_select chosen_idx "$default_idx" "${labels[@]}"
+
+    MACHINE_TYPE="${types[$chosen_idx]}"
 }
 
 # ============================================================================
