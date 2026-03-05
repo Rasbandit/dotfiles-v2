@@ -22,6 +22,12 @@
     access_time: preserve
   become: false
 
+- name: Install chezmoi
+  ansible.builtin.shell:
+    cmd: sh -c "$(curl -fsLS get.chezmoi.io)" -- -b ~/.local/bin
+    creates: "{{ lookup('env', 'HOME') }}/.local/bin/chezmoi"
+  become: false
+
 - name: Set up hourly chezmoi sync cron job
   ansible.builtin.cron:
     name: "chezmoi auto sync"
