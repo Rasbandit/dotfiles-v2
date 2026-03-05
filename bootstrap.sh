@@ -542,6 +542,131 @@ feature_default() {
     esac
 }
 
+feature_description() {
+    local feature="$1"
+    case "$feature" in
+        terminal)        echo "Shell config, starship, aliases" ;;
+        1password)       echo "Password manager + git signing" ;;
+        vscode)          echo "VS Code editor + extensions" ;;
+        browser)         echo "Vivaldi web browser" ;;
+        vpn)             echo "Tailscale VPN" ;;
+        dev-tools)       echo "Docker, dev languages, tools" ;;
+        gnome)           echo "GNOME desktop customization" ;;
+        openbox)         echo "Openbox window manager" ;;
+        claude)          echo "Claude Code AI assistant" ;;
+        japanese)        echo "Japanese input method" ;;
+        apps)            echo "Desktop applications" ;;
+        gaming-laptop)   echo "Gaming (laptop config)" ;;
+        gaming-desktop)  echo "Gaming (desktop config)" ;;
+        auto-sync)       echo "Auto-commit & sync dotfiles" ;;
+        *)               echo "$feature" ;;
+    esac
+}
+
+# Interactive checkbox selector (pure bash, no deps)
+# Usage: checkbox_select "Title" "item1|desc1|on" "item2|desc2|off" ...
+# Sets SELECTED_FEATURES to space-separated selected names.
+checkbox_select() {
+    local title="$1"
+    shift
+    local -a items=("$@")
+    local count=${#items[@]}
+
+    # Parse items into parallel arrays
+    local -a names=() descs=() states=()
+    for item in "${items[@]}"; do
+        IFS='|' read -r name desc state <<< "$item"
+        names+=("$name")
+        descs+=("$desc")
+        if [ "$state" = "on" ]; then
+            states+=(1)
+        else
+            states+=(0)
+        fi
+    done
+
+    local current=0
+
+    # ANSI codes
+    local rev="\033[7m"
+    local dim="\033[2m"
+    local reset="\033[0m"
+    local hide_cursor="\033[?25l"
+    local show_cursor="\033[?25h"
+
+    # Restore terminal on exit/interrupt
+    local old_stty
+    old_stty=$(stty -g </dev/tty 2>/dev/null)
+    _checkbox_cleanup() {
+        printf "$show_cursor" >/dev/tty
+        stty "$old_stty" </dev/tty 2>/dev/null
+    }
+    trap _checkbox_cleanup EXIT
+
+    _draw_checkbox() {
+        for i in $(seq 0 $((count - 1))); do
+            local check=" "
+            [ "${states[$i]}" -eq 1 ] && check="x"
+            local prefix="  "
+            [ "$i" -eq "$current" ] && prefix="> "
+            local line
+            line=$(printf "%s[%s] %-16s %s" "$prefix" "$check" "${names[$i]}" "${descs[$i]}")
+            if [ "$i" -eq "$current" ]; then
+                printf "\r\033[2K${rev}%s${reset}\n" "$line" >/dev/tty
+            else
+                printf "\r\033[2K%s\n" "$line" >/dev/tty
+            fi
+        done
+        printf "\r\033[2K  ${dim}↑↓ navigate · Space toggle · Enter confirm${reset}" >/dev/tty
+    }
+
+    printf "\n%s\n\n" "$title" >/dev/tty
+    printf "$hide_cursor" >/dev/tty
+    _draw_checkbox
+
+    while true; do
+        IFS= read -rsn1 key </dev/tty || true
+
+        if [ "$key" = "" ]; then
+            # Enter — confirm
+            break
+        elif [ "$key" = " " ]; then
+            # Space — toggle
+            if [ "${states[$current]}" -eq 1 ]; then
+                states[$current]=0
+            else
+                states[$current]=1
+            fi
+            # Redraw
+            printf "\033[%dA" "$count" >/dev/tty
+            _draw_checkbox
+        elif [ "$key" = $'\x1b' ]; then
+            IFS= read -rsn2 seq </dev/tty
+            case "$seq" in
+                "[A") current=$(( (current - 1 + count) % count )) ;;
+                "[B") current=$(( (current + 1) % count )) ;;
+            esac
+            printf "\033[%dA" "$count" >/dev/tty
+            _draw_checkbox
+        fi
+    done
+
+    # Clear instruction line, show cursor
+    printf "\r\033[2K\n" >/dev/tty
+    printf "$show_cursor" >/dev/tty
+
+    # Restore trap to original (sudo keepalive cleanup)
+    trap 'kill "$SUDO_KEEPALIVE_PID" 2>/dev/null' EXIT
+
+    # Build result
+    SELECTED_FEATURES=""
+    for i in $(seq 0 $((count - 1))); do
+        if [ "${states[$i]}" -eq 1 ]; then
+            SELECTED_FEATURES="${SELECTED_FEATURES:+$SELECTED_FEATURES }${names[$i]}"
+        fi
+    done
+}
+
 # Check if a feature was in the existing features list
 feature_installed() {
     local feature="$1"
@@ -553,11 +678,8 @@ feature_installed() {
 # ============================================================================
 ALL_FEATURES="terminal 1password vscode browser vpn dev-tools gnome openbox claude japanese apps gaming-laptop gaming-desktop auto-sync"
 
-echo "Configure features for $MACHINE_TYPE:"
-echo "(Press Enter to accept default, or type y/n to change)"
-echo ""
-
-SELECTED_FEATURES=""
+# Build checkbox items: name|description|on/off
+CHECKBOX_ITEMS=()
 
 for feature in $ALL_FEATURES; do
     default=$(feature_default "$feature" "$MACHINE_TYPE")
@@ -576,7 +698,7 @@ for feature in $ALL_FEATURES; do
         prefill="$default"
     fi
 
-    # Collapse "ask" → "N" for the prompt default
+    # Collapse "ask" → "N" for the default state
     [ "$prefill" = "ask" ] && prefill="N"
 
     # Skip features that are N and weren't previously installed
@@ -588,20 +710,13 @@ for feature in $ALL_FEATURES; do
         fi
     fi
 
-    if [ "$prefill" = "Y" ]; then
-        prompt_str="[Y/n]"
-    else
-        prompt_str="[y/N]"
-    fi
-
-    read -rp "  ${feature}? ${prompt_str}: " choice </dev/tty
-    case "${choice:-$prefill}" in
-        [Yy]*|Y) SELECTED_FEATURES="$SELECTED_FEATURES $feature" ;;
-        *) : ;;
-    esac
+    local_state="off"
+    [ "$prefill" = "Y" ] && local_state="on"
+    desc=$(feature_description "$feature")
+    CHECKBOX_ITEMS+=("${feature}|${desc}|${local_state}")
 done
 
-SELECTED_FEATURES="${SELECTED_FEATURES# }"  # trim leading space
+checkbox_select "Configure features for $MACHINE_TYPE:" "${CHECKBOX_ITEMS[@]}"
 
 echo ""
 echo "Selected features: $SELECTED_FEATURES"
