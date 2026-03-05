@@ -54,7 +54,7 @@
 - Do NOT log meta-tasks like "updated CLAUDE.md" or "ran tests" unless they are the primary deliverable.
 
 ## Engram / Knowledge Vault
-- **Aggressively** ask after resolving any problem, learning something new, or completing a task: "Want me to save that as an engram?" or "Should I store that in your vault?"
+- **Aggressively** ask after resolving any problem, learning something new, or completing a task: "Should I save this as an engram?"
 - Prompt to save: solutions to non-obvious problems, setup steps, config quirks, commands worth remembering, and any how-to that took effort to figure out.
 - Use `/engram-save` skill or `mcp__engram__*` tools to save notes to the Obsidian vault.
 - When unsure, ask anyway — over-prompting is better than letting useful knowledge go undocumented.
