@@ -205,12 +205,14 @@ command -v mytool &>/dev/null && alias mt='mytool --flag'
 |------|---------|
 | Preview changes | `dots_diff` |
 | Apply dotfiles | `dots_apply` |
-| Pull + apply | `dots_update` |
+| Pull + apply | `dots_pull` |
 | Edit managed file | `dots_edit ~/.bashrc` |
-| Add new file | `dots_add ~/.config/app/config` |
-| Open source dir | `dots_cd` |
-| Show active features | `dots_features` |
-| Run ansible | `dots_ansible` |
+| Add/re-stage files | `dots_add` or `dots_add ~/.config/app/config` |
+| Remove tracked file | `dots_remove ~/.config/app/config` |
+| Push changes | `dots_push` |
+| Open source dir in editor | `edit_dots` |
+| Show active features | `dots_status` |
+| Run provisioning | `dots_provision` |
 | Debug template vars | `chezmoi data` |
 
 ## Known Issues
