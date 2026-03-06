@@ -963,10 +963,12 @@ echo "  Machine type: $MACHINE_TYPE"
 echo "  Features:     $SELECTED_FEATURES"
 echo ""
 echo "Useful commands:"
-echo "  dots_diff     — See what would change"
-echo "  dots_apply    — Apply dotfile changes"
-echo "  dots_update   — Pull and apply updates"
-echo "  dots_features — Show installed features"
+echo "  dots_diff      — See what would change"
+echo "  dots_apply     — Apply dotfile changes"
+echo "  dots_pull      — Pull and apply updates"
+echo "  dots_push      — Re-add, commit, and push"
+echo "  dots_status    — Show installed features"
+echo "  dots_provision — Run Ansible playbook"
 
 }
 

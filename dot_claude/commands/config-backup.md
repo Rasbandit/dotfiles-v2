@@ -47,7 +47,7 @@ Steps:
 1. Read the relevant task file first
 2. Add the package/task in the correct section
 3. Commit with `/commit_push`
-4. Remind user to run `dots_ansible` on each machine to apply
+4. Remind user to run `dots_provision` on each machine to apply
 
 ---
 
@@ -62,7 +62,7 @@ Steps:
 - `config_apply` — chezmoi apply
 - `config_sync` — chezmoi update (pull + apply)
 - `config_dir` — cd into source repo
-- `dots_ansible` — run the full Ansible playbook
+- `dots_provision` — run the full Ansible playbook
 
 ## Machine Types
 Stored in `~/.config/chezmoi/machine-type`: `desktop`, `laptop`, `server`, `temporary`
@@ -70,5 +70,5 @@ Use this to scope Ansible tasks to the right machines.
 
 ## After any changes
 - Commit with `/commit_push`
-- Remind user: auto-sync cron runs hourly, or they can run `config_sync` manually
-- If Ansible was changed: remind user to run `dots_ansible` on each machine
+- Remind user: auto-sync cron runs hourly, or they can run `dots_pull` manually
+- If Ansible was changed: remind user to run `dots_provision` on each machine

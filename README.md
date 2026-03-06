@@ -23,10 +23,15 @@ The script prompts for machine type and whether to install terminal tools:
 |---------|-------------|
 | `dots_diff` | See what would change |
 | `dots_apply` | Apply dotfile changes |
-| `dots_update` | Pull and apply updates from remote |
+| `dots_pull` | Pull and apply updates from remote |
+| `dots_push` | Re-add, commit, and push to remote |
 | `dots_edit ~/.bashrc` | Edit a managed file |
 | `dots_add ~/.some/file` | Add a new file to be managed |
-| `dots_cd` | cd to chezmoi source directory |
+| `dots_add` (no args) | Re-add all tracked files |
+| `dots_remove ~/.some/file` | Stop tracking a file |
+| `dots_status` | Show active features |
+| `dots_provision` | Run Ansible playbook |
+| `edit_dots` | Open source dir in editor |
 
 ## Structure
 

@@ -57,7 +57,7 @@ if git diff --name-only "$OLD_HEAD" HEAD -- ansible/ | grep -q .; then
         touch "$ANSIBLE_FLAG"
         echo "Ansible changes detected — flag written for login warning."
     else
-        notify-send "Dotfiles: Ansible changes pending" "Run 'dots_ansible' to install/update packages."
+        notify-send "Dotfiles: Ansible changes pending" "Run 'dots_provision' to install/update packages."
         echo "Ansible changes detected — notification sent."
     fi
 fi

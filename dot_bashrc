@@ -154,7 +154,7 @@ export NVM_DIR="$HOME/.nvm"
 
 # Ansible pending flag (set by auto-add-push.sh on servers)
 if [ -f "$HOME/.local/share/.ansible-pending" ]; then
-    echo "⚠  Ansible changes pending — run: dots_ansible"
+    echo "⚠  Ansible changes pending — run: dots_provision"
 fi
 
 command -v starship &>/dev/null && eval "$(starship init bash)"
