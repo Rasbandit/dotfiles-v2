@@ -39,6 +39,8 @@ decompress_all() {
 _dots_sync_watched() {
   local watched="$(chezmoi source-path)/.watched-paths"
   [ -f "$watched" ] || return 0
+
+  # Phase 1: Add new/changed files
   while IFS= read -r path || [ -n "$path" ]; do
     local expanded="${path/#\~/$HOME}"
     if [ -e "$expanded" ]; then
@@ -46,6 +48,41 @@ _dots_sync_watched() {
     fi
   done < "$watched"
   chezmoi re-add
+
+  # Phase 2: Detect files removed from filesystem but still in chezmoi
+  local managed
+  managed=$(chezmoi managed 2>/dev/null)
+  local orphans=()
+
+  while IFS= read -r path || [ -n "$path" ]; do
+    local expanded="${path/#\~/$HOME}"
+    local rel="${expanded/#$HOME\//}"
+    while IFS= read -r managed_file; do
+      [ -n "$managed_file" ] || continue
+      if [[ "$managed_file" == "$rel"/* || "$managed_file" == "$rel" ]] && [ ! -e "$HOME/$managed_file" ]; then
+        orphans+=("$managed_file")
+      fi
+    done <<< "$managed"
+  done < "$watched"
+
+  [ ${#orphans[@]} -eq 0 ] && return 0
+
+  if [ -t 0 ]; then
+    echo "Files removed from filesystem but still tracked by chezmoi:"
+    for file in "${orphans[@]}"; do
+      read -rp "  Remove '$file' from chezmoi? (y/N) " ans
+      if [[ "$ans" =~ ^[Yy]$ ]]; then
+        chezmoi forget --force "$HOME/$file" 2>/dev/null
+        echo "    Removed."
+      else
+        echo "    Kept."
+      fi
+    done
+  else
+    local list
+    list=$(printf '  %s\n' "${orphans[@]}")
+    notify-send "Dotfiles: orphaned files detected" "Files deleted but still tracked:\n$list\nRun 'dots_add' to review." 2>/dev/null || true
+  fi
 }
 
 dots_track_folder() {
@@ -96,12 +133,36 @@ dots_add() {
   fi
 }
 
+_dots_cleanup_removed() {
+  local before="$1"
+  local after
+  after=$(chezmoi managed 2>/dev/null | sort)
+  local removed
+  removed=$(comm -23 <(echo "$before") <(echo "$after"))
+  [ -n "$removed" ] || return 0
+  while IFS= read -r file; do
+    [ -n "$file" ] || continue
+    if [ -e "$HOME/$file" ]; then
+      rm -f "$HOME/$file"
+      echo "Cleaned up removed file: $file"
+    fi
+  done <<< "$removed"
+}
+
 dots_remove() {
   if [ $# -eq 0 ]; then
     echo "Usage: dots_remove <file>..."
     return 1
   fi
-  chezmoi forget "$@"
+  for file in "$@"; do
+    local target
+    target="$(realpath "$file" 2>/dev/null || echo "$file")"
+    chezmoi forget --force "$target" 2>/dev/null
+    if [ -e "$target" ]; then
+      rm -f "$target"
+      echo "Deleted: $target"
+    fi
+  done
 }
 
 dots_push() {
@@ -114,9 +175,12 @@ dots_push() {
 }
 
 dots_pull() {
+  local before
+  before=$(chezmoi managed 2>/dev/null | sort)
   cd "$(chezmoi source-path)" && \
   git pull && \
-  cd - > /dev/null && \
-  _dots_sync_watched && \
+  cd - > /dev/null
+  _dots_cleanup_removed "$before"
   chezmoi apply
+  _dots_sync_watched
 }
