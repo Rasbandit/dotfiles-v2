@@ -12,9 +12,9 @@ LOCAL_BRANCH="main"
 git remote set-url origin https://github.com/Rasbandit/dotfiles-v2.git
 git remote set-url --push origin git@github.com:Rasbandit/dotfiles-v2.git
 
-# --- 1. Sync watched paths + re-add all tracked files ---
+# --- 1. Re-add local edits to already-tracked files ---
 source "$HOME/.bash_functions"
-_dots_sync_watched
+chezmoi re-add
 
 # --- 2. Stage and commit local changes ---
 git add -A
@@ -31,6 +31,7 @@ LOCAL_COMMIT=$(git rev-parse "$LOCAL_BRANCH")
 REMOTE_COMMIT=$(git rev-parse "$REMOTE_BRANCH")
 BASE_COMMIT=$(git merge-base "$LOCAL_BRANCH" "$REMOTE_BRANCH")
 OLD_HEAD="$LOCAL_COMMIT"
+MANAGED_BEFORE=$(chezmoi managed 2>/dev/null | sort)
 
 if [ "$LOCAL_COMMIT" = "$REMOTE_COMMIT" ]; then
     echo "Local and remote are up to date."
@@ -50,7 +51,10 @@ else
     fi
 fi
 
-# --- 3a. Check if pulled changes include ansible updates ---
+# --- 3a. Clean up files removed by remote ---
+_dots_cleanup_removed "$MANAGED_BEFORE"
+
+# --- 3b. Check if pulled changes include ansible updates ---
 ANSIBLE_FLAG="$HOME/.local/share/.ansible-pending"
 if git diff --name-only "$OLD_HEAD" HEAD -- ansible/ | grep -q .; then
     MACHINE_TYPE=$(cat "$HOME/.config/chezmoi/machine-type" 2>/dev/null || echo "desktop")
@@ -63,7 +67,7 @@ if git diff --name-only "$OLD_HEAD" HEAD -- ansible/ | grep -q .; then
     fi
 fi
 
-# --- 4. Check if chezmoi has changes to apply ---
+# --- 4. Apply remote changes + sync watched paths ---
 if chezmoi diff --no-pager | grep -q .; then
     echo "Changes detected, applying..."
     if ! chezmoi apply; then
@@ -75,7 +79,17 @@ else
     echo "No chezmoi changes to apply."
 fi
 
-# --- 5. Push if needed ---
+# --- 5. Sync watched paths (add new files from watched dirs) ---
+_dots_sync_watched
+
+# --- 6. Commit any new watched files and push ---
+git add -A
+if [ -n "$(git diff --cached --name-only)" ]; then
+    timestamp=$(date +"%Y-%m-%d %H:%M")
+    git commit -m "$timestamp"
+    echo "Committed new watched files."
+fi
+
 if [ "$(git rev-parse "$LOCAL_BRANCH")" != "$(git rev-parse "$REMOTE_BRANCH")" ]; then
     echo "Pushing to remote..."
     git push
