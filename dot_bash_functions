@@ -36,6 +36,22 @@ decompress_all() {
     done
 }
 
+dots_add() {
+  if [ $# -eq 0 ]; then
+    chezmoi re-add
+  else
+    chezmoi add "$@"
+  fi
+}
+
+dots_remove() {
+  if [ $# -eq 0 ]; then
+    echo "Usage: dots_remove <file>..."
+    return 1
+  fi
+  chezmoi forget "$@"
+}
+
 dots_push() {
   chezmoi re-add && \
   cd "$(chezmoi source-path)" && \
@@ -43,4 +59,11 @@ dots_push() {
   git commit -m "update: $(date '+%Y-%m-%d %H:%M')" && \
   git push && \
   cd - > /dev/null
+}
+
+dots_pull() {
+  cd "$(chezmoi source-path)" && \
+  git pull && \
+  cd - > /dev/null && \
+  chezmoi apply
 }
