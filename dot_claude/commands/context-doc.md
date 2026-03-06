@@ -28,6 +28,7 @@ Think: cheat sheet, not documentation. The user should be able to say "turn off 
 - Identify relevant MCP tools, APIs, or CLI commands for the topic
 - Test a few read-only calls to confirm connectivity and auth work
 - Note any tools that error or aren't available
+- **Map every connection path:** Find all auth mechanisms, API keys, tokens, config files, env vars, and credential stores involved. Trace the full chain: where creds are stored → how they get loaded → which tools/calls use them. The doc must make this explicit so no future session ever has to hunt for auth details.
 
 ### 2. Gather live state (read-only)
 
@@ -46,7 +47,12 @@ Create `docs/<topic-slug>.md` in the project root. Structure:
 ## <Topic> — Quick Reference
 
 ### Connection / Auth
-How to connect, where creds live, any relevant URLs or endpoints.
+Every connection path spelled out. For each one:
+- **Where creds live** (file path, env var name, secret store)
+- **How they get loaded** (sourced by script, read by MCP server, passed as env var)
+- **How to regenerate** if missing (which script to run, which UI to visit)
+Example: "API keys in `scripts/secrets.conf` → loaded into `.mcp.json` by `scripts/setup-mcp.sh` → passed as env vars to the MCP server"
+The AI should NEVER need to search for auth info — it's all right here.
 
 ### Entity Map
 Tables mapping human names → IDs/MACs/addresses needed for tool calls.
