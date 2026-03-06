@@ -13,11 +13,14 @@
 [commit]
     gpgsign = true
 
-{{ else -}}
-[credential]
-    helper = store
-
 {{ end -}}
+[credential "https://github.com"]
+    helper = !/usr/bin/gh auth git-credential
+
+[credential "https://gist.github.com"]
+    helper = !/usr/bin/gh auth git-credential
+
+
 [init]
     defaultBranch = main
 
