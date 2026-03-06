@@ -36,9 +36,61 @@ decompress_all() {
     done
 }
 
+_dots_sync_watched() {
+  local watched="$(chezmoi source-path)/.watched-paths"
+  [ -f "$watched" ] || return 0
+  while IFS= read -r path || [ -n "$path" ]; do
+    local expanded="${path/#\~/$HOME}"
+    if [ -e "$expanded" ]; then
+      chezmoi add --force "$expanded" 2>/dev/null || true
+    fi
+  done < "$watched"
+  chezmoi re-add
+}
+
+dots_track_folder() {
+  local target="${1:-$(pwd)}"
+  target="${target%/}"
+  local watched="$(chezmoi source-path)/.watched-paths"
+
+  # Resolve ~ for comparison
+  local expanded="${target/#\~/$HOME}"
+  expanded="$(realpath "$expanded" 2>/dev/null || echo "$expanded")"
+
+  # Normalize to ~/ form for storage
+  local stored="${expanded/#$HOME/\~}"
+
+  # Check if already tracked
+  if [ -f "$watched" ] && grep -qxF "$stored" "$watched"; then
+    echo "Already watching: $stored"
+  else
+    echo "$stored" >> "$watched"
+    echo "Now watching: $stored"
+  fi
+
+  # Show untracked files and add them
+  local managed
+  managed=$(chezmoi managed 2>/dev/null)
+  local has_untracked=false
+
+  while IFS= read -r -d '' file; do
+    local rel="${file/#$HOME\//}"
+    if ! echo "$managed" | grep -qxF "$rel"; then
+      has_untracked=true
+      echo "  Adding: $rel"
+    fi
+  done < <(find "$expanded" -type f -print0 2>/dev/null)
+
+  chezmoi add --force "$expanded" 2>/dev/null || true
+
+  if ! $has_untracked; then
+    echo "  All files already tracked."
+  fi
+}
+
 dots_add() {
   if [ $# -eq 0 ]; then
-    chezmoi re-add
+    _dots_sync_watched
   else
     chezmoi add "$@"
   fi
@@ -53,7 +105,7 @@ dots_remove() {
 }
 
 dots_push() {
-  chezmoi re-add && \
+  _dots_sync_watched && \
   cd "$(chezmoi source-path)" && \
   git add -A && \
   git commit -m "update: $(date '+%Y-%m-%d %H:%M')" && \
@@ -65,5 +117,6 @@ dots_pull() {
   cd "$(chezmoi source-path)" && \
   git pull && \
   cd - > /dev/null && \
+  _dots_sync_watched && \
   chezmoi apply
 }
