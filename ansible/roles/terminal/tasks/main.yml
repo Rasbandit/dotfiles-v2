@@ -28,6 +28,7 @@
       - traceroute
       - ghostty
       - gh
+      - direnv
     state: present
   become: true
   when: os_distribution == 'fedora'
@@ -49,6 +50,7 @@
       - duf
       - iotop
       - traceroute
+      - direnv
     state: present
   become: true
   when: os_family == 'debian'
