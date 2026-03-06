@@ -12,8 +12,9 @@ LOCAL_BRANCH="main"
 git remote set-url origin https://github.com/Rasbandit/dotfiles-v2.git
 git remote set-url --push origin git@github.com:Rasbandit/dotfiles-v2.git
 
-# --- 1. Sync actual dotfiles back to chezmoi source ---
-chezmoi re-add
+# --- 1. Sync watched paths + re-add all tracked files ---
+source "$HOME/.bash_functions"
+_dots_sync_watched
 
 # --- 2. Stage and commit local changes ---
 git add -A
