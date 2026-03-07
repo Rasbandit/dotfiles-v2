@@ -125,6 +125,9 @@ dots_track_folder() {
   fi
 }
 
+# Unalias any stale aliases that conflict with function definitions
+unalias dots_add dots_remove dots_push dots_pull 2>/dev/null
+
 dots_add() {
   if [ $# -eq 0 ]; then
     _dots_sync_watched
