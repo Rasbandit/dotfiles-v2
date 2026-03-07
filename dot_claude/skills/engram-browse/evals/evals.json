@@ -1,0 +1,54 @@
+{
+  "skill_name": "engram-browse",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "what do I have on docker in my vault?",
+      "expected_output": "Lists tags and/or folders related to docker, surfaces relevant areas concisely, offers next steps like drilling in or searching",
+      "files": [],
+      "assertions": [
+        "Both list_tags and list_folders were called (dual-angle approach)",
+        "Only docker-relevant tags/folders are surfaced, not a raw full dump of everything",
+        "At least one next-step offer is made (e.g., drill in, search, or open a note)",
+        "Response is concise — does not paste all tags and folders verbatim"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "give me an overview of my whole vault, what sections exist?",
+      "expected_output": "Groups folders by top-level section with note counts, gives a structured summary rather than a raw folder dump, invites drill-down",
+      "files": [],
+      "assertions": [
+        "list_folders was called",
+        "Folders are grouped by top-level section rather than listed flat/raw",
+        "Note or folder counts are included per section",
+        "User is invited to drill into any area"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "what notes are in my health folder?",
+      "expected_output": "Lists notes inside the health folder by title, mentions any subfolders, offers to open or search specific notes",
+      "files": [],
+      "assertions": [
+        "list_folders was called first to resolve the loose 'health' name to an exact path",
+        "list_folder was called with the resolved exact path",
+        "Note titles are presented as a clean list",
+        "Any subfolders inside health are mentioned",
+        "An offer is made to open or search a specific note"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "what tags do I use? I want to see how I've been organizing things",
+      "expected_output": "Shows tags sorted by count, visually groups related tags, offers to pull notes for high-count tags",
+      "files": [],
+      "assertions": [
+        "list_tags was called",
+        "Tags are shown with their counts (not just names)",
+        "Related tags are visually grouped or clustered",
+        "An offer is made to pull notes for a high-count tag"
+      ]
+    }
+  ]
+}
