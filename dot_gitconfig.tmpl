@@ -20,6 +20,14 @@
 [credential "https://gist.github.com"]
     helper = !/usr/bin/gh auth git-credential
 
+{{ if eq .machineType "workstation" -}}
+[url "git@github.com:"]
+    insteadOf = https://github.com/
+{{ else -}}
+[url "https://github.com/"]
+    insteadOf = git@github.com:
+{{ end -}}
+
 
 [init]
     defaultBranch = main
