@@ -1,0 +1,41 @@
+{
+  "skill_name": "engram-search",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "hey do i have any notes on docker or containers? been meaning to check what i've saved",
+      "expected_output": "A clean list of notes found (title, path, excerpt) with an offer to read any in full. Should use mcp__engram__search_notes.",
+      "files": [],
+      "expectations": [
+        "Called mcp__engram__search_notes with a relevant query",
+        "Results are displayed as a clean list with title, path, and a short excerpt",
+        "Offered to read any note in full",
+        "Did not dump raw note content without being asked"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "search my vault for anything about health, supplements, or fitness",
+      "expected_output": "Should detect 'health' and 'supplements' as category words, call list_tags to find relevant tags, then filter search results by tags. Presents clean results.",
+      "files": [],
+      "expectations": [
+        "Called mcp__engram__list_tags because the query contains obvious category words (health, supplements)",
+        "Re-ran search with relevant tag filters based on available tags",
+        "Results are displayed with title, path, and excerpt",
+        "Offered to read any result in full"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I'm thinking about picking up the phoenix protocol again, any thoughts on where to start?",
+      "expected_output": "Claude should silently search 'phoenix protocol' before answering, absorb whatever it finds, and respond informed by vault context — without announcing 'let me search your vault' or asking what it is.",
+      "files": [],
+      "expectations": [
+        "Called mcp__engram__search_notes proactively without being asked to",
+        "Did NOT announce the search or ask the user what 'phoenix protocol' is before searching",
+        "Response is informed by whatever notes were found (or gracefully pivoted to a clarifying question if nothing was found)",
+        "Search was conducted silently — no phrases like 'let me check your vault' or 'I'll search your notes'"
+      ]
+    }
+  ]
+}
