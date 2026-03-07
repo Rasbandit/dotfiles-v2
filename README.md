@@ -8,14 +8,13 @@ Personal dotfiles managed with [chezmoi](https://chezmoi.io/) + [Ansible](https:
 curl -sL https://s.ras.band/setup | bash
 ```
 
-The script prompts for machine type and whether to install terminal tools:
+The script prompts for machine type and features:
 
 | Type | What it does |
 |------|-------------|
 | `temporary` | Downloads config files directly, installs starship + ~8 tools. No git auth, no ansible. |
 | `server` | Installs chezmoi, pre-creates config non-interactively, optionally runs ansible `--tags terminal`. |
-| `laptop` | Full chezmoi + ansible setup. No gaming packages. |
-| `desktop` | Full chezmoi + ansible setup with gaming packages. |
+| `workstation` | Full chezmoi + ansible setup. Select features (gaming, GNOME, apps, etc.) during bootstrap. |
 
 ## Daily Usage
 
@@ -64,9 +63,9 @@ Ansible reads this file to apply conditional installs. Valid values:
 
 | Value | Description |
 |-------|-------------|
-| `desktop` | Full setup + gaming packages (OBS, Kdenlive) |
-| `laptop` | Full setup, no gaming extras |
+| `workstation` | Full setup — features selected at bootstrap (gaming, GNOME, apps, etc.) |
 | `server` | Terminal tools only, no desktop/GNOME |
+| `temporary` | No chezmoi/ansible — config files copied directly |
 
 ## 1Password Integration
 
@@ -102,7 +101,6 @@ ansible-playbook setup.yml --ask-become-pass --tags "apps"
 ## Machine Types
 
 Set during bootstrap, used by chezmoi and ansible for conditional installs:
-- `desktop` - Full setup with gaming packages
-- `laptop` - Full setup without gaming extras
+- `workstation` - Full setup, features selected at bootstrap
 - `server` - Persistent server, no desktop apps
 - `temporary` - Throwaway SSH session, minimal setup (no chezmoi/ansible)
