@@ -7,6 +7,18 @@
             ],
             "type": "key",
             "target": [
+                "KEY_F4"
+            ],
+            "mode": "all",
+            "hold": 0
+        },
+        {
+            "trigger": [
+                "BTN_SELECT",
+                "BTN_B"
+            ],
+            "type": "key",
+            "target": [
                 "KEY_LEFTALT",
                 "KEY_F4"
             ],
@@ -72,6 +84,36 @@
             "target": "/home/rasbandit/.local/bin/spotify-controll.sh next",
             "mode": "all",
             "hold": 0
+        },
+        {
+            "trigger": [
+                "BTN_SELECT",
+                "BTN_WEST"
+            ],
+            "type": "key",
+            "target": ["KEY_F1"],
+            "mode": "all",
+            "hold": 0
+        },
+        {
+            "trigger": [
+                "BTN_SELECT",
+                "BTN_TR"
+            ],
+            "type": "key",
+            "target": ["KEY_TAB"],
+            "modifier_keys": ["KEY_LEFTALT"],
+            "mode": "all"
+        },
+        {
+            "trigger": [
+                "BTN_SELECT",
+                "BTN_TL"
+            ],
+            "type": "key",
+            "target": ["KEY_LEFTSHIFT", "KEY_TAB"],
+            "modifier_keys": ["KEY_LEFTALT"],
+            "mode": "all"
         }
     ],
     "grab": false,
