@@ -27,3 +27,9 @@ bootstrap.sh
 {{- if not (contains "vscode" $features) }}
 .continue/
 {{- end }}
+{{- if not (contains "gaming-desktop" $features) }}
+.evmapy/
+.config/autostart/evmapy.desktop
+.local/bin/focus_es-de.sh
+.local/bin/spotify-controll.sh
+{{- end }}
