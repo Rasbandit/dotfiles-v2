@@ -177,6 +177,16 @@ dots_push() {
   cd - > /dev/null
 }
 
+spice-on() {
+  sudo systemctl unmask spice-vdagentd && sudo systemctl start spice-vdagentd
+  echo "SPICE agent unmasked and started."
+}
+
+spice-off() {
+  sudo systemctl stop spice-vdagentd && sudo systemctl mask spice-vdagentd
+  echo "SPICE agent stopped and masked."
+}
+
 dots_pull() {
   local before
   before=$(chezmoi managed 2>/dev/null | sort)
