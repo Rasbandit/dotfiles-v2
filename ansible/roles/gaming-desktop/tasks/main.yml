@@ -60,7 +60,7 @@
 #   2. Flydigi VADER4 via proprietary 2.4GHz dongle (emulates 045e:028e Xbox 360) → xpad module
 #
 # xone is an out-of-tree kernel module that needs akmod + Secure Boot MOK signing.
-# xpad is in-tree but doesn't auto-load — needs /etc/modules-load.d entry.
+# xpad is in-tree but xone blocklists it — needs modules-load.d + modprobe override.
 #
 # MANUAL STEP REQUIRED after first run on a new machine:
 #   Reboot → MOK Manager appears → "Enroll MOK" → "Continue" → type "akmods" → "Reboot"
@@ -70,6 +70,19 @@
   ansible.builtin.copy:
     content: "xpad\n"
     dest: /etc/modules-load.d/xpad.conf
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+
+- name: Override xone blocklist so xpad can coexist (VADER4 needs xpad)
+  ansible.builtin.copy:
+    content: |
+      # Allow xpad alongside xone (VADER4 2.4GHz dongle presents as Xbox360 controller)
+      # xone blocklists xpad in /usr/lib/modprobe.d/60-xone.conf — this overrides it.
+      # No conflict: xone claims 045e:02e6 (Xbox Wireless Adapter), xpad claims 045e:028e (Xbox 360).
+      install xpad /sbin/modprobe --ignore-install xpad
+    dest: /etc/modprobe.d/99-xpad-unblock.conf
     owner: root
     group: root
     mode: "0644"
