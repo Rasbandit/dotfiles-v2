@@ -32,9 +32,8 @@
 # xpad is in-tree but doesn't auto-load — needs /etc/modules-load.d entry.
 #
 # MANUAL STEP REQUIRED after first run on a new machine:
-#   Reboot → MOK Manager appears → "Enroll MOK" → enter the password you set → reboot again.
-#   The password is set by the mokutil --import task below (prompted during ansible run).
-#   After enrollment, akmod modules (xone) will load on all future boots automatically.
+#   Reboot → MOK Manager appears → "Enroll MOK" → "Continue" → type "akmods" → "Reboot"
+#   This is one-time. After enrollment, akmod modules auto-sign on kernel updates.
 
 - name: Auto-load xpad kernel module (Flydigi VADER4 Xbox 360 emulation)
   ansible.builtin.copy:
@@ -72,8 +71,8 @@
   become: true
   when: os_distribution == 'fedora'
 
-- name: Import akmods MOK key for Secure Boot (requires reboot + MOK Manager enrollment)
-  ansible.builtin.command: mokutil --import /etc/pki/akmods/certs/public_key.der
+- name: Import akmods MOK key for Secure Boot (password is "akmods")
+  ansible.builtin.shell: echo -e "akmods\nakmods" | mokutil --import /etc/pki/akmods/certs/public_key.der
   become: true
   when:
     - os_distribution == 'fedora'
@@ -82,16 +81,10 @@
 
 - name: Remind user about MOK enrollment
   ansible.builtin.debug:
-    msg: >
-      ╔══════════════════════════════════════════════════════════════╗
-      ║  MANUAL STEP: Reboot to enroll the MOK signing key.        ║
-      ║  At the blue MOK Manager screen:                           ║
-      ║    1. Select "Enroll MOK"                                  ║
-      ║    2. Select "Continue"                                    ║
-      ║    3. Enter the password you just set                      ║
-      ║    4. Select "Reboot"                                      ║
-      ║  This is one-time — all future kernel updates auto-sign.   ║
-      ╚══════════════════════════════════════════════════════════════╝
+    msg: >-
+      REBOOT REQUIRED: At the blue MOK Manager screen →
+      "Enroll MOK" → "Continue" → type "akmods" → "Reboot".
+      One-time only — all future kernel updates auto-sign.
   when:
     - mok_import is defined
     - mok_import is changed
