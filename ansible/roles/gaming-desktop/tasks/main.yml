@@ -1,5 +1,5 @@
 ---
-# Gaming (desktop): Steam, Lutris, controller drivers
+# Gaming (desktop): Steam, Lutris, evmapy, controller drivers
 # TODO: ES-DE frontend
 # TODO: NFS game library mounts (home network only — configure on desktop directly)
 
@@ -22,6 +22,37 @@
     state: present
   become: true
   when: os_family == 'debian'
+
+# --- evmapy (evdev event mapper) ---
+# Maps controller button combos to keyboard shortcuts / commands.
+# Installed from fork: https://github.com/Rasbandit/evmapy-updated
+
+- name: Install python3-evdev dependency (Fedora)
+  ansible.builtin.dnf:
+    name: python3-evdev
+    state: present
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Install python3-evdev dependency (Debian)
+  ansible.builtin.apt:
+    name: python3-evdev
+    state: present
+  become: true
+  when: os_family == 'debian'
+
+- name: Install evmapy from GitHub fork
+  ansible.builtin.pip:
+    name: git+https://github.com/Rasbandit/evmapy-updated.git
+    extra_args: --user
+  become: false
+
+- name: Add user to input group (evmapy needs /dev/input access)
+  ansible.builtin.user:
+    name: "{{ ansible_user_id }}"
+    groups: input
+    append: true
+  become: true
 
 # --- Controller drivers (Fedora only) ---
 # Two controllers:
