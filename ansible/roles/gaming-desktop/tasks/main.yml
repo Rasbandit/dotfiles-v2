@@ -1,7 +1,9 @@
 ---
-# Gaming (desktop): Steam, Lutris
+# Gaming (desktop): Steam, Lutris, controller drivers
 # TODO: ES-DE frontend
 # TODO: NFS game library mounts (home network only — configure on desktop directly)
+
+# --- Games ---
 
 - name: Install Steam and Lutris (Fedora)
   ansible.builtin.dnf:
@@ -20,3 +22,76 @@
     state: present
   become: true
   when: os_family == 'debian'
+
+# --- Controller drivers (Fedora only) ---
+# Two controllers:
+#   1. Xbox Wireless Controller via official Xbox Wireless Adapter (045e:02e6) → xone driver
+#   2. Flydigi VADER4 via proprietary 2.4GHz dongle (emulates 045e:028e Xbox 360) → xpad module
+#
+# xone is an out-of-tree kernel module that needs akmod + Secure Boot MOK signing.
+# xpad is in-tree but doesn't auto-load — needs /etc/modules-load.d entry.
+#
+# MANUAL STEP REQUIRED after first run on a new machine:
+#   Reboot → MOK Manager appears → "Enroll MOK" → enter the password you set → reboot again.
+#   The password is set by the mokutil --import task below (prompted during ansible run).
+#   After enrollment, akmod modules (xone) will load on all future boots automatically.
+
+- name: Auto-load xpad kernel module (Flydigi VADER4 Xbox 360 emulation)
+  ansible.builtin.copy:
+    content: "xpad\n"
+    dest: /etc/modules-load.d/xpad.conf
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+
+- name: Add xone COPR repository
+  community.general.copr:
+    name: sentry/xone
+    state: enabled
+  become: true
+  ignore_errors: true
+  when: os_distribution == 'fedora'
+
+- name: Install xone driver and akmods signing infrastructure
+  ansible.builtin.dnf:
+    name:
+      - akmods
+      - akmod-xone
+      - xone-firmware
+      - lpf-xone-firmware
+    state: present
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Check if akmods MOK key is already enrolled
+  ansible.builtin.command: mokutil --test-key /etc/pki/akmods/certs/public_key.der
+  register: mok_test
+  changed_when: false
+  failed_when: false
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Import akmods MOK key for Secure Boot (requires reboot + MOK Manager enrollment)
+  ansible.builtin.command: mokutil --import /etc/pki/akmods/certs/public_key.der
+  become: true
+  when:
+    - os_distribution == 'fedora'
+    - mok_test.rc != 0
+  register: mok_import
+
+- name: Remind user about MOK enrollment
+  ansible.builtin.debug:
+    msg: >
+      ╔══════════════════════════════════════════════════════════════╗
+      ║  MANUAL STEP: Reboot to enroll the MOK signing key.        ║
+      ║  At the blue MOK Manager screen:                           ║
+      ║    1. Select "Enroll MOK"                                  ║
+      ║    2. Select "Continue"                                    ║
+      ║    3. Enter the password you just set                      ║
+      ║    4. Select "Reboot"                                      ║
+      ║  This is one-time — all future kernel updates auto-sign.   ║
+      ╚══════════════════════════════════════════════════════════════╝
+  when:
+    - mok_import is defined
+    - mok_import is changed
