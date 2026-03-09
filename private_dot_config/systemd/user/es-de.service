@@ -1,0 +1,13 @@
+[Unit]
+Description=EmulationStation Desktop Edition
+After=graphical-session.target home-rasbandit-ES\x2dDE.mount
+Requires=graphical-session.target
+Wants=home-rasbandit-ES\x2dDE.mount
+
+[Service]
+Type=exec
+ExecStart=/home/rasbandit/Applications/ES-DE_x64.AppImage
+Restart=no
+
+[Install]
+WantedBy=graphical-session.target
