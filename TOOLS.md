@@ -46,7 +46,6 @@ Single source of truth for every CLI tool managed by this dotfiles repo.
 | `wireguard` | VPN | `wireguard-tools` | `wireguard-tools` | — | desktop/laptop only |
 | `tailscale` | VPN mesh | `tailscale.yml` | — | `tsu-home`, `tsd`, `tss` | Fedora only currently |
 | `vivaldi` | Browser | `vivaldi.yml` | — | — | Fedora only currently |
-| `espanso` | Text expander | — | — | `edit_espanso` | config in `private_dot_config/espanso` |
 | `xremap` | Key remapper | cargo + systemd | cargo + systemd | — | `apps/xremap.yml` |
 | `1password` | Password manager | `1password.yml` | `1password.yml` | — | both distros |
 | `op` | 1Password CLI | `1password.yml` | `1password.yml` | — | required for secrets |
