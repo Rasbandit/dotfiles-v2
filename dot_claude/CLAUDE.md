@@ -40,16 +40,22 @@
 - Assume Fedora Linux.
 
 ## Daily Work Log
-- Maintain a running daily work log in the Obsidian vault at `4. Work Log/`.
-- File per day, named `YYYY-MM-DD.md` (e.g., `2026-03-04.md`).
-- On every commit or completed small task, append an entry to today's log file using `mcp__engram__write_note`.
-  - If today's file doesn't exist yet, create it with a `# Work Log — YYYY-MM-DD` heading first.
-  - Path: `4. Work Log/YYYY-MM-DD.md`
-- Entry format: `[HH:MM] <concise description of what was done and which project it belongs to>`
+- Maintain a running daily work log in the Obsidian vault.
+- **Path**: `1. Alignment/4. Work Log/YYYY-MM/YYYY-MM-DD.md` (month subfolders)
+  - Example: `1. Alignment/4. Work Log/2026-03/2026-03-08.md`
+- **Logical day resets at 6:00 AM** — entries before 6 AM belong to the previous day's log.
+- On every commit or completed small task, append an entry to today's log file using `mcp__engram__append_to_note`.
+  - If today's file doesn't exist yet, create it with `mcp__engram__create_note` with a `# Work Log — YYYY-MM-DD` heading first.
+- **Entry format**: `[HH:MM] #project/<name> #goal/<name> #value/<name> <concise description>`
   - Use 24-hour time from the system clock.
-  - Be ultra concise but specific — make it clear what was worked on AND what project/repo it belongs to.
-  - Example: `[10:45] Refined selection flow on doTERRA customer selection page (gobigger-doterra)`
-  - Example: `[14:22] Fixed broken auth redirect after token expiry (home-server)`
+  - **Tags are required** on every entry. Derive from context:
+    - `#project/<repo-or-initiative>` — the project being worked on (e.g., `#project/dotfiles`, `#project/engram-obsidian-sync`)
+    - `#goal/<goal-name>` — which active goal this advances (e.g., `#goal/self-hosting`, `#goal/income`)
+    - `#value/<value-name>` — which core value it serves (e.g., `#value/digital-self-reliance`, `#value/financial-freedom`)
+  - If unsure about goal/value tags, use best guess based on the work context.
+  - Be ultra concise but specific — make it clear what was done.
+  - Example: `[10:45] #project/gobigger-doterra #goal/income #value/financial-freedom Refined selection flow on doTERRA customer selection page`
+  - Example: `[14:22] #project/home-server #goal/self-hosting #value/digital-self-reliance Fixed broken auth redirect after token expiry`
 - This logging is **automatic** — do not ask for permission, just log it alongside commits/task completions.
 - Do NOT log meta-tasks like "updated CLAUDE.md" or "ran tests" unless they are the primary deliverable.
 
