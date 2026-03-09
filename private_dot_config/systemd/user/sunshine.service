@@ -1,0 +1,13 @@
+[Unit]
+Description=Sunshine Remote Desktop
+After=graphical-session.target
+Requires=graphical-session.target
+
+[Service]
+Type=exec
+ExecStart=/usr/bin/sunshine
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=graphical-session.target
