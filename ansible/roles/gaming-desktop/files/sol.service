@@ -1,0 +1,14 @@
+[Unit]
+Description=Sleep On LAN — remote power/navigation control
+After=network-online.target ydotool.service
+Wants=network-online.target ydotool.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/sol -c /etc/sol/sol.json
+Environment=YDOTOOL_SOCKET=/tmp/.ydotool_socket
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

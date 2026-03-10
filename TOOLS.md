@@ -50,6 +50,13 @@ Single source of truth for every CLI tool managed by this dotfiles repo.
 | `1password` | Password manager | `1password.yml` | `1password.yml` | — | both distros |
 | `op` | 1Password CLI | `1password.yml` | `1password.yml` | — | required for secrets |
 
+## Gaming Desktop Services
+
+| Tool | Purpose | Fedora pkg | Service | Notes |
+|------|---------|-----------|---------|-------|
+| `sol` | Sleep On LAN (remote power/nav) | GitHub release | `sol.service` | `gaming-desktop` role, binary at `/usr/local/bin/sol` |
+| `ydotool` | Wayland input simulation | `ydotool` | `ydotool.service` | Required by SOL, socket override for input group |
+
 ## Desktop-Only (gaming / creative)
 
 | Tool | Purpose | Fedora | Debian | Notes |

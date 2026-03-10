@@ -88,10 +88,20 @@
         {
             "trigger": [
                 "BTN_SELECT",
-                "BTN_WEST"
+                "BTN_NORTH"
             ],
             "type": "key",
             "target": ["KEY_F1"],
+            "mode": "all",
+            "hold": 0
+        },
+        {
+            "trigger": [
+                "BTN_SELECT",
+                "BTN_WEST"
+            ],
+            "type": "key",
+            "target": ["KEY_RIGHTSHIFT", "KEY_F11"],
             "mode": "all",
             "hold": 0
         },
@@ -181,11 +191,11 @@
             "code": 305
         },
         {
-            "name": "BTN_NORTH",
+            "name": "BTN_WEST",
             "code": 307
         },
         {
-            "name": "BTN_WEST",
+            "name": "BTN_NORTH",
             "code": 308
         },
         {
