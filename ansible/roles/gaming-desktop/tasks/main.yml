@@ -132,3 +132,124 @@
   when:
     - mok_import is defined
     - mok_import is changed
+
+# --- Sleep On LAN (SOL) ---
+# Remote power off and navigation control (for TV remote via Sunshine/Moonlight).
+# Listens on UDP:9000, UDP:7000, HTTP:8009.
+# Uses ydotool for Wayland-compatible input simulation.
+# Project: https://github.com/SR-G/sleep-on-lan
+
+- name: Install ydotool (Wayland input simulation for SOL)
+  ansible.builtin.dnf:
+    name: ydotool
+    state: present
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Create ydotool service override directory
+  ansible.builtin.file:
+    path: /etc/systemd/system/ydotool.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+
+- name: Configure ydotool socket permissions (input group access)
+  ansible.builtin.copy:
+    src: ydotool-override.conf
+    dest: /etc/systemd/system/ydotool.service.d/override.conf
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify: restart ydotool
+
+- name: Enable ydotool service
+  ansible.builtin.systemd:
+    name: ydotool
+    enabled: true
+    daemon_reload: true
+  become: true
+
+- name: Download Sleep On LAN binary
+  ansible.builtin.unarchive:
+    src: https://github.com/SR-G/sleep-on-lan/releases/download/1.1.1-RELEASE/SleepOnLAN-1.1.1-RELEASE.zip
+    dest: /tmp
+    remote_src: true
+    creates: /tmp/linux_amd64/sol
+  become: false
+
+- name: Install SOL binary to /usr/local/bin (SELinux requires bin_t context)
+  ansible.builtin.copy:
+    src: /tmp/linux_amd64/sol
+    dest: /usr/local/bin/sol
+    owner: root
+    group: root
+    mode: "0755"
+    remote_src: true
+  become: true
+
+- name: Create SOL config directory
+  ansible.builtin.file:
+    path: /etc/sol
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+
+- name: Install SOL configuration
+  ansible.builtin.copy:
+    src: sol.json
+    dest: /etc/sol/sol.json
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify: restart sol
+
+- name: Install SOL systemd service
+  ansible.builtin.copy:
+    src: sol.service
+    dest: /etc/systemd/system/sol.service
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify: restart sol
+
+- name: Enable SOL service
+  ansible.builtin.systemd:
+    name: sol
+    enabled: true
+    daemon_reload: true
+  become: true
+
+# --- ES-DE Media Audit ---
+# Hourly + on-boot cron to download missing media, upgrade low-quality covers,
+# and fill metadata gaps. Script portion is free (Steam/SGDB APIs); AI portion
+# (Claude CLI) is gated to run once per 7 days. Cache prevents repeat lookups.
+# Script + cron wrapper live in ~/Documents/claude-home (separate git repo).
+
+- name: Install ES-DE media script Python dependencies
+  ansible.builtin.pip:
+    name:
+      - requests
+      - Pillow
+    extra_args: --user
+  become: false
+
+- name: Set up ES-DE hourly media audit cron
+  ansible.builtin.cron:
+    name: "ES-DE media audit"
+    minute: "23"
+    job: "{{ lookup('env', 'HOME') }}/Documents/claude-home/scripts/esde-audit-cron.sh"
+    state: present
+
+- name: Set up ES-DE media audit on boot (5 min delay for network)
+  ansible.builtin.cron:
+    name: "ES-DE media audit on boot"
+    special_time: reboot
+    job: "sleep 300 && {{ lookup('env', 'HOME') }}/Documents/claude-home/scripts/esde-audit-cron.sh"
+    state: present
