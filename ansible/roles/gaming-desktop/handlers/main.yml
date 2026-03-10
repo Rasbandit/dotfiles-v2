@@ -1,0 +1,14 @@
+---
+- name: restart ydotool
+  ansible.builtin.systemd:
+    name: ydotool
+    state: restarted
+    daemon_reload: true
+  become: true
+
+- name: restart sol
+  ansible.builtin.systemd:
+    name: sol
+    state: restarted
+    daemon_reload: true
+  become: true
