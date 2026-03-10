@@ -79,11 +79,12 @@ Download missing media and fill gamelist.xml metadata for any ES-DE game system.
    with `--game` for specific titles, or explain why they failed (delisted, demo with no
    assets, etc.)
 
-7. If any media was downloaded, remind the user to regenerate miximages:
-   - Open ES-DE
-   - Go to **Menu > UI Settings > Miximage Offline Generator**
-   - Select the target system and start generation
-   - Note: This is a GUI-only operation — ES-DE has no CLI flag for miximage generation.
+7. If any media was downloaded, regenerate miximages using the CLI generator:
+   ```bash
+   python3 ~/Documents/claude-home/scripts/esde-miximage-gen.py --system <system> --verbose
+   ```
+   Add `--overwrite` to regenerate all (e.g., after cover upgrades).
+   This replicates ES-DE's built-in generator (ported from MiximageGenerator.cpp).
 
 ## Audit cache system
 
@@ -92,10 +93,11 @@ The script maintains `~/ES-DE/.audit-cache.json` to prevent repeated AI searches
 - Items marked `not_found` have a 30-day cooldown before re-searching
 - Uninstalled games (no .desktop/.sh file) are pruned automatically
 
-### Weekly cron
+### Hourly cron
 
 A cron wrapper at `~/Documents/claude-home/scripts/esde-audit-cron.sh` runs:
 1. `--upgrade` (automated, free — SGDB/Steam CDN)
 2. `--report-gaps` (cache-aware, prunes uninstalled)
-3. One batched `claude -p` call for all remaining gaps (token-efficient)
+3. One batched `claude -p` call for all remaining gaps (token-efficient, 7-day cooldown)
 4. `--mark-searched` (updates cache so items aren't re-searched)
+5. `esde-miximage-gen.py` — generates missing miximages for all systems
