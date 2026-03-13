@@ -39,7 +39,7 @@
       Environment=PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/bin:{{ lookup('env', 'HOME') }}/.cargo/bin
       Environment=DISPLAY=:0
       Environment=HOME={{ lookup('env', 'HOME') }}
-      ExecStart={{ lookup('env', 'HOME') }}/.cargo/bin/xremap --watch {{ lookup('env', 'HOME') }}/.config/xremap/config.yml
+      ExecStart={{ lookup('env', 'HOME') }}/.cargo/bin/xremap --watch=device --device "Keychron Keychron Q1" --device "Wooting 60HE+" {{ lookup('env', 'HOME') }}/.config/xremap/config.yml
       Restart=always
 
       [Install]
