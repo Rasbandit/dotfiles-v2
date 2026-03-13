@@ -1,0 +1,190 @@
+{
+    "actions": [
+        {
+            "trigger": [
+                "BTN_DPAD_UP",
+                "BTN_EAST"
+            ],
+            "type": "key",
+            "target": [
+                "KEY_F4"
+            ],
+            "mode": "all",
+            "hold": 0
+        },
+        {
+            "trigger": [
+                "BTN_DPAD_UP",
+                "BTN_EAST"
+            ],
+            "type": "key",
+            "target": [
+                "KEY_LEFTALT",
+                "KEY_F4"
+            ],
+            "mode": "all",
+            "hold": 1.3
+        },
+        {
+            "trigger": [
+                "BTN_DPAD_UP",
+                "BTN_START"
+            ],
+            "type": "exec",
+            "target": "/home/rasbandit/.local/bin/focus_es-de.sh",
+            "mode": "all",
+            "hold": 0
+        },
+        {
+            "trigger": [
+                "BTN_DPAD_UP",
+                "BTN_TR"
+            ],
+            "type": "exec",
+            "target": "/home/rasbandit/.local/bin/spotify-controll.sh",
+            "mode": "all",
+            "hold": 0
+        },
+        {
+            "trigger": [
+                "BTN_DPAD_UP",
+                "ABS_RY:max"
+            ],
+            "type": "exec",
+            "target": "/home/rasbandit/.local/bin/spotify-controll.sh +",
+            "mode": "all",
+            "hold": 0
+        },
+        {
+            "trigger": [
+                "BTN_DPAD_UP",
+                "ABS_RY:min"
+            ],
+            "type": "exec",
+            "target": "/home/rasbandit/.local/bin/spotify-controll.sh -",
+            "mode": "all",
+            "hold": 0
+        },
+        {
+            "trigger": [
+                "BTN_DPAD_UP",
+                "ABS_RX:min"
+            ],
+            "type": "exec",
+            "target": "/home/rasbandit/.local/bin/spotify-controll.sh previous",
+            "mode": "all",
+            "hold": 0
+        },
+        {
+            "trigger": [
+                "BTN_DPAD_UP",
+                "ABS_RX:max"
+            ],
+            "type": "exec",
+            "target": "/home/rasbandit/.local/bin/spotify-controll.sh next",
+            "mode": "all",
+            "hold": 0
+        },
+        {
+            "trigger": [
+                "BTN_DPAD_UP",
+                "BTN_WEST"
+            ],
+            "type": "key",
+            "target": ["KEY_F1"],
+            "mode": "all",
+            "hold": 0
+        },
+        {
+            "trigger": [
+                "BTN_DPAD_UP",
+                "BTN_NORTH"
+            ],
+            "type": "key",
+            "target": ["KEY_RIGHTSHIFT", "KEY_F11"],
+            "mode": "all",
+            "hold": 0
+        }
+    ],
+    "grab": false,
+    "axes": [
+        {
+            "name": "ABS_X",
+            "code": 0,
+            "min": 0,
+            "max": 255
+        },
+        {
+            "name": "ABS_Y",
+            "code": 1,
+            "min": 0,
+            "max": 255
+        },
+        {
+            "name": "ABS_RX",
+            "code": 3,
+            "min": 0,
+            "max": 255
+        },
+        {
+            "name": "ABS_RY",
+            "code": 4,
+            "min": 0,
+            "max": 255
+        },
+        {
+            "name": "ABS_Z",
+            "code": 2,
+            "min": 0,
+            "max": 255
+        },
+        {
+            "name": "ABS_RZ",
+            "code": 5,
+            "min": 0,
+            "max": 255
+        }
+    ],
+    "buttons": [
+        {
+            "name": "BTN_SOUTH",
+            "code": 304
+        },
+        {
+            "name": "BTN_EAST",
+            "code": 305
+        },
+        {
+            "name": "BTN_NORTH",
+            "code": 307
+        },
+        {
+            "name": "BTN_WEST",
+            "code": 308
+        },
+        {
+            "name": "BTN_START",
+            "code": 315
+        },
+        {
+            "name": "BTN_TR",
+            "code": 311
+        },
+        {
+            "name": "BTN_DPAD_UP",
+            "code": 544
+        },
+        {
+            "name": "BTN_DPAD_DOWN",
+            "code": 545
+        },
+        {
+            "name": "BTN_DPAD_LEFT",
+            "code": 546
+        },
+        {
+            "name": "BTN_DPAD_RIGHT",
+            "code": 547
+        }
+    ]
+}
