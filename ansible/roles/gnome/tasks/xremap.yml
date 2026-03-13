@@ -52,9 +52,10 @@
     scope: user
   become: false
 
-- name: Enable xremap service
+- name: Enable and start xremap service
   ansible.builtin.systemd:
     name: xremap
     enabled: true
+    state: started
     scope: user
   become: false
