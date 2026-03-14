@@ -126,7 +126,7 @@ dots_track_folder() {
 }
 
 # Unalias any stale aliases that conflict with function definitions
-unalias dots_add dots_remove dots_push dots_pull 2>/dev/null
+unalias dots_add dots_remove dots_push dots_pull 2>/dev/null || true
 
 dots_add() {
   if [ $# -eq 0 ]; then

@@ -40,24 +40,11 @@
 - Assume Fedora Linux.
 
 ## Daily Work Log
-- Maintain a running daily work log in the Obsidian vault.
-- **Path**: `1. Alignment/4. Work Log/YYYY-MM/YYYY-MM-DD.md` (month subfolders)
-  - Example: `1. Alignment/4. Work Log/2026-03/2026-03-08.md`
-- **Logical day resets at 6:00 AM** — entries before 6 AM belong to the previous day's log.
-- On every commit or completed small task, append an entry to today's log file using `mcp__engram__append_to_note`.
-  - If today's file doesn't exist yet, create it with `mcp__engram__create_note` with a `# Work Log — YYYY-MM-DD` heading first.
-- **Entry format**: `[HH:MM] #project/<name> #goal/<name> #value/<name> <concise description>`
-  - Use 24-hour time from the system clock.
-  - **Tags are required** on every entry. Derive from context:
-    - `#project/<repo-or-initiative>` — the project being worked on (e.g., `#project/dotfiles`, `#project/engram-obsidian-sync`)
-    - `#goal/<goal-name>` — which active goal this advances (e.g., `#goal/self-hosting`, `#goal/income`)
-    - `#value/<value-name>` — which core value it serves (e.g., `#value/digital-self-reliance`, `#value/financial-freedom`)
-  - If unsure about goal/value tags, use best guess based on the work context.
-  - Be ultra concise but specific — make it clear what was done.
-  - Example: `[10:45] #project/gobigger-doterra #goal/income #value/financial-freedom Refined selection flow on doTERRA customer selection page`
-  - Example: `[14:22] #project/home-server #goal/self-hosting #value/digital-self-reliance Fixed broken auth redirect after token expiry`
-- This logging is **automatic** — do not ask for permission, just log it alongside commits/task completions.
-- Do NOT log meta-tasks like "updated CLAUDE.md" or "ran tests" unless they are the primary deliverable.
+- Path: `1. Alignment/4. Work Log/YYYY-MM/YYYY-MM-DD.md` — create with `# YYYY-MM-DD` heading if missing.
+- **Log aggressively** — code, config, research, design, debugging, infra, anything 10+ min. When in doubt, log it.
+- Format: `[HH:MM-HH:MM] #project/slug #goal/slug #value/slug Description`
+- Get tag slugs from the project's `## Life OS` block in CLAUDE.md. If missing, run `/lifeos-onboard`.
+- Automatic — no permission needed.
 
 ## Engram / Knowledge Vault
 - **Aggressively** ask after resolving any problem, learning something new, or completing a task: "Should I save this as an engram?"
