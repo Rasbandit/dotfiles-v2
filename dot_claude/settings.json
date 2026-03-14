@@ -30,7 +30,9 @@
       "engram"
     ]
   },
-  "model": "opus",
+  "enabledPlugins": {
+    "skill-creator@claude-plugins-official": true
+  },
   "skipDangerousModePermissionPrompt": true,
   "bypassPermissionsAllowed": true
 }
