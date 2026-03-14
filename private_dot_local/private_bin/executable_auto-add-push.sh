@@ -8,9 +8,8 @@ cd "$CHEZMOI_DIR"
 REMOTE_BRANCH="origin/main"
 LOCAL_BRANCH="main"
 
-# --- Ensure correct remote URLs for push/pull ---
+# --- Ensure correct remote URL (HTTPS — gh credential helper handles auth) ---
 git remote set-url origin https://github.com/Rasbandit/dotfiles-v2.git
-git remote set-url --push origin git@github.com:Rasbandit/dotfiles-v2.git
 
 # --- 1. Re-add local edits to already-tracked files ---
 source "$HOME/.bash_functions"
