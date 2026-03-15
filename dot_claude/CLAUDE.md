@@ -60,6 +60,13 @@
 - Use native @file/path or search if no MCP available.
 - Use the AskUserQuestion any time you need clarification or have questions.
 
+## No Discovery Twice Protocol
+- Before connecting to any non-trivial external system (server, API, CLI tool you'd need to figure out): silently check for a context doc — look in `docs/context/` in the current repo, then search Engram. Use what you find; skip discovery.
+- When you hit an unexpected error mid-task: check the context doc before debugging — the error or a failed approach may already be documented.
+- After completing any discovery, or after abandoning a failed approach: always offer to save/update it — "Should I save this as a context doc?"
+- If a context doc's `Last verified` date is >90 days ago, flag it as potentially stale.
+- When adding a context doc to a repo, add a soft reference to CLAUDE.md ("If you need info on X, see `docs/context/x.md`") — do NOT use `@` import syntax.
+
 ## Coding Practicies
 - Don't write for loops with HTTP requests, prefer writing a bulk update if applicalbe.
 - In HTML avoid use of divs, use sematnic html excessivly.
