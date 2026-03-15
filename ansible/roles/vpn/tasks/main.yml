@@ -57,6 +57,34 @@
   become: true
   when: os_family == 'debian'
 
+# --- ProtonVPN (Fedora only) ---
+- name: Import ProtonVPN GPG key (Fedora)
+  ansible.builtin.rpm_key:
+    key: "https://repo.protonvpn.com/fedora-{{ ansible_distribution_major_version }}-stable/public_key.asc"
+    state: present
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Add ProtonVPN repository (Fedora)
+  ansible.builtin.yum_repository:
+    name: protonvpn-fedora-stable
+    description: ProtonVPN Fedora Stable repository
+    baseurl: "https://repo.protonvpn.com/fedora-{{ ansible_distribution_major_version }}-stable"
+    enabled: true
+    gpgcheck: true
+    repo_gpgcheck: false
+    skip_if_unavailable: true
+    gpgkey: "https://repo.protonvpn.com/fedora-{{ ansible_distribution_major_version }}-stable/public_key.asc"
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Install ProtonVPN (Fedora)
+  ansible.builtin.dnf:
+    name: proton-vpn-gnome-desktop
+    state: present
+  become: true
+  when: os_distribution == 'fedora'
+
 # --- Enable service (both distros) ---
 - name: Enable and start tailscaled
   ansible.builtin.systemd:

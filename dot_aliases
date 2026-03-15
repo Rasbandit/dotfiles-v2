@@ -137,6 +137,34 @@ alias tsd='sudo tailscale down'
 alias tss='tailscale status'
 
 # ============================================================================
+# ProtonVPN
+# ============================================================================
+command -v protonvpn &>/dev/null && {
+    alias pvc='protonvpn connect'
+    alias pvd='protonvpn disconnect'
+    alias pvcc='protonvpn connect --country'   # pvcc US
+    alias pvci='protonvpn connect --city'      # pvci "Tokyo"
+    alias pvcp='protonvpn connect --p2p'
+    alias pvcr='protonvpn connect --random'
+    pvs() {
+        local f="$HOME/.cache/Proton/VPN/connection/connection_persistence.json"
+        local sl="$HOME/.cache/Proton/VPN/serverlist.json"
+        if [[ ! -f "$f" ]]; then echo "ProtonVPN: Disconnected"; return; fi
+        python3 - "$f" "$sl" <<'EOF'
+import json, sys
+conn = json.load(open(sys.argv[1]))
+sl   = json.load(open(sys.argv[2]))
+servers = {s["Name"]: s for s in sl.get("LogicalServers", [])}
+sv = servers.get(conn["server"]["server_name"], {})
+city    = sv.get("City", "")
+country = sv.get("ExitCountry", "")
+name    = conn["server"]["server_name"]
+print(f"ProtonVPN: Connected → {city + ', ' if city else ''}{country}  ({name})")
+EOF
+    }
+}
+
+# ============================================================================
 # ch / dh — Connect Home / Disconnect Home
 # Cascade: WG fast-raid → (blocked)      → Tailscale fast-raid → Tailscale slow-raid
 #                        → (server down) → WG slow-raid → Tailscale fast-raid → Tailscale slow-raid
