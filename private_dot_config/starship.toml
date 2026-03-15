@@ -16,6 +16,7 @@ $python\
 ${custom.ssh}\
 ${custom.tailscale}\
 ${custom.wireguard}\
+${custom.protonvpn}\
 $docker_context\
 [](fg:14)\
 $cmd_duration\
@@ -142,7 +143,25 @@ symbol = " "
 command = "wg show interfaces"
 format = "[[ $symbol $output ](fg:0 bg:14)]($style)"
 style = "(fg:0 bg:14)"
-when = "wg show interfaces | grep -q ."
+when = "wg show interfaces | grep -v proton0 | grep -q ."
+
+[custom.protonvpn]
+symbol = "󰦝"
+command = """python3 -c "
+import json, os
+conn_file = os.path.expanduser('~/.cache/Proton/VPN/connection/connection_persistence.json')
+srv_file = os.path.expanduser('~/.cache/Proton/VPN/serverlist.json')
+with open(conn_file) as f: conn = json.load(f)
+with open(srv_file) as f: sl = json.load(f)
+servers = {s['Name']: s for s in sl.get('LogicalServers', [])}
+sv = servers.get(conn['server']['server_name'], {})
+city = sv.get('City', '')
+country = sv.get('ExitCountry', '')
+print(city if city else country)
+" 2>/dev/null"""
+format = "[[ $symbol $output ](fg:0 bg:14)]($style)"
+style = "(fg:0 bg:14)"
+when = "test -f ~/.cache/Proton/VPN/connection/connection_persistence.json"
 
 [time]
 disabled = false
