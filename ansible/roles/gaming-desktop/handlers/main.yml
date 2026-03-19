@@ -6,6 +6,19 @@
     daemon_reload: true
   become: true
 
+- name: rebuild initramfs
+  ansible.builtin.command: dracut -f
+  become: true
+
+- name: reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+  become: true
+
+- name: reload udev
+  ansible.builtin.command: udevadm control --reload-rules
+  become: true
+
 - name: restart sol
   ansible.builtin.systemd:
     name: sol

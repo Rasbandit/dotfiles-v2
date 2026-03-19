@@ -1,0 +1,7 @@
+[Unit]
+Description=Restart GC adapter evdev daemons on USB hotplug
+After=default.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/systemctl --machine={{ ansible_user_id }}@.host --user restart gcadapter-evdev@0.service gcadapter-evdev@1.service
