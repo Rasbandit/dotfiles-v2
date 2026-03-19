@@ -101,7 +101,7 @@
                 "BTN_WEST"
             ],
             "type": "key",
-            "target": ["KEY_RIGHTSHIFT", "KEY_F11"],
+            "target": ["KEY_RIGHTSHIFT", "KEY_F10"],
             "mode": "all",
             "hold": 0
         },
