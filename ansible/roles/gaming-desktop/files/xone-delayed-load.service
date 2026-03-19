@@ -1,0 +1,13 @@
+[Unit]
+Description=Load xone dongle module after USB stabilizes
+After=systemd-modules-load.service
+Before=xone-boot-log.service
+
+[Service]
+Type=oneshot
+ExecStartPre=/bin/sleep 3
+ExecStart=/sbin/modprobe xone_dongle
+ExecStartPost=/sbin/modprobe xone_gip_gamepad
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,13 @@
+[Unit]
+Description=Xbox Wireless Adapter watchdog — auto-reset on radio errors
+After=xone-delayed-load.service
+Wants=xone-delayed-load.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/xone-watchdog.sh
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

@@ -226,6 +226,147 @@
     daemon_reload: true
   become: true
 
+# --- Xbox Wireless Adapter reliability ---
+# Four-layer fix for boot reliability and radio lockup recovery.
+# See docs/controllers.md for full explanation.
+
+- name: Include xone dongle firmware in initramfs (fixes boot unplug/replug)
+  ansible.builtin.copy:
+    content: |
+      # Include xone dongle firmware in initramfs so it is available
+      # when the xone_dongle module loads during early boot.
+      install_items+=" /usr/lib/firmware/xone_dongle_02e6.bin /usr/lib/firmware/xone_dongle_02f9.bin /usr/lib/firmware/xone_dongle_02fe.bin /usr/lib/firmware/xone_dongle_091e.bin "
+    dest: /etc/dracut.conf.d/xone.conf
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify: rebuild initramfs
+
+- name: Blacklist xone from udev autoload (delayed load avoids 36s of USB errors)
+  ansible.builtin.copy:
+    content: |
+      # Prevent udev from auto-loading xone at USB detection time.
+      # A systemd service (xone-delayed-load.service) loads these after
+      # a short delay so the USB bus is fully stable.
+      blacklist xone_dongle
+      blacklist xone_gip
+      blacklist xone_gip_gamepad
+    dest: /etc/modprobe.d/xone-delayed.conf
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+
+- name: Install xone delayed-load systemd service
+  ansible.builtin.copy:
+    src: xone-delayed-load.service
+    dest: /etc/systemd/system/xone-delayed-load.service
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify: reload systemd
+
+- name: Install xone watchdog script
+  ansible.builtin.copy:
+    src: xone-watchdog.sh
+    dest: /usr/local/bin/xone-watchdog.sh
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+
+- name: Install xone watchdog systemd service
+  ansible.builtin.copy:
+    src: xone-watchdog.service
+    dest: /etc/systemd/system/xone-watchdog.service
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify: reload systemd
+
+- name: Enable xone-delayed-load and xone-watchdog services
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: true
+    daemon_reload: true
+  become: true
+  loop:
+    - xone-delayed-load.service
+    - xone-watchdog.service
+
+# --- GameCube Adapter ---
+# gcadapter_oc: 1000Hz USB polling via DKMS kernel module.
+# gcadapter-evdev: exposes each port as a virtual evdev gamepad.
+# NOTE: The multi-adapter patch for gcadapter_oc must be applied manually after install.
+#       See docs/gc-adapter.md — "Multi-adapter patch" section.
+# NOTE: gcadapter_evdev binary must be compiled manually from files/gcadapter-evdev/.
+#       See docs/gc-adapter.md — "Rebuilding from Source" section.
+
+- name: Enable gcadapter_oc COPR repository (1000Hz polling)
+  community.general.copr:
+    name: kylegospo/gcadapter_oc-dkms
+    state: enabled
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Install gcadapter_oc DKMS module
+  ansible.builtin.dnf:
+    name: gcadapter_oc-dkms
+    state: present
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Auto-load gcadapter_oc at boot
+  ansible.builtin.copy:
+    content: "gcadapter_oc\n"
+    dest: /etc/modules-load.d/gcadapter-oc.conf
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+
+- name: Install build dependencies for gcadapter-evdev
+  ansible.builtin.dnf:
+    name:
+      - gcc
+      - libusb1-devel
+    state: present
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Install gcadapter udev rule (USB access permission for 057e:0337)
+  ansible.builtin.copy:
+    content: 'SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTRS{idVendor}=="057e", ATTRS{idProduct}=="0337", TAG+="uaccess"'
+    dest: /etc/udev/rules.d/71-gcadapter.rules
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify: reload udev
+
+- name: Install gcadapter hotplug udev rule
+  ansible.builtin.copy:
+    src: 73-gcadapter-hotplug.rules
+    dest: /etc/udev/rules.d/73-gcadapter-hotplug.rules
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify: reload udev
+
+- name: Install gcadapter hotplug systemd service (templated with username)
+  ansible.builtin.template:
+    src: gcadapter-hotplug.service.j2
+    dest: /etc/systemd/system/gcadapter-hotplug.service
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify: reload systemd
+
 # --- ES-DE Media Audit ---
 # Hourly + on-boot cron to download missing media, upgrade low-quality covers,
 # and fill metadata gaps. Script portion is free (Steam/SGDB APIs); AI portion
