@@ -1,0 +1,6 @@
+[Unit]
+Description=Fix execute permissions on ES-DE AppImages and scripts
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash -c 'find %h/ES-DE/roms/ports -name "*.AppImage" -not -perm -u+x -exec chmod +x {} + ; find %h/ES-DE/scripts -name "*.sh" -not -perm -u+x -exec chmod +x {} +'

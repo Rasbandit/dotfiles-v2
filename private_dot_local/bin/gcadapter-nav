@@ -1,0 +1,314 @@
+#!/usr/bin/env python3
+"""
+gcadapter-nav: passive usbmon sniffer for GC adapter navigation.
+
+Reads GC adapter USB traffic via /dev/usbmon (no device claiming) and
+exposes virtual evdev devices so evmapy chords work during Dolphin native mode.
+
+Requires:
+  - usbmon kernel module loaded
+  - /dev/usbmon* readable (udev rule: GROUP="input", MODE="0640")
+  - python3-evdev installed
+"""
+
+import glob
+import logging
+import os
+import signal
+import struct
+import sys
+import time
+from typing import Optional
+
+try:
+    from evdev import AbsInfo, UInput, ecodes as e
+except ImportError:
+    sys.exit("python3-evdev required: sudo dnf install python3-evdev")
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s",
+    datefmt="%H:%M:%S",
+)
+log = logging.getLogger(__name__)
+
+# --- GC adapter USB IDs ---
+GC_VID = "057e"
+GC_PID = "0337"
+GC_PAYLOAD_SIZE = 37
+
+# --- usbmon binary header (48 bytes, little-endian) ---
+# The read() interface returns a 48-byte header (not the full 64-byte ioctl struct).
+# Fields: id, type, xfer_type, epnum, devnum, busnum, flag_setup, flag_data,
+#         ts_sec, ts_usec, status, length, len_cap, setup[8]
+# Data payload immediately follows at offset 48.
+HDR_STRUCT = struct.Struct("<QBBBBHbbqiIII8s")
+HDR_SIZE = HDR_STRUCT.size  # must be 48
+
+assert HDR_SIZE == 48, f"unexpected usbmon header size: {HDR_SIZE}"
+
+# --- Button mapping (from gcadapter_evdev.h + libgcadapter.c) ---
+# buttons_p1 byte: A=bit0, B=bit1, X=bit2, Y=bit3, DPAD_LEFT=bit4,
+#                  DPAD_RIGHT=bit5, DPAD_DOWN=bit6, DPAD_UP=bit7
+P1_MAP = [
+    (e.BTN_SOUTH, 0x01),       # A
+    (e.BTN_EAST, 0x02),        # B
+    (e.BTN_NORTH, 0x04),       # X
+    (e.BTN_WEST, 0x08),        # Y
+    (e.BTN_DPAD_LEFT, 0x10),
+    (e.BTN_DPAD_RIGHT, 0x20),
+    (e.BTN_DPAD_DOWN, 0x40),
+    (e.BTN_DPAD_UP, 0x80),
+]
+# buttons_p2 byte: START=bit0, Z=bit1, R=bit2, L=bit3
+P2_MAP = [
+    (e.BTN_START, 0x01),
+    (e.BTN_THUMBR, 0x02),      # Z button → BTN_THUMBR
+]
+
+UINPUT_CAPABILITIES = {
+    e.EV_KEY: [
+        e.BTN_SOUTH, e.BTN_EAST, e.BTN_NORTH, e.BTN_WEST,
+        e.BTN_START, e.BTN_THUMBR,
+        e.BTN_DPAD_UP, e.BTN_DPAD_DOWN, e.BTN_DPAD_LEFT, e.BTN_DPAD_RIGHT,
+    ],
+    e.EV_ABS: [
+        (e.ABS_X,  AbsInfo(value=128, min=0, max=255, fuzz=4, flat=10, resolution=0)),
+        (e.ABS_Y,  AbsInfo(value=128, min=0, max=255, fuzz=4, flat=10, resolution=0)),
+        (e.ABS_RX, AbsInfo(value=128, min=0, max=255, fuzz=4, flat=10, resolution=0)),
+        (e.ABS_RY, AbsInfo(value=128, min=0, max=255, fuzz=4, flat=10, resolution=0)),
+        (e.ABS_Z,  AbsInfo(value=0,   min=0, max=255, fuzz=4, flat=0,  resolution=0)),
+        (e.ABS_RZ, AbsInfo(value=0,   min=0, max=255, fuzz=4, flat=0,  resolution=0)),
+    ],
+}
+
+running = True
+
+
+def _stop(sig, frame):
+    global running
+    running = False
+
+
+signal.signal(signal.SIGTERM, _stop)
+signal.signal(signal.SIGINT, _stop)
+
+
+def find_adapters() -> Optional[tuple[int, set[int]]]:
+    """Return (busnum, {devnum, ...}) for all GC adapters found in sysfs, or None."""
+    results: dict[int, set[int]] = {}
+    for vid_path in glob.glob("/sys/bus/usb/devices/*/idVendor"):
+        dev_dir = os.path.dirname(vid_path)
+        try:
+            with open(vid_path) as f:
+                if f.read().strip() != GC_VID:
+                    continue
+            with open(os.path.join(dev_dir, "idProduct")) as f:
+                if f.read().strip() != GC_PID:
+                    continue
+            with open(os.path.join(dev_dir, "busnum")) as f:
+                busnum = int(f.read().strip())
+            with open(os.path.join(dev_dir, "devnum")) as f:
+                devnum = int(f.read().strip())
+            log.info("Found GC adapter at %s (bus=%d dev=%d)", dev_dir, busnum, devnum)
+            results.setdefault(busnum, set()).add(devnum)
+        except OSError:
+            continue
+    if not results:
+        return None
+    # All adapters should be on the same bus; use the bus with the most adapters
+    busnum = max(results, key=lambda b: len(results[b]))
+    return busnum, results[busnum]
+
+
+def make_uinput() -> UInput:
+    """Create a virtual GC controller UInput device matching gcadapter-evdev's name."""
+    return UInput(
+        events=UINPUT_CAPABILITIES,
+        name="GameCube Controller",
+        vendor=0x057E,
+        product=0x0337,
+        bustype=e.BUS_VIRTUAL,
+    )
+
+
+def neutral() -> dict:
+    """Neutral controller state (sticks centered, triggers/buttons at zero)."""
+    return {"type": 0, "p1": 0, "p2": 0, "sx": 128, "sy": 128, "cx": 128, "cy": 128, "lt": 0, "rt": 0}
+
+
+def parse_port(payload: bytes, port: int) -> Optional[dict]:
+    """Parse port state from the 37-byte GC adapter payload (port 0..3)."""
+    offset = 1 + 9 * port
+    if offset + 9 > len(payload):
+        return None
+    return {
+        "type": payload[offset] >> 4,
+        "p1":   payload[offset + 1],
+        "p2":   payload[offset + 2],
+        "sx":   payload[offset + 3],
+        "sy":   payload[offset + 4],
+        "cx":   payload[offset + 5],
+        "cy":   payload[offset + 6],
+        "lt":   payload[offset + 7],
+        "rt":   payload[offset + 8],
+    }
+
+
+def _clamp(v: int) -> int:
+    return max(0, min(255, v))
+
+
+def update_device(ui: UInput, state: dict, prev: dict) -> None:
+    """Emit evdev events for any state changes since prev."""
+    changed = False
+
+    for btn_code, mask in P1_MAP:
+        cur = 1 if (state["p1"] & mask) else 0
+        old = 1 if (prev["p1"] & mask) else 0
+        if cur != old:
+            ui.write(e.EV_KEY, btn_code, cur)
+            changed = True
+
+    for btn_code, mask in P2_MAP:
+        cur = 1 if (state["p2"] & mask) else 0
+        old = 1 if (prev["p2"] & mask) else 0
+        if cur != old:
+            ui.write(e.EV_KEY, btn_code, cur)
+            changed = True
+
+    # Axis transforms mirror gcadapter-evdev's write_axis_event calls:
+    #   stick:   ABS_X = sx,        ABS_Y = 255-(sy+8) = 247-sy   (invert_y)
+    #   c-stick: ABS_RX = cx+2,     ABS_RY = 255-(cy-2) = 257-cy  (invert_y)
+    #   trigger: ABS_Z = lt,        ABS_RZ = rt                    (no invert)
+    axes = [
+        (e.ABS_X,  _clamp(state["sx"]),           _clamp(prev["sx"])),
+        (e.ABS_Y,  _clamp(247 - state["sy"]),      _clamp(247 - prev["sy"])),
+        (e.ABS_RX, _clamp(state["cx"] + 2),        _clamp(prev["cx"] + 2)),
+        (e.ABS_RY, _clamp(257 - state["cy"]),      _clamp(257 - prev["cy"])),
+        (e.ABS_Z,  state["lt"],                     prev["lt"]),
+        (e.ABS_RZ, state["rt"],                     prev["rt"]),
+    ]
+    for axis_code, cur_val, old_val in axes:
+        if cur_val != old_val:
+            ui.write(e.EV_ABS, axis_code, cur_val)
+            changed = True
+
+    if changed:
+        ui.syn()
+
+
+def emit_neutral_axes(ui: UInput) -> None:
+    """Emit neutral axis state when a virtual device is first created."""
+    ui.write(e.EV_ABS, e.ABS_X,  128)
+    ui.write(e.EV_ABS, e.ABS_Y,  _clamp(247 - 128))   # 119
+    ui.write(e.EV_ABS, e.ABS_RX, _clamp(128 + 2))      # 130
+    ui.write(e.EV_ABS, e.ABS_RY, _clamp(257 - 128))    # 129
+    ui.write(e.EV_ABS, e.ABS_Z,  0)
+    ui.write(e.EV_ABS, e.ABS_RZ, 0)
+    ui.syn()
+
+
+def run_sniffer(busnum: int, devnums: set[int]) -> None:
+    """Main sniffing loop: open usbmon, filter GC adapter packets, drive UInput devices."""
+    mon_path = f"/dev/usbmon{busnum}"
+    log.info("Opening %s, filtering devnums=%s", mon_path, devnums)
+
+    try:
+        fd = os.open(mon_path, os.O_RDONLY)
+    except OSError as ex:
+        log.error("Cannot open %s: %s", mon_path, ex)
+        return
+
+    # keyed by (devnum, port_index)
+    uis: dict[tuple[int, int], UInput] = {}
+    prevs: dict[tuple[int, int], dict] = {}
+
+    try:
+        while running:
+            try:
+                buf = os.read(fd, 256)  # header(64) + payload(37) + headroom
+            except OSError as ex:
+                log.error("usbmon read error: %s", ex)
+                break
+
+            if len(buf) < HDR_SIZE:
+                continue
+
+            fields = HDR_STRUCT.unpack_from(buf)
+            pkt_type   = fields[1]   # ord('C') = 67 for callback (device→host)
+            xfer_type  = fields[2]   # 1 = interrupt transfer
+            epnum      = fields[3]   # 0x81 = IN endpoint 1
+            pkt_devnum = fields[4]
+            len_cap    = fields[12]
+
+            if pkt_type != ord("C"):
+                continue
+            if xfer_type != 1:
+                continue
+            if epnum != 0x81:
+                continue
+            if pkt_devnum not in devnums:
+                continue
+            if len_cap != GC_PAYLOAD_SIZE:
+                continue
+
+            payload = buf[HDR_SIZE: HDR_SIZE + len_cap]
+            if len(payload) < GC_PAYLOAD_SIZE or payload[0] != 0x21:
+                continue
+
+            for port in range(4):
+                key = (pkt_devnum, port)
+                state = parse_port(payload, port)
+                if state is None:
+                    continue
+
+                connected = state["type"] != 0
+
+                if connected and key not in uis:
+                    log.info("Adapter %d port %d connected (type=%d), creating virtual device",
+                             pkt_devnum, port + 1, state["type"])
+                    uis[key] = make_uinput()
+                    emit_neutral_axes(uis[key])
+                    prevs[key] = neutral()
+
+                elif not connected and key in uis:
+                    log.info("Adapter %d port %d disconnected, destroying virtual device",
+                             pkt_devnum, port + 1)
+                    uis[key].close()
+                    del uis[key]
+                    del prevs[key]
+
+                if connected and key in uis:
+                    update_device(uis[key], state, prevs[key])
+                    prevs[key] = dict(state)
+
+    finally:
+        os.close(fd)
+        for key, ui in uis.items():
+            log.info("Adapter %d port %d: closing virtual device on exit", key[0], key[1] + 1)
+            ui.close()
+
+
+def main() -> None:
+    log.info("gcadapter-nav starting")
+
+    while running:
+        result = find_adapters()
+        if result is None:
+            log.info("GC adapter not found, retrying in 2s...")
+            time.sleep(2)
+            continue
+
+        busnum, devnums = result
+        run_sniffer(busnum, devnums)
+
+        if running:
+            log.info("Sniffer exited, retrying in 2s...")
+            time.sleep(2)
+
+    log.info("gcadapter-nav stopped")
+
+
+if __name__ == "__main__":
+    main()

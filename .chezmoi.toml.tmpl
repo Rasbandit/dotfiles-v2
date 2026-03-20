@@ -5,6 +5,7 @@
     hostname = {{ .chezmoi.hostname | quote }}
     machineType = {{ get . "machineType" | default "workstation" | quote }}
     email = "todd.rasband@gmail.com"
+    gpuPciBus = {{ promptStringOnce . "gpuPciBus" "GPU PCI bus for MangoHud (e.g. 0:03:00.0, blank for iGPU/auto)" | quote }}
 {{ if lookPath "op" -}}
     openaiApiKey = {{ onepasswordRead "op://Personal/AI API Keys/openai" | quote }}
     xaiApiKey = {{ onepasswordRead "op://Personal/AI API Keys/xai" | quote }}
