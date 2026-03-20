@@ -1,0 +1,13 @@
+[Unit]
+Description=GC Adapter Navigation Sniffer (passive usbmon, for Dolphin native mode)
+# No After= network dependency needed — purely local USB + uinput
+
+[Service]
+Type=simple
+ExecStart=/home/rasbandit/.local/bin/gcadapter-nav
+Restart=on-failure
+RestartSec=2
+TimeoutStopSec=3
+
+[Install]
+WantedBy=default.target

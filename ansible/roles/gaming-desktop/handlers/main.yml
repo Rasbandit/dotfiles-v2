@@ -19,6 +19,10 @@
   ansible.builtin.command: udevadm control --reload-rules
   become: true
 
+- name: reload sysctl
+  ansible.builtin.command: sysctl --system
+  become: true
+
 - name: restart sol
   ansible.builtin.systemd:
     name: sol

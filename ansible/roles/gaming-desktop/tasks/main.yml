@@ -337,6 +337,42 @@
   become: true
   when: os_distribution == 'fedora'
 
+- name: Build gcadapter-evdev binary
+  ansible.builtin.shell:
+    cmd: make
+    chdir: "{{ lookup('env', 'HOME') }}/Documents/claude-home/files/gcadapter-evdev"
+    creates: "{{ lookup('env', 'HOME') }}/Documents/claude-home/files/gcadapter-evdev/bin/gcadapter_evdev"
+  become: false
+
+- name: Install gcadapter-evdev binary to /usr/local/bin
+  ansible.builtin.copy:
+    src: "{{ lookup('env', 'HOME') }}/Documents/claude-home/files/gcadapter-evdev/bin/gcadapter_evdev"
+    dest: /usr/local/bin/gcadapter_evdev
+    owner: root
+    group: root
+    mode: "0755"
+    remote_src: true
+  become: true
+
+- name: Install usbmon udev rule (gcadapter-nav passive sniffer for Dolphin native mode)
+  ansible.builtin.copy:
+    content: 'SUBSYSTEM=="usbmon", GROUP="input", MODE="0640"'
+    dest: /etc/udev/rules.d/73-usbmon.rules
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify: reload udev
+
+- name: Auto-load usbmon at boot (gcadapter-nav passive sniffer)
+  ansible.builtin.copy:
+    content: "usbmon\n"
+    dest: /etc/modules-load.d/usbmon.conf
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+
 - name: Install gcadapter udev rule (USB access permission for 057e:0337)
   ansible.builtin.copy:
     content: 'SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTRS{idVendor}=="057e", ATTRS{idProduct}=="0337", TAG+="uaccess"'
@@ -366,6 +402,52 @@
     mode: "0644"
   become: true
   notify: reload systemd
+
+# --- Gaming performance tuning ---
+
+- name: Install sysctl gaming tuning
+  ansible.builtin.copy:
+    content: |
+      # Gaming perf tuning
+      kernel.split_lock_mitigate = 0
+      kernel.sched_autogroup_enabled = 0
+      vm.dirty_ratio = 20
+      vm.dirty_background_ratio = 5
+    dest: /etc/sysctl.d/90-gaming.conf
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify: reload sysctl
+
+- name: Disable unnecessary services (not needed on a gaming desktop)
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: false
+    state: stopped
+  become: true
+  failed_when: false
+  loop:
+    - iscsi-onboot
+    - iscsi-starter
+    - mdmonitor
+    - qemu-guest-agent
+    - ModemManager
+    - sssd
+
+- name: Enable gamemoded user service
+  ansible.builtin.systemd:
+    name: gamemoded
+    enabled: true
+    scope: user
+  become: false
+
+- name: Enable esde-chmod-watcher path unit (auto-fix AppImage/script execute bits)
+  ansible.builtin.systemd:
+    name: esde-chmod-watcher.path
+    enabled: true
+    scope: user
+  become: false
 
 # --- ES-DE Media Audit ---
 # Hourly + on-boot cron to download missing media, upgrade low-quality covers,

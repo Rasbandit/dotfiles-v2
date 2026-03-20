@@ -1,0 +1,9 @@
+[Unit]
+Description=Watch ES-DE roms/ports for new AppImages and scripts
+
+[Path]
+PathChanged=%h/ES-DE/roms/ports
+MakeDirectory=true
+
+[Install]
+WantedBy=default.target
