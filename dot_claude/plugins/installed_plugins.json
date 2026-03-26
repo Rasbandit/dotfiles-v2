@@ -1,0 +1,145 @@
+{
+  "version": 2,
+  "plugins": {
+    "playground@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/home/rasbandit/.claude/plugins/cache/claude-plugins-official/playground/unknown",
+        "version": "unknown",
+        "installedAt": "2026-03-07T00:14:51.602Z",
+        "lastUpdated": "2026-03-25T19:58:27.850Z",
+        "gitCommitSha": "205b6e0b30366a969412d9aab7b99bea99d58db1"
+      }
+    ],
+    "claude-code-setup@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/home/rasbandit/.claude/plugins/cache/claude-plugins-official/claude-code-setup/1.0.0",
+        "version": "1.0.0",
+        "installedAt": "2026-03-07T00:22:09.602Z",
+        "lastUpdated": "2026-03-07T00:22:09.602Z",
+        "gitCommitSha": "205b6e0b30366a969412d9aab7b99bea99d58db1"
+      }
+    ],
+    "skill-creator@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/home/rasbandit/.claude/plugins/cache/claude-plugins-official/skill-creator/unknown",
+        "version": "unknown",
+        "installedAt": "2026-03-07T00:23:45.175Z",
+        "lastUpdated": "2026-03-25T19:58:27.871Z",
+        "gitCommitSha": "205b6e0b30366a969412d9aab7b99bea99d58db1"
+      }
+    ],
+    "frontend-design@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/home/rasbandit/.claude/plugins/cache/claude-plugins-official/frontend-design/unknown",
+        "version": "unknown",
+        "installedAt": "2026-03-18T02:01:39.938Z",
+        "lastUpdated": "2026-03-25T19:58:27.722Z",
+        "gitCommitSha": "6b70f99f769f58b9b642dc8a271936b17862cf8c"
+      }
+    ],
+    "code-review@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/home/rasbandit/.claude/plugins/cache/claude-plugins-official/code-review/unknown",
+        "version": "unknown",
+        "installedAt": "2026-03-18T02:02:06.275Z",
+        "lastUpdated": "2026-03-25T19:58:27.712Z",
+        "gitCommitSha": "6b70f99f769f58b9b642dc8a271936b17862cf8c"
+      }
+    ],
+    "code-simplifier@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/home/rasbandit/.claude/plugins/cache/claude-plugins-official/code-simplifier/1.0.0",
+        "version": "1.0.0",
+        "installedAt": "2026-03-18T02:02:37.021Z",
+        "lastUpdated": "2026-03-18T02:02:37.021Z",
+        "gitCommitSha": "6b70f99f769f58b9b642dc8a271936b17862cf8c"
+      }
+    ],
+    "typescript-lsp@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/home/rasbandit/.claude/plugins/cache/claude-plugins-official/typescript-lsp/1.0.0",
+        "version": "1.0.0",
+        "installedAt": "2026-03-18T02:03:06.252Z",
+        "lastUpdated": "2026-03-18T02:03:06.252Z",
+        "gitCommitSha": "6b70f99f769f58b9b642dc8a271936b17862cf8c"
+      }
+    ],
+    "supabase@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/home/rasbandit/.claude/plugins/cache/claude-plugins-official/supabase/unknown",
+        "version": "unknown",
+        "installedAt": "2026-03-23T07:55:30.712Z",
+        "lastUpdated": "2026-03-25T19:58:27.667Z",
+        "gitCommitSha": "61c0597779bd2d670dcd4fbbf37c66aa19eb2ce6"
+      }
+    ],
+    "firebase@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/home/rasbandit/.claude/plugins/cache/claude-plugins-official/firebase/unknown",
+        "version": "unknown",
+        "installedAt": "2026-03-18T02:04:10.664Z",
+        "lastUpdated": "2026-03-25T19:58:27.683Z",
+        "gitCommitSha": "6b70f99f769f58b9b642dc8a271936b17862cf8c"
+      }
+    ],
+    "explanatory-output-style@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/home/rasbandit/.claude/plugins/cache/claude-plugins-official/explanatory-output-style/unknown",
+        "version": "unknown",
+        "installedAt": "2026-03-18T02:10:09.534Z",
+        "lastUpdated": "2026-03-25T19:58:27.764Z",
+        "gitCommitSha": "6b70f99f769f58b9b642dc8a271936b17862cf8c"
+      }
+    ],
+    "claude-md-management@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/home/rasbandit/.claude/plugins/cache/claude-plugins-official/claude-md-management/1.0.0",
+        "version": "1.0.0",
+        "installedAt": "2026-03-18T02:11:28.923Z",
+        "lastUpdated": "2026-03-18T02:11:28.923Z",
+        "gitCommitSha": "6b70f99f769f58b9b642dc8a271936b17862cf8c"
+      }
+    ],
+    "pr-review-toolkit@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/home/rasbandit/.claude/plugins/cache/claude-plugins-official/pr-review-toolkit/unknown",
+        "version": "unknown",
+        "installedAt": "2026-03-18T02:13:06.405Z",
+        "lastUpdated": "2026-03-25T19:58:27.807Z",
+        "gitCommitSha": "6b70f99f769f58b9b642dc8a271936b17862cf8c"
+      }
+    ],
+    "superpowers@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/home/rasbandit/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.6",
+        "version": "5.0.6",
+        "installedAt": "2026-03-18T02:14:03.791Z",
+        "lastUpdated": "2026-03-25T19:58:28.880Z",
+        "gitCommitSha": "7e516434f2a30114300efc9247db32fb37daa5f9"
+      }
+    ],
+    "chrome-devtools-mcp@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/home/rasbandit/.claude/plugins/cache/claude-plugins-official/chrome-devtools-mcp/latest",
+        "version": "latest",
+        "installedAt": "2026-03-25T21:01:21.812Z",
+        "lastUpdated": "2026-03-25T21:01:21.812Z",
+        "gitCommitSha": "c2d8009ff75f76bce1ec4cf79c2467b50d81725e"
+      }
+    ]
+  }
+}
