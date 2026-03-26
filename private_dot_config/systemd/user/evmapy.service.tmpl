@@ -3,7 +3,7 @@ Description=evmapy — evdev event mapper for controller chords
 After=graphical-session.target
 
 [Service]
-ExecStart=/home/rasbandit/.local/bin/evmapy
+ExecStart={{ .chezmoi.homeDir }}/.local/bin/evmapy
 Restart=always
 RestartSec=3
 

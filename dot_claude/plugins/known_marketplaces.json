@@ -4,15 +4,15 @@
       "source": "github",
       "repo": "anthropics/claude-plugins-official"
     },
-    "installLocation": "/home/rasbandit/.claude/plugins/marketplaces/claude-plugins-official",
-    "lastUpdated": "2026-03-26T08:17:37.061Z"
+    "installLocation": "/home/open-claw/.claude/plugins/marketplaces/claude-plugins-official",
+    "lastUpdated": "2026-03-25T22:52:18.550Z"
   },
   "chrome-devtools-plugins": {
     "source": {
       "source": "github",
       "repo": "ChromeDevTools/chrome-devtools-mcp"
     },
-    "installLocation": "/home/rasbandit/.claude/plugins/marketplaces/chrome-devtools-plugins",
+    "installLocation": "/home/open-claw/.claude/plugins/marketplaces/chrome-devtools-plugins",
     "lastUpdated": "2026-02-25T00:51:20.032Z"
   }
 }

@@ -19,6 +19,10 @@ bootstrap.sh
 *.swp
 *~
 
+# Claude Code auto-managed (volatile timestamps/paths — not suitable for chezmoi)
+.claude/plugins/installed_plugins.json
+.claude/plugins/known_marketplaces.json
+
 # Continue extension config — only deploy when vscode feature is selected
 {{- $features := "" }}
 {{- $featuresFile := joinPath .chezmoi.homeDir ".config/chezmoi/features" }}
@@ -37,6 +41,11 @@ bootstrap.sh
 .config/systemd/user/evmapy.service
 .config/systemd/user/gcadapter-evdev@.service
 .config/systemd/user/gcadapter-nav.service
+.config/systemd/user/es-de.service
+.config/systemd/user/steam-autostart.service
+.config/autostart-potentials/es-de.desktop
+.config/autostart-potentials/evmapy.desktop
+.config/autostart-potentials/sol.desktop
 .local/bin/focus_es-de.sh
 .local/bin/gcadapter-nav
 .local/bin/spotify-controll.sh

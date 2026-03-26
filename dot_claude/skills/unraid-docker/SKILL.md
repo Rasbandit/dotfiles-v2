@@ -109,8 +109,19 @@ ssh root@<host> 'docker ps --filter name=my-service --format "{{.Names}} {{.Stat
 ## Modifying an Existing Container
 
 1. **Edit the XML** at `/boot/config/plugins/dockerMan/templates-user/my-<Name>.xml`
-2. **Stop and remove** the running container: `docker rm -f <Name>`
-3. **Recreate** using the XML→docker run translation above, or click Apply in the UI
+2. **Tell the user to Apply from the Unraid GUI** — Docker tab → click the container → Edit → Apply
+
+**⚠️ NEVER use `docker rm` + `docker run` to recreate a container.** DockerMan only tracks containers it creates through the web UI. A CLI-created container shows as "3rd party" in the Docker tab — no edit button, no template association, no GUI control. There is no CLI workaround; DockerMan registration only happens through the web UI "Apply" action.
+
+**What you CAN do from CLI:**
+- `docker start/stop/restart <name>` — safe, doesn't break tracking
+- Edit XML templates via SSH — safe, changes take effect on next "Apply"
+- Edit container config files on the bind mount (e.g., Plex Preferences.xml) — safe
+
+**What you MUST NOT do from CLI:**
+- `docker rm` + `docker run` — breaks DockerMan tracking
+- `docker create` — same problem
+- Any operation that destroys and recreates the container
 
 If you modify the running container via `docker run` without updating the XML, the UI and runtime will be out of sync. The next "Apply" from the UI overwrites runtime with XML. **Always update the XML for persistent changes.**
 
@@ -152,6 +163,7 @@ Check status: `ssh root@<host> nvidia-smi`
 - **Appdata backup stops containers** — the CA Appdata Backup plugin stops containers during backup, then restarts them. Expected during maintenance windows.
 - **Image updates** — Unraid's Docker tab shows updates. "Update" pulls new image and recreates from same XML. No data loss (appdata on separate volume).
 - **Loopback `.img` full** — containers can't start. `docker system prune -f` or resize in Settings → Docker.
+- **NEVER `docker rm` + `docker run`** — This creates a "3rd party" container that DockerMan can't control. The user loses GUI management (no edit/update buttons). The only fix is to remove the container and re-apply the template through the Unraid web UI. Use `docker start/stop/restart` for runtime control; edit the XML + tell user to Apply for config changes.
 
 ## Reference
 

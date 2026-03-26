@@ -462,7 +462,7 @@ if [ "$MACHINE_TYPE" = "temporary" ]; then
     echo "[4/5] Writing minimal .gitconfig (no 1Password signing)..."
     cat > ~/.gitconfig <<'GITCONFIG'
 [user]
-    name = rasbandit
+    name = open-claw
     email = todd.rasband@gmail.com
 [init]
     defaultBranch = main

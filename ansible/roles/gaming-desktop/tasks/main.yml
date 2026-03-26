@@ -200,8 +200,8 @@
   become: true
 
 - name: Install SOL configuration
-  ansible.builtin.copy:
-    src: sol.json
+  ansible.builtin.template:
+    src: sol.json.j2
     dest: /etc/sol/sol.json
     owner: root
     group: root
