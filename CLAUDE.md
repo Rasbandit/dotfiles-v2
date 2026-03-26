@@ -91,3 +91,8 @@ Prefixes: `dots_*` for chezmoi wrappers, `edit_*` for edit shortcuts.
 - Nextcloud: single point of failure for fonts + Dracula Pro theme
 - `gnome-extensions-cli`: uses `pip --break-system-packages`
 - Tailscale/Vivaldi: Fedora-only; no Arch role
+
+## Life OS
+project: dotfiles
+goal: self-reliance
+value: self-reliance

@@ -18,13 +18,19 @@ Use today's date. Never read-then-write.
 
 ## Step 0 — Write backend
 
-Try these in order. Move to the next only if the previous fails:
+**You MUST use the Obsidian CLI.** Only fall back if it returns a non-zero exit code.
 
-1. **Obsidian CLI** — `obsidian append path="1. Alignment/4. Work Log/YYYY-MM/YYYY-MM-DD.md" content="<text>" vault=Personal`
-   - Creates the file if missing. Escape double quotes. Use `\n` for newlines.
-   - Ignore dbus/Gtk warnings in stderr — only a non-zero exit code is a failure.
-2. **Engram MCP** — `mcp__engram__append_to_note` with `path` and `text`.
-3. **Filesystem** — `mcp__filesystem__write_file` to `~/Documents/Obsidian/Personal/1. Alignment/4. Work Log/YYYY-MM/YYYY-MM-DD.md`. Read first to preserve content.
+```bash
+obsidian append path="1. Alignment/4. Work Log/YYYY-MM/YYYY-MM-DD.md" content="<text>" vault=Personal
+```
+
+- Creates the file if missing. Escape double quotes. Use `\n` for newlines.
+- **stderr noise is expected** — dbus errors, Gtk module warnings, and "Debug:" lines are normal. They do NOT indicate failure. Only a non-zero exit code (`$?`) means the command failed.
+- Do NOT skip this step. Do NOT jump to Engram MCP because stderr has output.
+
+**Fallbacks** (only if Obsidian CLI exits non-zero):
+1. **Engram MCP** — `mcp__engram__append_to_note` with `path` and `text`.
+2. **Filesystem** — `mcp__filesystem__write_file` to `~/Documents/Obsidian/Personal/1. Alignment/4. Work Log/YYYY-MM/YYYY-MM-DD.md`. Read first to preserve content.
 
 ---
 
