@@ -20,6 +20,25 @@ open(filepath, 'w').write(content)
 
 Files: `private_dot_config/starship.toml`
 
+## CRITICAL: Never Hardcode Home Directory Paths
+
+**NEVER** use literal `/home/<username>/` in any managed file. These break when syncing between machines with different usernames.
+
+**Chezmoi templates** (`.tmpl` files): use `{{ .chezmoi.homeDir }}` for full paths, `{{ .chezmoi.username }}` for just the username.
+```
+ExecStart={{ .chezmoi.homeDir }}/.local/bin/my-script
+```
+
+**Ansible templates** (`.j2` files): use `{{ ansible_env.HOME }}` or `{{ lookup('env', 'HOME') }}`.
+
+**Shell scripts** (non-template): use `$HOME` or `~`.
+
+If a file contains a hardcoded home path, convert it to a `.tmpl` template first (`git mv file file.tmpl`), then replace the path. Also add appropriate entries to `.chezmoiignore.tmpl` if the file is feature-gated.
+
+**Files that should NOT be templated:** auto-generated files with volatile content — add these to `.chezmoiignore.tmpl` instead. Currently ignored:
+- `.claude/plugins/installed_plugins.json` — timestamps, SHAs change on every plugin update
+- `.claude/plugins/known_marketplaces.json` — timestamps, hardcoded paths, auto-updated
+
 ---
 
 ## File Naming (when creating new managed files)

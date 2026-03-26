@@ -31,7 +31,7 @@
                 "BTN_START"
             ],
             "type": "exec",
-            "target": "/home/rasbandit/.local/bin/focus_es-de.sh",
+            "target": "{{ .chezmoi.homeDir }}/.local/bin/focus_es-de.sh",
             "mode": "all",
             "hold": 0
         },
@@ -41,7 +41,7 @@
                 "BTN_THUMBR"
             ],
             "type": "exec",
-            "target": "/home/rasbandit/.local/bin/spotify-controll.sh",
+            "target": "{{ .chezmoi.homeDir }}/.local/bin/spotify-controll.sh",
             "mode": "all",
             "hold": 0
         },
@@ -51,7 +51,7 @@
                 "ABS_RY:max"
             ],
             "type": "exec",
-            "target": "/home/rasbandit/.local/bin/spotify-controll.sh -",
+            "target": "{{ .chezmoi.homeDir }}/.local/bin/spotify-controll.sh -",
             "mode": "all",
             "hold": 0
         },
@@ -61,7 +61,7 @@
                 "ABS_RY:min"
             ],
             "type": "exec",
-            "target": "/home/rasbandit/.local/bin/spotify-controll.sh +",
+            "target": "{{ .chezmoi.homeDir }}/.local/bin/spotify-controll.sh +",
             "mode": "all",
             "hold": 0
         },
@@ -71,7 +71,7 @@
                 "ABS_RX:min"
             ],
             "type": "exec",
-            "target": "/home/rasbandit/.local/bin/spotify-controll.sh previous",
+            "target": "{{ .chezmoi.homeDir }}/.local/bin/spotify-controll.sh previous",
             "mode": "all",
             "hold": 0
         },
@@ -81,7 +81,7 @@
                 "ABS_RX:max"
             ],
             "type": "exec",
-            "target": "/home/rasbandit/.local/bin/spotify-controll.sh next",
+            "target": "{{ .chezmoi.homeDir }}/.local/bin/spotify-controll.sh next",
             "mode": "all",
             "hold": 0
         },

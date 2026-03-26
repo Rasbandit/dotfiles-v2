@@ -5,7 +5,7 @@ Requires=graphical-session.target
 
 [Service]
 Type=oneshot
-ExecStart=/home/rasbandit/.local/share/Steam/steam.sh -silent
+ExecStart={{ .chezmoi.homeDir }}/.local/share/Steam/steam.sh -silent
 RemainAfterExit=no
 
 [Install]

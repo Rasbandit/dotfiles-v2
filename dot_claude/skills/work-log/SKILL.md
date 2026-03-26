@@ -65,9 +65,10 @@ Format: `[HH:MM-HH:MM]` — e.g. `[14:05-14:35]`
 
 ## Step 3 — Append the entry
 
-Use the backend selected in Step 0 to append the entry to today's log file.
+Use `mcp__engram__append_to_note` with:
 
-Add `# YYYY-MM-DD\n\n` as a prefix **only** if this is the very first entry of the day.
+- `path`: `1. Alignment/4. Work Log/YYYY-MM/YYYY-MM-DD.md`
+- `text`: the entry line (plus `# YYYY-MM-DD\n\n` prefix **only** if this is the very first entry of the day)
 
 Entry format:
 ```

@@ -4,7 +4,7 @@
     "playground@claude-plugins-official": [
       {
         "scope": "user",
-        "installPath": "/home/rasbandit/.claude/plugins/cache/claude-plugins-official/playground/unknown",
+        "installPath": "/home/open-claw/.claude/plugins/cache/claude-plugins-official/playground/unknown",
         "version": "unknown",
         "installedAt": "2026-03-07T00:14:51.602Z",
         "lastUpdated": "2026-03-25T19:58:27.850Z",
@@ -14,7 +14,7 @@
     "claude-code-setup@claude-plugins-official": [
       {
         "scope": "user",
-        "installPath": "/home/rasbandit/.claude/plugins/cache/claude-plugins-official/claude-code-setup/1.0.0",
+        "installPath": "/home/open-claw/.claude/plugins/cache/claude-plugins-official/claude-code-setup/1.0.0",
         "version": "1.0.0",
         "installedAt": "2026-03-07T00:22:09.602Z",
         "lastUpdated": "2026-03-07T00:22:09.602Z",
@@ -24,7 +24,7 @@
     "skill-creator@claude-plugins-official": [
       {
         "scope": "user",
-        "installPath": "/home/rasbandit/.claude/plugins/cache/claude-plugins-official/skill-creator/unknown",
+        "installPath": "/home/open-claw/.claude/plugins/cache/claude-plugins-official/skill-creator/unknown",
         "version": "unknown",
         "installedAt": "2026-03-07T00:23:45.175Z",
         "lastUpdated": "2026-03-25T19:58:27.871Z",
@@ -34,7 +34,7 @@
     "frontend-design@claude-plugins-official": [
       {
         "scope": "user",
-        "installPath": "/home/rasbandit/.claude/plugins/cache/claude-plugins-official/frontend-design/unknown",
+        "installPath": "/home/open-claw/.claude/plugins/cache/claude-plugins-official/frontend-design/unknown",
         "version": "unknown",
         "installedAt": "2026-03-18T02:01:39.938Z",
         "lastUpdated": "2026-03-25T19:58:27.722Z",
@@ -44,7 +44,7 @@
     "code-review@claude-plugins-official": [
       {
         "scope": "user",
-        "installPath": "/home/rasbandit/.claude/plugins/cache/claude-plugins-official/code-review/unknown",
+        "installPath": "/home/open-claw/.claude/plugins/cache/claude-plugins-official/code-review/unknown",
         "version": "unknown",
         "installedAt": "2026-03-18T02:02:06.275Z",
         "lastUpdated": "2026-03-25T19:58:27.712Z",
@@ -54,7 +54,7 @@
     "code-simplifier@claude-plugins-official": [
       {
         "scope": "user",
-        "installPath": "/home/rasbandit/.claude/plugins/cache/claude-plugins-official/code-simplifier/1.0.0",
+        "installPath": "/home/open-claw/.claude/plugins/cache/claude-plugins-official/code-simplifier/1.0.0",
         "version": "1.0.0",
         "installedAt": "2026-03-18T02:02:37.021Z",
         "lastUpdated": "2026-03-18T02:02:37.021Z",
@@ -64,7 +64,7 @@
     "typescript-lsp@claude-plugins-official": [
       {
         "scope": "user",
-        "installPath": "/home/rasbandit/.claude/plugins/cache/claude-plugins-official/typescript-lsp/1.0.0",
+        "installPath": "/home/open-claw/.claude/plugins/cache/claude-plugins-official/typescript-lsp/1.0.0",
         "version": "1.0.0",
         "installedAt": "2026-03-18T02:03:06.252Z",
         "lastUpdated": "2026-03-18T02:03:06.252Z",
@@ -74,7 +74,7 @@
     "supabase@claude-plugins-official": [
       {
         "scope": "user",
-        "installPath": "/home/rasbandit/.claude/plugins/cache/claude-plugins-official/supabase/unknown",
+        "installPath": "/home/open-claw/.claude/plugins/cache/claude-plugins-official/supabase/unknown",
         "version": "unknown",
         "installedAt": "2026-03-23T07:55:30.712Z",
         "lastUpdated": "2026-03-25T19:58:27.667Z",
@@ -84,7 +84,7 @@
     "firebase@claude-plugins-official": [
       {
         "scope": "user",
-        "installPath": "/home/rasbandit/.claude/plugins/cache/claude-plugins-official/firebase/unknown",
+        "installPath": "/home/open-claw/.claude/plugins/cache/claude-plugins-official/firebase/unknown",
         "version": "unknown",
         "installedAt": "2026-03-18T02:04:10.664Z",
         "lastUpdated": "2026-03-25T19:58:27.683Z",
@@ -94,7 +94,7 @@
     "explanatory-output-style@claude-plugins-official": [
       {
         "scope": "user",
-        "installPath": "/home/rasbandit/.claude/plugins/cache/claude-plugins-official/explanatory-output-style/unknown",
+        "installPath": "/home/open-claw/.claude/plugins/cache/claude-plugins-official/explanatory-output-style/unknown",
         "version": "unknown",
         "installedAt": "2026-03-18T02:10:09.534Z",
         "lastUpdated": "2026-03-25T19:58:27.764Z",
@@ -104,7 +104,7 @@
     "claude-md-management@claude-plugins-official": [
       {
         "scope": "user",
-        "installPath": "/home/rasbandit/.claude/plugins/cache/claude-plugins-official/claude-md-management/1.0.0",
+        "installPath": "/home/open-claw/.claude/plugins/cache/claude-plugins-official/claude-md-management/1.0.0",
         "version": "1.0.0",
         "installedAt": "2026-03-18T02:11:28.923Z",
         "lastUpdated": "2026-03-18T02:11:28.923Z",
@@ -114,7 +114,7 @@
     "pr-review-toolkit@claude-plugins-official": [
       {
         "scope": "user",
-        "installPath": "/home/rasbandit/.claude/plugins/cache/claude-plugins-official/pr-review-toolkit/unknown",
+        "installPath": "/home/open-claw/.claude/plugins/cache/claude-plugins-official/pr-review-toolkit/unknown",
         "version": "unknown",
         "installedAt": "2026-03-18T02:13:06.405Z",
         "lastUpdated": "2026-03-25T19:58:27.807Z",
@@ -124,7 +124,7 @@
     "superpowers@claude-plugins-official": [
       {
         "scope": "user",
-        "installPath": "/home/rasbandit/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.6",
+        "installPath": "/home/open-claw/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.6",
         "version": "5.0.6",
         "installedAt": "2026-03-18T02:14:03.791Z",
         "lastUpdated": "2026-03-25T19:58:28.880Z",
@@ -134,7 +134,7 @@
     "chrome-devtools-mcp@claude-plugins-official": [
       {
         "scope": "user",
-        "installPath": "/home/rasbandit/.claude/plugins/cache/claude-plugins-official/chrome-devtools-mcp/latest",
+        "installPath": "/home/open-claw/.claude/plugins/cache/claude-plugins-official/chrome-devtools-mcp/latest",
         "version": "latest",
         "installedAt": "2026-03-25T21:01:21.812Z",
         "lastUpdated": "2026-03-25T21:01:21.812Z",

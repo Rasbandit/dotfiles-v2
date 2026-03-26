@@ -159,7 +159,7 @@ fi
 
 command -v starship &>/dev/null && eval "$(starship init bash)"
 
-[[ -s "/home/rasbandit/.gvm/scripts/gvm" ]] && source "/home/rasbandit/.gvm/scripts/gvm"
+[[ -s "{{ .chezmoi.homeDir }}/.gvm/scripts/gvm" ]] && source "{{ .chezmoi.homeDir }}/.gvm/scripts/gvm"
 
 command -v zoxide &>/dev/null && eval "$(zoxide init bash)"
 command -v direnv &>/dev/null && eval "$(direnv hook bash)"
