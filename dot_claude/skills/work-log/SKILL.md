@@ -16,33 +16,15 @@ Use today's date. Never read-then-write.
 
 ---
 
-## Step 0 — Detect write backend
+## Step 0 — Write backend
 
-Check backends in this priority order. Use the **first** that succeeds:
+Try these in order. Move to the next only if the previous fails:
 
-### 1. Obsidian CLI (preferred)
-
-Run: `command -v obsidian` via Bash. If found, use this backend.
-
-**Append:** `obsidian append path="1. Alignment/4. Work Log/YYYY-MM/YYYY-MM-DD.md" content="<text>" vault=Personal`
-
-- The CLI creates the file if it doesn't exist.
-- Escape double quotes in content. Use `\n` for newlines within the content value.
-
-### 2. Engram MCP (fallback)
-
-If Obsidian CLI is not available, check if `mcp__engram__append_to_note` is callable. If so, use it:
-
-- `path`: `1. Alignment/4. Work Log/YYYY-MM/YYYY-MM-DD.md`
-- `text`: the entry text
-
-### 3. Filesystem (last resort)
-
-If neither CLI nor Engram MCP is available, use `mcp__filesystem__write_file` to write directly to the vault path from `~/.engram/skill-config.json` → `vaults.<default>.path`.
-
-Full path: `<vault_path>/1. Alignment/4. Work Log/YYYY-MM/YYYY-MM-DD.md`
-
-Read the file first to preserve existing content, then append.
+1. **Obsidian CLI** — `obsidian append path="1. Alignment/4. Work Log/YYYY-MM/YYYY-MM-DD.md" content="<text>" vault=Personal`
+   - Creates the file if missing. Escape double quotes. Use `\n` for newlines.
+   - Ignore dbus/Gtk warnings in stderr — only a non-zero exit code is a failure.
+2. **Engram MCP** — `mcp__engram__append_to_note` with `path` and `text`.
+3. **Filesystem** — `mcp__filesystem__write_file` to `~/Documents/Obsidian/Personal/1. Alignment/4. Work Log/YYYY-MM/YYYY-MM-DD.md`. Read first to preserve content.
 
 ---
 

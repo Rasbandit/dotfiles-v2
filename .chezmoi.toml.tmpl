@@ -5,7 +5,14 @@
     hostname = {{ .chezmoi.hostname | quote }}
     machineType = {{ get . "machineType" | default "workstation" | quote }}
     email = "todd.rasband@gmail.com"
+{{- $features := "" }}
+{{- $featuresFile := joinPath .chezmoi.homeDir ".config/chezmoi/features" }}
+{{- if stat $featuresFile }}
+{{-   $features = include $featuresFile }}
+{{- end }}
+{{- if contains "gaming-desktop" $features }}
     gpuPciBus = {{ promptStringOnce . "gpuPciBus" "GPU PCI bus for MangoHud (e.g. 0:03:00.0, blank for iGPU/auto)" | quote }}
+{{- end }}
 {{ if lookPath "op" -}}
     openaiApiKey = {{ onepasswordRead "op://Personal/AI API Keys/openai" | quote }}
     xaiApiKey = {{ onepasswordRead "op://Personal/AI API Keys/xai" | quote }}
