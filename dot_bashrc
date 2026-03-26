@@ -142,7 +142,7 @@ if [ -x /usr/bin/xmodmap ]; then
         fi
 fi
 
-export PATH="~/.bun/bin:$PATH"
+export PATH="$HOME/.bun/install/global/node_modules/.bin:$HOME/.bun/bin:$PATH"
 export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"
 export PATH="~/Documents/misc-scripts:$PATH"
 export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"

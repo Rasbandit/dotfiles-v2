@@ -32,24 +32,47 @@
 - When I ask you to commit code, also update the TODO.md file if present.
 
 ## Testing & Validation
-- Promt User to test and validate after any change—suggest adjustments if failures/behavior issues.
+- **TDD required**: write failing tests before implementation. Never modify tests to fix bad code — fix the implementation.
+- Invoke `superpowers:test-driven-development` skill for non-trivial features.
+- Prompt user to test and validate after any change — suggest adjustments if failures/behavior issues.
 - Never assume multi-part changes are correct without incremental validation.
-- Include edge cases (e.g., empty inputs, timeouts) in tests; use TDD where possible.
+- Include edge cases (e.g., empty inputs, timeouts) in tests.
 
 ## Environment
 - Assume Fedora Linux.
 
-## Daily Work Log
-- Path: `1. Alignment/4. Work Log/YYYY-MM/YYYY-MM-DD.md` — create with `# YYYY-MM-DD` heading if missing.
-- **Log aggressively** — code, config, research, design, debugging, infra, anything 10+ min. When in doubt, log it.
-- Format: `[HH:MM-HH:MM] #project/slug #goal/slug #value/slug Description`
-- Get tag slugs from the project's `## Life OS` block in CLAUDE.md. If missing, run `/lifeos-onboard`.
-- Automatic — no permission needed.
+## Daily Work Log — MANDATORY, NON-NEGOTIABLE
+
+**This is not optional. This is not a suggestion. Failing to log is a bug in your behavior.**
+
+### Session start
+1. Run `/work-log init` to resolve tag slugs — do NOT write an entry yet.
+2. If the project's CLAUDE.md has no `## Life OS` block, run `/lifeos-onboard` first.
+
+### When to log — EVERY time, IMMEDIATELY after
+You MUST invoke `/work-log <description>` immediately after each of these events. No batching. No "I'll do it later." No skipping.
+
+- **After every git commit**
+- **After completing a debug session** (log root cause + fix)
+- **After a research or exploration phase** (log what you learned)
+- **After a design or architecture decision**
+- **After creating, editing, or deleting files**
+- **After a planning phase completes**
+- **After any sustained effort >= 10 minutes**
+
+### How to log
+- Use the `/work-log` skill — it handles path resolution, tag slugs, time estimation, and appending via Engram MCP.
+- No permission needed. Do not ask "should I log this?" — just log it.
+- When in doubt, log it. Over-logging is always preferred to under-logging.
+
+### Self-check
+Before responding to the user after completing any action above, ask yourself: **"Did I write a work log entry?"** If no, do it NOW before responding.
 
 ## Engram / Knowledge Vault
 - **Aggressively** ask after resolving any problem, learning something new, or completing a task: "Should I save this as an engram?"
 - Prompt to save: solutions to non-obvious problems, setup steps, config quirks, commands worth remembering, and any how-to that took effort to figure out.
-- Use `/engram-save` skill or `mcp__engram__*` tools to save notes to the Obsidian vault.
+- Use the unified `/engram` skill for ALL vault operations — search, read, create, update, daily notes, tasks, browse. It auto-detects available backends (Engram MCP, Obsidian CLI, filesystem) and adapts.
+- Config: `~/.engram/skill-config.json` — created on first run via onboarding.
 - When unsure, ask anyway — over-prompting is better than letting useful knowledge go undocumented.
 
 ## Exploration & Tools
@@ -58,6 +81,7 @@
 - When working with files use the MCP filesystem server.
 - When doing any kind of planning or thinking use the MCP sequential-thinking server.
 - Use native @file/path or search if no MCP available.
+- **Web search**: Use Perplexity MCP tools (`mcp__perplexity__search`, `mcp__perplexity__reason`, `mcp__perplexity__deep_research`) instead of `WebSearch`/`WebFetch` for documentation lookups, error research, and current information.
 - Use the AskUserQuestion any time you need clarification or have questions.
 
 ## No Discovery Twice Protocol
