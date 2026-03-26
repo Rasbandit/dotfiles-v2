@@ -12,7 +12,37 @@ Write to the daily work log. If `$ARGUMENTS` is `init` or empty, run the session
 1. Alignment/4. Work Log/YYYY-MM/YYYY-MM-DD.md
 ```
 
-Use today's date. Use `mcp__engram__append_to_note` — it creates the file if missing and appends if it exists. Never read-then-write.
+Use today's date. Never read-then-write.
+
+---
+
+## Step 0 — Detect write backend
+
+Check backends in this priority order. Use the **first** that succeeds:
+
+### 1. Obsidian CLI (preferred)
+
+Run: `command -v obsidian` via Bash. If found, use this backend.
+
+**Append:** `obsidian append path="1. Alignment/4. Work Log/YYYY-MM/YYYY-MM-DD.md" content="<text>" vault=Personal`
+
+- The CLI creates the file if it doesn't exist.
+- Escape double quotes in content. Use `\n` for newlines within the content value.
+
+### 2. Engram MCP (fallback)
+
+If Obsidian CLI is not available, check if `mcp__engram__append_to_note` is callable. If so, use it:
+
+- `path`: `1. Alignment/4. Work Log/YYYY-MM/YYYY-MM-DD.md`
+- `text`: the entry text
+
+### 3. Filesystem (last resort)
+
+If neither CLI nor Engram MCP is available, use `mcp__filesystem__write_file` to write directly to the vault path from `~/.engram/skill-config.json` → `vaults.<default>.path`.
+
+Full path: `<vault_path>/1. Alignment/4. Work Log/YYYY-MM/YYYY-MM-DD.md`
+
+Read the file first to preserve existing content, then append.
 
 ---
 
@@ -47,10 +77,9 @@ Format: `[HH:MM-HH:MM]` — e.g. `[14:05-14:35]`
 
 ## Step 3 — Append the entry
 
-Use `mcp__engram__append_to_note` with:
+Use the backend selected in Step 0 to append the entry to today's log file.
 
-- `path`: `1. Alignment/4. Work Log/YYYY-MM/YYYY-MM-DD.md`
-- `text`: the entry line (plus `# YYYY-MM-DD\n\n` prefix **only** if this is the very first entry of the day)
+Add `# YYYY-MM-DD\n\n` as a prefix **only** if this is the very first entry of the day.
 
 Entry format:
 ```
