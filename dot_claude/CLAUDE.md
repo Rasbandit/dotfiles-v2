@@ -69,11 +69,11 @@ You MUST invoke `/work-log <description>` immediately after each of these events
 Before responding to the user after completing any action above, ask yourself: **"Did I write a work log entry?"** If no, do it NOW before responding.
 
 ## Engram / Knowledge Vault
-- **Aggressively** ask after resolving any problem, learning something new, or completing a task: "Should I save this as an engram?"
-- Prompt to save: solutions to non-obvious problems, setup steps, config quirks, commands worth remembering, and any how-to that took effort to figure out.
+- Engram is for **cross-project, personal knowledge** — things useful beyond the current repo. Examples: environment quirks, tool setup, library migration gotchas, general patterns.
+- Only save to Engram when explicitly asked ("save to engram", "save to vault") or when knowledge is clearly not repo-specific.
 - Use the unified `/engram` skill for ALL vault operations — search, read, create, update, daily notes, tasks, browse. It auto-detects available backends (Engram MCP, Obsidian CLI, filesystem) and adapts.
 - Config: `~/.engram/skill-config.json` — created on first run via onboarding.
-- When unsure, ask anyway — over-prompting is better than letting useful knowledge go undocumented.
+- **"Save this" / "save a note" / "document this" in repo context → repo-local doc, NOT engram.** Only use engram when the keyword "engram" or "vault" is used, or the knowledge is clearly cross-project.
 
 ## Exploration & Tools
 - Prefer MCP tools (file read, code search) for efficiency.
@@ -84,10 +84,11 @@ Before responding to the user after completing any action above, ask yourself: *
 - **Web search**: Use Perplexity MCP tools (`mcp__perplexity__search`, `mcp__perplexity__reason`, `mcp__perplexity__deep_research`) instead of `WebSearch`/`WebFetch` for documentation lookups, error research, and current information.
 - Use the AskUserQuestion any time you need clarification or have questions.
 
-## No Discovery Twice Protocol
-- Before connecting to any non-trivial external system (server, API, CLI tool you'd need to figure out): silently check for a context doc — look in `docs/context/` in the current repo, then search Engram. Use what you find; skip discovery.
+## No Discovery Twice Protocol — Repo-Local Documentation
+- **Default destination for all project knowledge is the repo itself** — `docs/context/`, `docs/`, or inline in CLAUDE.md. Use `/context-doc` skill to create and update these.
+- **Aggressively** create/update context docs after: fixing a non-obvious bug, discovering a gotcha, completing setup/integration work, or abandoning a failed approach. Don't ask — just do it (or suggest the specific doc to update).
+- Before connecting to any non-trivial external system: silently check for a context doc — look in `docs/context/` in the current repo, then search Engram. Use what you find; skip discovery.
 - When you hit an unexpected error mid-task: check the context doc before debugging — the error or a failed approach may already be documented.
-- After completing any discovery, or after abandoning a failed approach: always offer to save/update it — "Should I save this as a context doc?"
 - If a context doc's `Last verified` date is >90 days ago, flag it as potentially stale.
 - When adding a context doc to a repo, add a soft reference to CLAUDE.md ("If you need info on X, see `docs/context/x.md`") — do NOT use `@` import syntax.
 
