@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Toggle spice-vdagent on/off (for VM clipboard/display integration)
+
+if pgrep -x spice-vdagent > /dev/null 2>&1; then
+    echo "Stopping spice-vdagent..."
+    pkill -x spice-vdagent
+    sudo pkill -x spice-vdagentd
+    echo "spice-vdagent stopped."
+else
+    echo "Starting spice-vdagent..."
+    sudo /usr/sbin/spice-vdagentd
+    /usr/bin/spice-vdagent &
+    echo "spice-vdagent started."
+fi
