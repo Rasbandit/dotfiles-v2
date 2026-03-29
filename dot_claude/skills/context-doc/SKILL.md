@@ -1,3 +1,9 @@
+---
+name: context-doc
+description: Save and retrieve context docs so Claude never rediscovers the same system twice. Trigger on "/context-doc", "save this as a context doc", "document how we did X". Also triggers automatically per CLAUDE.md mandate after fixing non-obvious bugs, discovering gotchas, completing integration work, or abandoning failed approaches.
+argument-hint: [<system or topic> | list]
+---
+
 # Context Doc Skill
 
 Save and retrieve context docs so Claude never rediscovers the same system twice — including dead ends and known errors.
@@ -102,9 +108,32 @@ Related file paths, URLs, or Engram notes.
 2. Check repo: does `docs/context/[system-slug].md` exist? If yes, read it.
 3. Check global: `mcp__engram__search_notes(query="context doc [system]", limit=3)`
 4. **If found:** use it; briefly acknowledge — _"Found a context doc for [system] — using that."_
-5. **If not found:** proceed with discovery, then prompt — _"Should I save this as a context doc?"_
+5. **If not found:** proceed with discovery. After discovery completes, **create the context doc immediately** using Mode: SAVE. No permission needed. Do not ask.
 6. **If `Last verified` date is >90 days old:** flag — _"Context doc for [system] was last verified on [date] — it may be stale."_
 7. **If you hit an unexpected error mid-task:** check the context doc's `## Failed Approaches` and `## Gotchas` sections before debugging. The error may already be documented.
+
+---
+
+## Mode: AUTO (triggered by CLAUDE.md mandatory events — no user invocation needed)
+
+When any of the following events occur, create or update the relevant context doc without asking:
+
+- Fixed a non-obvious bug (document root cause + failed approaches)
+- Discovered a gotcha or undocumented behavior
+- Completed setup, integration, or connection work
+- Abandoned a failed approach in favor of another
+- Hit an unexpected error not covered by an existing context doc
+- Completed multi-step discovery that took real effort
+
+### Routing
+- **In a repo** (`.git` exists): use Mode: SAVE to write to `docs/context/`.
+- **Outside a repo** (no `.git`, e.g. working in `~`): use `/engram-save` instead — there's no repo-local docs to write to.
+- **Cross-project knowledge** (useful beyond this repo): use `/engram-save` even inside a repo.
+
+### How to execute
+**Spawn a background Agent** with a brief summary of what was discovered/fixed and which system it relates to. The agent runs Mode: SAVE (or `/engram-save` per routing above) — checking for existing docs, writing the template, and adding the soft reference to CLAUDE.md. This keeps the main conversation context lean.
+
+**No permission needed. Do not ask "Should I save this as a context doc?" — just do it.**
 
 ---
 

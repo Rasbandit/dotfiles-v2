@@ -68,12 +68,19 @@ You MUST invoke `/work-log <description>` immediately after each of these events
 ### Self-check
 Before responding to the user after completing any action above, ask yourself: **"Did I write a work log entry?"** If no, do it NOW before responding.
 
+## Documentation Routing
+
+**Litmus test:** "Would this knowledge be useful in a completely different project?" If yes → Engram. If no → repo-local.
+
+- **In a repo** → default to repo-local docs (`docs/context/`). Project-specific connections, gotchas, failed approaches, architecture decisions.
+- **Outside a repo** (e.g., `~`, no `.git`) → default to Engram. There's no `docs/context/` to write to.
+- **Cross-project knowledge** → Engram, even when inside a repo. General tool/CLI behavior, machine/environment setup, infrastructure knowledge, patterns that span projects.
+
 ## Engram / Knowledge Vault
-- Engram is for **cross-project, personal knowledge** — things useful beyond the current repo. Examples: environment quirks, tool setup, library migration gotchas, general patterns.
-- Only save to Engram when explicitly asked ("save to engram", "save to vault") or when knowledge is clearly not repo-specific.
-- Use the unified `/engram` skill for ALL vault operations — search, read, create, update, daily notes, tasks, browse. It auto-detects available backends (Engram MCP, Obsidian CLI, filesystem) and adapts.
+- Use the unified `/engram` skill for ALL vault operations — search, read, create, update, daily notes, tasks, browse.
 - Config: `~/.engram/skill-config.json` — created on first run via onboarding.
-- **"Save this" / "save a note" / "document this" in repo context → repo-local doc, NOT engram.** Only use engram when the keyword "engram" or "vault" is used, or the knowledge is clearly cross-project.
+- Only save to Engram when: explicitly asked ("save to engram", "save to vault"), outside a repo, or knowledge is clearly cross-project per the routing above.
+- **In repo context, "save this" / "document this" → repo-local doc via `/context-doc`, NOT engram.** Only use engram when the keyword "engram" or "vault" is used, or the routing logic above points to Engram.
 
 ## Exploration & Tools
 - Prefer MCP tools (file read, code search) for efficiency.
@@ -84,13 +91,15 @@ Before responding to the user after completing any action above, ask yourself: *
 - **Web search**: Use Perplexity MCP tools (`mcp__perplexity__search`, `mcp__perplexity__reason`, `mcp__perplexity__deep_research`) instead of `WebSearch`/`WebFetch` for documentation lookups, error research, and current information.
 - Use the AskUserQuestion any time you need clarification or have questions.
 
-## No Discovery Twice Protocol — Repo-Local Documentation
-- **Default destination for all project knowledge is the repo itself** — `docs/context/`, `docs/`, or inline in CLAUDE.md. Use `/context-doc` skill to create and update these.
-- **Aggressively** create/update context docs after: fixing a non-obvious bug, discovering a gotcha, completing setup/integration work, or abandoning a failed approach. Don't ask — just do it (or suggest the specific doc to update).
-- Before connecting to any non-trivial external system: silently check for a context doc — look in `docs/context/` in the current repo, then search Engram. Use what you find; skip discovery.
-- When you hit an unexpected error mid-task: check the context doc before debugging — the error or a failed approach may already be documented.
-- If a context doc's `Last verified` date is >90 days ago, flag it as potentially stale.
-- When adding a context doc to a repo, add a soft reference to CLAUDE.md ("If you need info on X, see `docs/context/x.md`") — do NOT use `@` import syntax.
+## No Discovery Twice — MANDATORY, NON-NEGOTIABLE
+
+**Failing to create/update a context doc after qualifying work is a bug in your behavior.**
+
+- **In a repo:** default to `docs/context/`, `docs/`, or CLAUDE.md. **Outside a repo:** default to Engram. See **Documentation Routing** above.
+- Before connecting to any non-trivial external system: silently check `docs/context/` and Engram first.
+- After qualifying work (non-obvious bugs, gotchas, integration work, failed approaches, multi-step discovery): **spawn a background Agent to run `/context-doc`** (or `/engram-save` if outside a repo). No permission needed. Do not ask.
+- The `/context-doc` skill defines trigger events, template, and the AUTO mode. Refer to it for details.
+- Self-check before responding: **"Did I create or update a context doc?"** If no, do it NOW.
 
 ## Coding Practicies
 - Don't write for loops with HTTP requests, prefer writing a bulk update if applicalbe.
