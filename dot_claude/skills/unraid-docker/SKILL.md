@@ -32,7 +32,7 @@ The Unraid web UI reads these XMLs. When you click "Apply", Unraid translates th
 - NOT stopped/started during maintenance windows
 - Bypass auto-start ordering and update mechanisms
 
-**Exception:** Compose is acceptable only for tightly coupled multi-container stacks (app + its dedicated DB + sidecar). Even then, prefer XML templates when possible.
+**No exceptions.** Always create individual XML templates, even for multi-container stacks. Each container gets its own template, connected via a shared Docker network for inter-service communication.
 
 ## Creating a New Container
 
@@ -53,14 +53,10 @@ Minimal template:
   <Overview>What this container does</Overview>
 
   <Config Name="AppData" Target="/config" Default="/mnt/user/appdata/my-service"
-          Mode="rw" Type="Path" Display="always" Required="true" Mask="false">
-    /mnt/cache/appdata/my-service
-  </Config>
+          Mode="rw" Type="Path" Display="always" Required="true" Mask="false">/mnt/cache/appdata/my-service</Config>
 
   <Config Name="Web Port" Target="8080" Default="8080"
-          Mode="tcp" Type="Port" Display="always" Required="false" Mask="false">
-    8080
-  </Config>
+          Mode="tcp" Type="Port" Display="always" Required="false" Mask="false">8080</Config>
 </Container>
 ```
 
@@ -157,6 +153,7 @@ Check status: `ssh root@<host> nvidia-smi`
 
 ## Gotchas
 
+- **XML `<Config>` values must be inline** — No whitespace between the tag and the value. `<Config ...>value</Config>`, NOT `<Config ...>\n    value\n  </Config>`. Whitespace is included in the value and shows up in the Unraid GUI as padding around every field.
 - **`/boot` is vfat** — `chmod +x` silently fails. Scripts must live on `/mnt/cache/appdata/scripts/`.
 - **Container names are case-sensitive** — `Huntarr` ≠ `huntarr`. Check the XML `<Name>` element.
 - **XML is the source of truth** — if someone ran `docker run` without updating the XML, the UI and runtime are out of sync. Next "Apply" from UI overwrites with XML.
