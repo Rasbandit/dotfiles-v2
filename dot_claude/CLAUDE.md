@@ -73,7 +73,7 @@
 - When running git commands use the git MCP server.
 - When doing any kind of planning or thinking use the MCP sequential-thinking server.
 - Use native @file/path or search if no MCP available.
-- **Never use built-in `WebSearch`/`WebFetch`** — always use one of the 4 web MCP tools below.
+- **Never use built-in `WebSearch`/`WebFetch`** — always use one of the 5 web MCP tools below.
 - Use the AskUserQuestion any time you need clarification or have questions.
 
 ### Web Tool Routing
@@ -88,10 +88,12 @@
 | Crawl multiple pages from a site | `mcp__firecrawl-mcp__firecrawl_crawl` | Depth-controlled multi-page extraction |
 | Extract structured data from pages | `mcp__firecrawl-mcp__firecrawl_extract` | LLM-powered schema extraction |
 | Privacy-focused search, Perplexity fallback | `mcp__searxng-mcp__search_web` | Self-hosted meta-search, no API cost |
-| Interact with a live web page (click, fill, test) | `mcp__chrome-devtools__*` | Browser automation, screenshots |
+| Browse/interact with web pages (click, fill, read) | `mcp__pinchtab__*` | Token-efficient (~3k vs ~50k), accessibility tree, headless Chrome on FastRaid |
+| Inspect DOM attributes, run JS on a page | `mcp__pinchtab__pinchtab_evaluate` | Full DOM access via JS eval, use when snapshot isn't enough |
 | Debug frontend performance or accessibility | `mcp__chrome-devtools__lighthouse_audit` | Audits, traces, network inspection |
+| Browser automation needing network/console inspection | `mcp__chrome-devtools__*` | Full CDP — use only when PinchTab can't (network tab, console, perf traces) |
 
-**Decision shortcut:** searching? → Perplexity. Have a URL? → Firecrawl. Need to interact? → Chrome. Perplexity down? → SearXNG.
+**Decision shortcut:** searching? → Perplexity. Have a URL? → Firecrawl. Need to interact? → **PinchTab** (default). Need Lighthouse/network/console? → Chrome DevTools. Perplexity down? → SearXNG.
 
 ## Coding Practicies
 - Don't write for loops with HTTP requests, prefer writing a bulk update if applicalbe.
