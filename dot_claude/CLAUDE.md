@@ -69,13 +69,29 @@
 - **Self-check before every response:** "Did I document this?" If no → do it NOW.
 
 ## Exploration & Tools
-- Prefer MCP tools (file read, code search) for efficiency.
+- Prefer MCP tools (git, search) for efficiency. Use Claude Code's native Read/Write/Edit/Glob/Grep for file operations.
 - When running git commands use the git MCP server.
-- When working with files use the MCP filesystem server.
 - When doing any kind of planning or thinking use the MCP sequential-thinking server.
 - Use native @file/path or search if no MCP available.
-- **Web search**: Use Perplexity MCP tools (`mcp__perplexity__search`, `mcp__perplexity__reason`, `mcp__perplexity__deep_research`) instead of `WebSearch`/`WebFetch` for documentation lookups, error research, and current information.
+- **Never use built-in `WebSearch`/`WebFetch`** — always use one of the 4 web MCP tools below.
 - Use the AskUserQuestion any time you need clarification or have questions.
+
+### Web Tool Routing
+
+| Need | Tool | Notes |
+|------|------|-------|
+| Quick factual question, docs lookup, error research | `mcp__perplexity__search` | Default for "search the web for X" |
+| Complex reasoning, comparisons, problem-solving | `mcp__perplexity__reason` | Multi-step analysis with web context |
+| Comprehensive research topic | `mcp__perplexity__deep_research` | Slow — use only for deep dives |
+| Read/extract content from a known URL | `mcp__firecrawl-mcp__firecrawl_scrape` | Clean markdown/JSON, handles JS-rendered pages |
+| Discover all pages on a site | `mcp__firecrawl-mcp__firecrawl_map` | Sitemap/URL discovery |
+| Crawl multiple pages from a site | `mcp__firecrawl-mcp__firecrawl_crawl` | Depth-controlled multi-page extraction |
+| Extract structured data from pages | `mcp__firecrawl-mcp__firecrawl_extract` | LLM-powered schema extraction |
+| Privacy-focused search, Perplexity fallback | `mcp__searxng-mcp__search_web` | Self-hosted meta-search, no API cost |
+| Interact with a live web page (click, fill, test) | `mcp__chrome-devtools__*` | Browser automation, screenshots |
+| Debug frontend performance or accessibility | `mcp__chrome-devtools__lighthouse_audit` | Audits, traces, network inspection |
+
+**Decision shortcut:** searching? → Perplexity. Have a URL? → Firecrawl. Need to interact? → Chrome. Perplexity down? → SearXNG.
 
 ## Coding Practicies
 - Don't write for loops with HTTP requests, prefer writing a bulk update if applicalbe.
