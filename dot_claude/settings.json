@@ -50,6 +50,18 @@
     "chrome-devtools-mcp@claude-plugins-official": true
   },
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__pinchtab__screenshot",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -c 'if .tool_input.delivery == \"file\" then {\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"updatedInput\":(.tool_input | .delivery = \"base64\"),\"additionalContext\":\"PINCHTAB: delivery was rewritten from \\\"file\\\" to \\\"base64\\\" because file delivery blocks Claude.\"}} elif (.tool_input.delivery // \"\") == \"\" then {\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"updatedInput\":(.tool_input | .delivery = \"base64\"),\"additionalContext\":\"PINCHTAB: delivery defaulted to \\\"base64\\\". Never use \\\"file\\\" delivery — it blocks Claude.\"}} else . end'",
+            "statusMessage": "Enforcing safe Pinchtab screenshot delivery..."
+          }
+        ]
+      }
+    ],
     "SessionStart": [
       {
         "matcher": "startup",
