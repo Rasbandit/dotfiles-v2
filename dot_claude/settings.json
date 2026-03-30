@@ -92,6 +92,18 @@
         ]
       }
     ],
+    "SubagentStart": [
+      {
+        "matcher": "Explore",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'NO DISCOVERY TWICE: Before this Explore agent proceeds, CHECK for existing context docs that already cover this topic. Check docs/context/, docs/*.md, CLAUDE.md references, and search Engram. If the information is already documented, ABORT the exploration and use the existing doc. Only proceed if no existing doc covers this.'",
+            "statusMessage": "Checking for existing context docs..."
+          }
+        ]
+      }
+    ],
     "SubagentStop": [
       {
         "hooks": [
@@ -99,6 +111,16 @@
             "type": "command",
             "command": "echo 'WORK LOG: A subagent just completed. If it performed meaningful work (file edits, research, debugging), invoke /work-log with what was accomplished.'",
             "statusMessage": "Subagent work log check"
+          }
+        ]
+      },
+      {
+        "matcher": "Explore",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'NO DISCOVERY TWICE: This Explore agent just finished. If it discovered non-obvious information (entity IDs, auth paths, API quirks, gotchas, connection details), you MUST create or update a context doc NOW. In a repo: use /context-doc. Outside a repo: use /engram-save. Do NOT proceed to the next task until this is done.'",
+            "statusMessage": "Context doc check for Explore findings..."
           }
         ]
       }
