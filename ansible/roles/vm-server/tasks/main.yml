@@ -1,0 +1,177 @@
+---
+# vm-server: VM-specific server setup
+# LVM expansion, display manager, spice guest tools, user linger,
+# flatpak auto-update, chrome-devtools headless service.
+
+# -- LVM expansion ------------------------------------------------------------
+# Fedora Server defaults to a 15G root LV even on large disks.
+
+- name: Detect root LV device
+  ansible.builtin.command: findmnt -no SOURCE /
+  register: root_source
+  changed_when: false
+
+- name: Detect root VG name
+  ansible.builtin.shell: |
+    lvs --noheadings -o vg_name "{{ root_source.stdout | trim }}" 2>/dev/null | tr -d ' '
+  register: root_vg
+  changed_when: false
+  failed_when: false
+
+- name: Resize physical volumes
+  ansible.builtin.command: pvresize {{ item }}
+  loop: >-
+    {{ lookup('pipe',
+       'pvs --noheadings -o pv_name -S vg_name=' + root_vg.stdout | trim + ' 2>/dev/null | tr -d " "'
+    ).splitlines() }}
+  when: root_vg.stdout | trim | length > 0
+  changed_when: false
+  become: true
+
+- name: Extend root LV to fill free space
+  ansible.builtin.command: lvextend -l +100%FREE {{ root_source.stdout | trim }}
+  when: root_vg.stdout | trim | length > 0
+  changed_when: false
+  failed_when: false
+  become: true
+
+- name: Detect root filesystem type
+  ansible.builtin.command: findmnt -no FSTYPE /
+  register: root_fstype
+  changed_when: false
+
+- name: Grow XFS filesystem
+  ansible.builtin.command: xfs_growfs /
+  when: root_fstype.stdout | trim == 'xfs' and root_vg.stdout | trim | length > 0
+  changed_when: false
+  failed_when: false
+  become: true
+
+- name: Grow ext4 filesystem
+  ansible.builtin.command: resize2fs {{ root_source.stdout | trim }}
+  when: root_fstype.stdout | trim == 'ext4' and root_vg.stdout | trim | length > 0
+  changed_when: false
+  failed_when: false
+  become: true
+
+# -- Display manager + graphical target ---------------------------------------
+
+- name: Install LightDM and Openbox desktop
+  ansible.builtin.dnf:
+    name:
+      - lightdm
+      - lightdm-gtk
+      - xorg-x11-server-Xorg
+      - xorg-x11-xinit
+      - virt-viewer
+      - spice-vdagent
+    state: present
+  when: os_distribution == 'fedora'
+  become: true
+
+- name: Set default target to graphical
+  ansible.builtin.command: systemctl set-default graphical.target
+  become: true
+  changed_when: false
+
+- name: Enable LightDM
+  ansible.builtin.systemd:
+    name: lightdm
+    enabled: true
+  become: true
+
+- name: Enable spice-vdagentd
+  ansible.builtin.systemd:
+    name: spice-vdagentd
+    enabled: true
+    state: started
+  become: true
+
+# -- Openbox autostart for VM -------------------------------------------------
+
+- name: Ensure openbox config directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.config/openbox"
+    state: directory
+    mode: '0755'
+
+- name: Configure openbox autostart for VM
+  ansible.builtin.copy:
+    dest: "{{ ansible_env.HOME }}/.config/openbox/autostart"
+    content: |
+      spice-vdagent &
+      sleep 1 && xrandr --auto &
+    mode: '0755'
+
+# -- Flatpak auto-update timer ------------------------------------------------
+
+- name: Install flatpak-update service
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/flatpak-update.service
+    content: |
+      [Unit]
+      Description=Update Flatpak apps
+
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/bin/flatpak update -y
+    mode: '0644'
+  become: true
+
+- name: Install flatpak-update timer
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/flatpak-update.timer
+    content: |
+      [Unit]
+      Description=Daily Flatpak update
+
+      [Timer]
+      OnCalendar=daily
+      Persistent=true
+
+      [Install]
+      WantedBy=timers.target
+    mode: '0644'
+  become: true
+
+- name: Enable flatpak-update timer
+  ansible.builtin.systemd:
+    name: flatpak-update.timer
+    enabled: true
+    state: started
+    daemon_reload: true
+  become: true
+
+# -- User linger (for user services to run at boot) ---------------------------
+
+- name: Enable user linger
+  ansible.builtin.command: loginctl enable-linger {{ ansible_env.USER }}
+  changed_when: false
+  become: true
+
+# -- Chrome DevTools headless service -----------------------------------------
+
+- name: Install chrome-devtools user service
+  ansible.builtin.copy:
+    dest: "{{ ansible_env.HOME }}/.config/systemd/user/chrome-devtools.service"
+    content: |
+      [Unit]
+      Description=Persistent headless Chromium for Chrome DevTools MCP (port 9224)
+      After=network-online.target
+
+      [Service]
+      Type=simple
+      ExecStart=/usr/bin/chromium-browser --headless=new --no-sandbox --disable-dev-shm-usage --remote-debugging-port=9224 --remote-debugging-address=127.0.0.1 --disable-gpu --no-first-run --no-default-browser-check --window-size=1920,1080 about:blank
+      Restart=always
+      RestartSec=5
+
+      [Install]
+      WantedBy=default.target
+    mode: '0644'
+
+- name: Enable chrome-devtools service
+  ansible.builtin.systemd:
+    name: chrome-devtools.service
+    enabled: true
+    scope: user
+    daemon_reload: true

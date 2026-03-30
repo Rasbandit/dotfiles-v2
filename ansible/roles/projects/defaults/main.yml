@@ -1,0 +1,37 @@
+---
+projects_dir: "{{ ansible_env.HOME }}/documents/code-projects"
+
+project_repos:
+  - name: paperclip
+    repo: "git@github.com:Rasbandit/paperclip.git"
+    setup: true
+  - name: engram
+    repo: "git@github.com:Rasbandit/Engram.git"
+    setup: true
+  - name: engram-obsidian-sync
+    repo: "git@github.com:Rasbandit/Engram-obsidian-sync.git"
+    setup: true
+  - name: engram-workspace
+    repo: "git@github.com:Rasbandit/engram-workspace.git"
+    setup: true
+  - name: site-automation-scripts
+    repo: "git@github.com:Rasbandit/site-automation-scripts.git"
+    setup: true
+  - name: ops-dispatcher
+    repo: "git@github.com:Rasbandit/ops-dispatcher.git"
+    setup: true
+  - name: audiobook-tools
+    repo: "git@github.com:Rasbandit/audiobook-tools.git"
+    setup: true
+  - name: home-assistant
+    repo: "git@github.com:Rasbandit/home-assistant.git"
+    setup: true
+  - name: infra-triage
+    repo: "git@github.com:Rasbandit/infra-triage.git"
+    setup: true
+  - name: jina-reranker
+    repo: "git@github.com:Rasbandit/jina-reranker.git"
+    setup: false
+  - name: fedora-bootstrap
+    repo: "git@github.com:Rasbandit/fedora-bootstrap.git"
+    setup: false

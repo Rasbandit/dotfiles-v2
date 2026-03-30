@@ -1,0 +1,74 @@
+---
+# projects: Clone code repos and run their setup.sh scripts.
+# Each project owns its own setup — this role just clones and delegates.
+
+- name: Ensure projects directory exists
+  ansible.builtin.file:
+    path: "{{ projects_dir }}"
+    state: directory
+    mode: '0755'
+
+# -- Clone repos ---------------------------------------------------------------
+
+- name: Clone project repos
+  ansible.builtin.git:
+    repo: "{{ item.repo }}"
+    dest: "{{ projects_dir }}/{{ item.name }}"
+    update: false
+  loop: "{{ project_repos | selectattr('repo', 'ne', '') }}"
+  loop_control:
+    label: "{{ item.name }}"
+  register: clone_results
+  failed_when: false
+
+- name: Report clone failures
+  ansible.builtin.debug:
+    msg: "WARNING: Failed to clone {{ item.item.name }}: {{ item.msg | default('unknown error') }}"
+  loop: "{{ clone_results.results | default([]) }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+  when: item.failed | default(false)
+
+# -- Run setup.sh for each project --------------------------------------------
+
+- name: Check for setup.sh in each project
+  ansible.builtin.stat:
+    path: "{{ projects_dir }}/{{ item.name }}/setup.sh"
+  loop: "{{ project_repos | selectattr('setup') }}"
+  loop_control:
+    label: "{{ item.name }}"
+  register: setup_checks
+
+- name: Run setup.sh --no-start for each project
+  ansible.builtin.command:
+    cmd: bash setup.sh --no-start
+    chdir: "{{ projects_dir }}/{{ item.item.name }}"
+  loop: "{{ setup_checks.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+  when: item.stat.exists | default(false)
+  register: setup_results
+  failed_when: false
+  changed_when: false
+
+- name: Report setup failures
+  ansible.builtin.debug:
+    msg: "WARNING: setup.sh failed for {{ item.item.item.name }} (rc={{ item.rc }}): {{ item.stderr | default('') }}"
+  loop: "{{ setup_results.results | default([]) }}"
+  loop_control:
+    label: "{{ item.item.item.name | default('unknown') }}"
+  when: item.rc | default(0) != 0
+
+# -- Reload and start services ------------------------------------------------
+
+- name: Reload systemd user daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+    scope: user
+
+- name: Report project setup summary
+  ansible.builtin.debug:
+    msg: >-
+      Projects setup complete.
+      Cloned: {{ clone_results.results | selectattr('failed', 'false') | list | length }}/{{ project_repos | list | length }}.
+      Setup scripts run: {{ setup_results.results | default([]) | selectattr('rc', 'defined') | selectattr('rc', 'eq', 0) | list | length }}.

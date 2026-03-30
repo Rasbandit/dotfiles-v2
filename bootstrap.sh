@@ -537,6 +537,10 @@ feature_default() {
             [ "$type" = "workstation" ] && echo "ask" || echo "N" ;;
         auto-sync)
             [ "$type" = "temporary" ] && echo "N" || echo "Y" ;;
+        vm-server)
+            [ "$type" = "server" ] && echo "Y" || echo "N" ;;
+        projects)
+            [ "$type" = "server" ] && echo "Y" || echo "ask" ;;
         *)
             echo "N" ;;
     esac
@@ -559,6 +563,8 @@ feature_description() {
         gaming-laptop)   echo "Gaming (laptop config)" ;;
         gaming-desktop)  echo "Gaming (desktop config)" ;;
         auto-sync)       echo "Auto-commit & sync dotfiles" ;;
+        vm-server)       echo "VM server (LVM, LightDM, spice)" ;;
+        projects)        echo "Clone code projects + run setup" ;;
         *)               echo "$feature" ;;
     esac
 }
@@ -676,7 +682,7 @@ feature_installed() {
 # ============================================================================
 # Feature prompts
 # ============================================================================
-ALL_FEATURES="terminal 1password vscode browser vpn dev-tools gnome openbox claude japanese apps gaming-laptop gaming-desktop auto-sync"
+ALL_FEATURES="terminal 1password vscode browser vpn dev-tools gnome openbox claude japanese apps gaming-laptop gaming-desktop auto-sync vm-server projects"
 
 # Build checkbox items: name|description|on/off
 CHECKBOX_ITEMS=()
