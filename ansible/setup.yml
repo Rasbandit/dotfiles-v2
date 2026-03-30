@@ -7,7 +7,7 @@
 #
 # Features: terminal, 1password, vscode, browser, vpn, dev-tools,
 #           gnome, openbox, claude, japanese, apps, gaming-laptop, gaming-desktop,
-#           auto-sync
+#           auto-sync, vm-server, projects
 #
 # Base role always runs (tagged 'always').
 # Fedora/debian roles always run for distro-specific repo setup.
@@ -113,3 +113,10 @@
 
     - role: gaming-desktop
       tags: [gaming-desktop]
+
+    - role: vm-server
+      when: os_distribution == 'fedora'
+      tags: [vm-server]
+
+    - role: projects
+      tags: [projects]
