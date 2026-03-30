@@ -27,7 +27,11 @@
       "filesystem",
       "chrome-devtools",
       "obsidian",
-      "engram"
+      "engram",
+      "firecrawl-mcp",
+      "searxng-mcp",
+      "perplexity",
+      "pinchtab"
     ]
   },
   "model": "opus[1m]",
@@ -37,8 +41,8 @@
     "code-review@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true,
     "typescript-lsp@claude-plugins-official": true,
-    "supabase@claude-plugins-official": true,
-    "firebase@claude-plugins-official": true,
+    "supabase@claude-plugins-official": false,
+    "firebase@claude-plugins-official": false,
     "explanatory-output-style@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true,
