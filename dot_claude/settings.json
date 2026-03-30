@@ -30,8 +30,79 @@
       "engram"
     ]
   },
+  "model": "opus[1m]",
   "enabledPlugins": {
-    "skill-creator@claude-plugins-official": true
+    "skill-creator@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "supabase@claude-plugins-official": true,
+    "firebase@claude-plugins-official": true,
+    "explanatory-output-style@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": true,
+    "pr-review-toolkit@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true,
+    "chrome-devtools-mcp@claude-plugins-official": true
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'MANDATORY: Run /work-log init NOW to prepare tag slugs for this session. Do not proceed with any work until this is done.'",
+            "statusMessage": "Work log init reminder"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CMD=$(cat | jq -r '.tool_input.command // \"\"'); if echo \"$CMD\" | grep -qE '\\bgit\\s+commit\\b'; then echo 'WORK LOG: You just made a git commit. You MUST invoke /work-log with a description of what was committed BEFORE doing anything else.'; fi",
+            "statusMessage": "Checking for git commit..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "LAST_LOG=/tmp/claude-worklog-last; NOW=$(date +%s); if [ -f \"$LAST_LOG\" ]; then LAST=$(cat \"$LAST_LOG\"); DIFF=$((NOW - LAST)); if [ \"$DIFF\" -ge 300 ]; then echo \"$NOW\" > \"$LAST_LOG\"; echo 'WORK LOG SELF-CHECK: 5+ minutes since last log entry. If any meaningful work was done (file edits, debugging, research, decisions, planning), invoke /work-log NOW before continuing.'; fi; else echo \"$NOW\" > \"$LAST_LOG\"; fi",
+            "statusMessage": "Work log check"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'WORK LOG FLUSH: Context is about to be compacted. If there is ANY unlogged work in this session, invoke /work-log NOW before context is lost. This is your last chance to log work from this context window.'",
+            "statusMessage": "Pre-compact work log flush"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'WORK LOG: A subagent just completed. If it performed meaningful work (file edits, research, debugging), invoke /work-log with what was accomplished.'",
+            "statusMessage": "Subagent work log check"
+          }
+        ]
+      }
+    ]
   },
   "skipDangerousModePermissionPrompt": true,
   "bypassPermissionsAllowed": true
