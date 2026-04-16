@@ -30,7 +30,7 @@
     # Interface
     - { schema: "org.gnome.desktop.interface", key: "enable-hot-corners", value: "false" }
     - { schema: "org.gnome.desktop.interface", key: "show-battery-percentage", value: "true" }
-    - { schema: "org.gnome.desktop.interface", key: "color-scheme", value: "prefer-dark" }
+    - { schema: "org.gnome.desktop.interface", key: "color-scheme", value: "prefer-dark" }  # default; darkman overrides at runtime
     - { schema: "org.gnome.desktop.interface", key: "icon-theme", value: "Papirus-Dark" }
     - { schema: "org.gnome.desktop.interface", key: "monospace-font-name", value: "JetBrainsMono Nerd Font 13" }
     # Clock
@@ -113,3 +113,6 @@
 
 - name: Include xremap setup
   ansible.builtin.include_tasks: xremap.yml
+
+- name: Include darkman setup
+  ansible.builtin.include_tasks: darkman.yml
