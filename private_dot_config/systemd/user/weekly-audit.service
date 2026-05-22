@@ -1,0 +1,10 @@
+[Unit]
+Description=Weekly Infrastructure Audit Agent
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/open-claw/documents/code-projects/infra-triage
+ExecStart=/usr/bin/claude -p "Run /weekly-audit" --allowedTools Bash,Read,Write,Edit,Glob,Grep,mcp__perplexity__search,mcp__firecrawl-mcp__firecrawl_scrape
+TimeoutStartSec=900
+Environment=HOME=/home/open-claw

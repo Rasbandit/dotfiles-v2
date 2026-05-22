@@ -42,11 +42,7 @@ If the file does **not** exist:
 
 Read `~/.engram/skill-config.json`. Then run a quick health check against what config claims is available.
 
-**CLI check** — if `backends.cli` is `true` in config:
-```bash
-obsidian vault 2>/dev/null
-```
-If the command fails or returns a non-zero exit: set `cli_available = false`, downgrade tier.
+**IMPORTANT: Never use the Obsidian CLI for any operation.** The CLI triggers Obsidian's Electron process, which crash-loops (SIGBUS/SIGSEGV) and triggers coredump/ABRT/GDB cascades that OOM the machine.
 
 **Engram MCP check** — if `backends.engram` is `true` in config:
 ```
@@ -56,13 +52,12 @@ If the call throws or returns an error: set `engram_available = false`, downgrad
 
 **On state change** — if detected tier differs from `config.tier`:
 - Update `config.tier` and the relevant `backends.*` field
-- Notify the user **once**: e.g. `"Obsidian CLI is now available — upgraded to Tier 2."`
+- Notify the user **once**: e.g. `"Engram MCP is now available — upgraded to Tier 2."`
 - Rule: **one notification per session per backend state change.** Track notified state changes in-session; never repeat the same notification.
 
 **Resolved tier** — set working tier for this session:
 - `filesystem_only` → Tier 1
-- `cli` (no engram) → Tier 2
-- `cli + engram` → Tier 3
+- `engram MCP available` → Tier 2
 
 ---
 
@@ -71,8 +66,9 @@ If the call throws or returns an error: set `engram_available = false`, downgrad
 | Tier | Available | Experience |
 |------|-----------|------------|
 | **Tier 1: File-only** | Raw filesystem | Basic read/write, grep search. Functional but limited. |
-| **Tier 2: CLI** | Obsidian CLI | Fast native ops, text search, daily notes, tasks, templates. Full-featured minus semantic search. |
-| **Tier 3: Full** | CLI + Engram MCP | Everything in Tier 2 plus semantic search, auto-folder placement, neural reranking. |
+| **Tier 2: Full** | Engram MCP | Semantic search, auto-folder placement, CRUD, append, patch, tasks. All operations go through the API — never touches Obsidian's process. |
+
+**IMPORTANT:** The Obsidian CLI (Tier 2 in the old system) is permanently retired. It triggers Obsidian's Electron process which crash-loops and causes OOM via coredump cascades. All references to `obsidian` CLI commands should use the equivalent Engram MCP tool instead.
 
 ---
 

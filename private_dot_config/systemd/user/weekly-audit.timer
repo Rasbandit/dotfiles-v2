@@ -1,0 +1,9 @@
+[Unit]
+Description=Weekly Infrastructure Audit — Sunday 6:30 AM Denver (after docker auto-update)
+
+[Timer]
+OnCalendar=Sun *-*-* 06:30:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
