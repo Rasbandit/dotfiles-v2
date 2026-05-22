@@ -78,7 +78,7 @@ The `<Config>` element handles volume mounts, port mappings, and environment var
 
 ## Unraid-Injected Labels and Env Vars
 
-Unraid automatically adds to every container:
+Unraid automatically adds to every container created via the GUI:
 
 **Environment variables:**
 - `TZ` — timezone from Unraid settings
@@ -87,9 +87,9 @@ Unraid automatically adds to every container:
 - `HOST_CONTAINERNAME=<container-name>`
 
 **Labels:**
-- `net.unraid.docker.managed=dockerman`
-- `net.unraid.docker.icon=<icon-url>`
-- `net.unraid.docker.webui=<webui-url>`
+- `net.unraid.docker.managed=dockerman` — **CRITICAL: this is the label DockerMan uses to identify managed containers.** When recreating containers from CLI, you MUST include `-l net.unraid.docker.managed=dockerman` or the container shows as "3rd party" with no GUI control
+- `net.unraid.docker.icon=<icon-url>` — optional, sets the container icon in the Docker tab
+- `net.unraid.docker.webui=<webui-url>` — optional, sets the dashboard link URL
 
 ## Key Config Files
 

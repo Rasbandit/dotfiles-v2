@@ -7,42 +7,15 @@ set -euo pipefail
 
 VAULT_PATH="${1:-}"
 
-# --- Obsidian CLI ---
+# Obsidian CLI is permanently retired (crash-loops and OOMs the host).
+# Local filesystem vault probing is also retired — Engram MCP is remote-only on this host.
 cli_available=false
 cli_vaults="[]"
-if command -v obsidian &>/dev/null; then
-  if obsidian vault 2>/dev/null | grep -q '/'; then
-    cli_available=true
-    cli_vaults=$(obsidian vault 2>/dev/null | \
-      sed -n 's/.*\t\(.*\)/"\1"/p' | \
-      paste -sd',' | sed 's/^/[/;s/$/]/')
-    cli_vaults="${cli_vaults:-[]}"
-  fi
-fi
-
-# --- Filesystem probe ---
 fs_available=false
 fs_path=""
 if [[ -n "$VAULT_PATH" && -d "$VAULT_PATH" ]]; then
   fs_available=true
   fs_path="$VAULT_PATH"
-else
-  # Check common vault locations
-  for candidate in \
-    "$HOME/Documents/Obsidian" \
-    "$HOME/Obsidian" \
-    "$HOME/vaults" \
-    "$HOME/Documents/vaults"; do
-    if [[ -d "$candidate" ]]; then
-      # Look for a vault (directory containing .obsidian/)
-      first_vault=$(find "$candidate" -maxdepth 2 -name ".obsidian" -type d 2>/dev/null | head -1)
-      if [[ -n "$first_vault" ]]; then
-        fs_available=true
-        fs_path="$(dirname "$first_vault")"
-        break
-      fi
-    fi
-  done
 fi
 
 # --- Output ---

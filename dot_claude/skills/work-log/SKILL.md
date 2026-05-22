@@ -18,19 +18,15 @@ Use today's date. Never read-then-write.
 
 ## Step 0 — Write backend
 
-**You MUST use the Obsidian CLI.** Only fall back if it returns a non-zero exit code.
+**You MUST use the Engram MCP.** Do NOT install or invoke any local Obsidian CLI/app — they have crash-looped and OOM'd this machine before. The Engram MCP is a remote HTTP service; never reach for a local vault mirror.
 
-```bash
-obsidian append path="1. Alignment/4. Work Log/YYYY-MM/YYYY-MM-DD.md" content="<text>" vault=Personal
+```
+mcp__engram__append_to_note(path="1. Alignment/4. Work Log/YYYY-MM/YYYY-MM-DD.md", text="<text>")
 ```
 
-- Creates the file if missing. Escape double quotes. Use `\n` for newlines.
-- **stderr noise is expected** — dbus errors, Gtk module warnings, and "Debug:" lines are normal. They do NOT indicate failure. Only a non-zero exit code (`$?`) means the command failed.
-- Do NOT skip this step. Do NOT jump to Engram MCP because stderr has output.
+- Creates the file if missing. Use `\n` for newlines.
 
-**Fallbacks** (only if Obsidian CLI exits non-zero):
-1. **Engram MCP** — `mcp__engram__append_to_note` with `path` and `text`.
-2. **Filesystem** — `mcp__filesystem__write_file` to `~/Documents/Obsidian/Personal/1. Alignment/4. Work Log/YYYY-MM/YYYY-MM-DD.md`. Read first to preserve content.
+**If Engram MCP is unavailable or errors:** surface the error to the user. Do NOT silently write to any local path — there is no local vault on this machine anymore.
 
 ---
 

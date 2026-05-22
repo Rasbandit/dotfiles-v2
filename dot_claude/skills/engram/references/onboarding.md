@@ -8,18 +8,7 @@ First-run setup flow. Triggered by SKILL.md when `~/.engram/skill-config.json` d
 
 Detect backends silently — no output to the user yet.
 
-### Obsidian CLI
-
-```bash
-bash <skill-dir>/scripts/detect-capabilities.sh
-```
-
-Where `<skill-dir>` is the directory containing SKILL.md (resolved at runtime — typically `~/.claude/skills/engram`). Parse the JSON output:
-
-- `cli` — boolean, CLI available
-- `cli_vaults` — array of vault name strings (e.g. `["Personal", "Brain-Business"]`)
-- `filesystem` — boolean, a vault directory was found
-- `filesystem_path` — string, absolute path to the detected vault
+**IMPORTANT: Never probe or use the Obsidian CLI.** It triggers Obsidian's Electron process which crash-loops and causes OOM via coredump cascades.
 
 ### Engram MCP
 
@@ -32,11 +21,17 @@ mcp__engram__search_notes(query="test", limit=1)
 
 ### Filesystem fallback
 
-Already covered by the detect-capabilities.sh output. No additional probe needed.
+Check common vault locations:
+
+```bash
+ls ~/Obsidian\ Vault/.obsidian 2>/dev/null || ls ~/Documents/Obsidian/*/.obsidian 2>/dev/null
+```
+
+If found: `filesystem = true`, record the vault path.
 
 ### Vault path — manual fallback
 
-If `filesystem_path` is empty **and** `cli` is `false`, ask the user:
+If `filesystem` is `false` **and** `engram` is `false`, ask the user:
 
 ```
 AskUserQuestion: "I couldn't auto-detect your Obsidian vault. Where is it located? (e.g., ~/Documents/Obsidian/MyVault)"
@@ -48,9 +43,8 @@ Expand the provided path (resolve `~` to the home directory). Treat this as the 
 
 | Condition | Tier |
 |-----------|------|
-| `cli = true` and `engram = true` | **Tier 3 (Full)** |
-| `cli = true` and `engram = false` | **Tier 2 (CLI)** |
-| `cli = false` | **Tier 1 (Files)** |
+| `engram = true` | **Tier 2 (Full)** |
+| `engram = false` | **Tier 1 (Files)** |
 
 ---
 
@@ -60,46 +54,34 @@ Show a summary of what was found. Use ✓ for available, ✗ for unavailable.
 
 ```
 Engram detected:
-  ✓ Obsidian CLI — connected (vault: "Personal")
-  ✗ Engram backend — not detected
-  ✓ Vault filesystem — /home/user/Documents/Obsidian/Personal
+  ✓ Engram MCP — connected
+  ✓ Vault filesystem — /home/user/Obsidian Vault
 
-Running in Tier 2 (CLI) mode.
+Running in Tier 2 (Full) mode.
 ```
 
-Adjust each line to match actual probe results. If multiple CLI vaults were found, list them all in the CLI line: `(vaults: "Personal", "Brain-Business")`.
+Adjust each line to match actual probe results.
 
 ---
 
 ## Step 3: Advocate
 
-For each missing backend, output **one line** describing what it adds and where to get it. Then move on immediately — do not repeat or dwell.
+If Engram MCP is missing:
+```
+Engram MCP adds semantic search, auto-folder placement, and safe writes that bypass Obsidian's process. Setup: https://engram.dev/setup
+```
 
-- **Missing CLI:**
-  ```
-  Obsidian CLI enables fast native operations, daily notes, and tasks. Install: https://obsidian.md/cli
-  ```
-
-- **Missing Engram:**
-  ```
-  Engram adds semantic search — find notes by meaning, not just keywords. Auto-folder placement puts new notes where they belong. Setup: https://engram.dev/setup
-  ```
-
-If both are present, skip this step entirely.
+If present, skip this step entirely.
 
 ---
 
 ## Step 4: Multi-vault default
 
-If `cli_vaults` has more than one entry, ask the user which should be the default:
+The Engram MCP manages vaults server-side. If `engram = true`, use `"Personal"` as the default vault (the standard config).
 
-```
-AskUserQuestion: "I found multiple vaults: Personal, Brain-Business. Which should be the default?"
-```
+If only filesystem is available, detect vaults from the filesystem path.
 
-Accept fuzzy input — match case-insensitively against the detected vault names.
-
-If only one vault is available (CLI or filesystem), use it as the default without prompting.
+If multiple vaults exist, ask the user which should be the default.
 
 ---
 
@@ -112,32 +94,26 @@ Write `~/.engram/skill-config.json` using the schema below.
   "tier": 2,
   "defaultVault": "Personal",
   "vaults": {
-    "Personal": { "path": "/home/user/Documents/Obsidian/Personal" }
+    "Personal": { "path": "/home/user/Obsidian Vault" }
   },
   "backends": {
-    "cli": true,
-    "engram": false,
+    "cli": false,
+    "engram": true,
     "filesystem": true
   },
   "topicScopes": {}
 }
 ```
 
-### Build the `vaults` object
-
-Populate vault entries using the best available source, in priority order:
-
-1. **CLI available** — use `cli_vaults` names as keys. Resolve each vault's path by running `obsidian vault` and parsing the tab-separated output (`name\tpath`). If path resolution fails, omit the `path` field for that entry.
-2. **CLI unavailable, filesystem found** — single entry: key is the folder name of `filesystem_path`, value is `{ "path": "<filesystem_path>" }`.
-3. **Neither auto-detected** — single entry using the user-provided path: key is the folder name, value is `{ "path": "<expanded-path>" }`.
+**Note:** `backends.cli` is always `false`. The Obsidian CLI is permanently retired.
 
 ### Field values
 
 | Field | Value |
 |-------|-------|
-| `tier` | 1, 2, or 3 (from Step 1 determination) |
-| `defaultVault` | Name chosen in Step 4, or the single detected vault name |
-| `backends.cli` | Result of CLI probe |
+| `tier` | 1 or 2 (from Step 1 determination) |
+| `defaultVault` | Name chosen in Step 4, or `"Personal"` |
+| `backends.cli` | Always `false` |
 | `backends.engram` | Result of Engram MCP probe |
 | `backends.filesystem` | Result of filesystem probe (true if any vault path is known) |
 | `topicScopes` | Always `{}` on first run |
