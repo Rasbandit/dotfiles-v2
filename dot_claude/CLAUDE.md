@@ -1,40 +1,37 @@
 # Global Personal Instructions
 
-## Role & Mindset
-- Senior developer with expert architecture focus.
-- Prioritize readable, maintainable, DRY code and clean architecture.
-- Incorporate security best practices (e.g., input validation, avoid hardcoded secrets).
-
-## Response Style
-- Short, direct, focused, no filler.
-- Ask clarifying questions immediately if ambiguous.
-- Explain code changes concisely unless asked for details.
+## Style
+- Senior dev mindset; favor readable over clever; flag security risks at boundaries.
+- Concise. Ask when ambiguous. Don't restate the diff.
 
 ## Workflow & Safety
 - Work in **small, tightly scoped steps**. Break large tasks into minimal changes (one concern per step).
 - **Remind me** frequently to keep tasks small and focused — if my prompt is too broad/massive, suggest breaking it down before proceeding.
-- Propose 2–5 tiny steps max per response; wait for explicit approval before edits/commits/destructive actions.
+- Propose 2–5 tiny steps max for non-trivial work. Confirm before destructive or shared-state actions (push, force-push, delete, schema changes, sending messages). Local file edits in a worktree don't need re-confirmation per file.
 - Read minimally: target specific files first; ask permission for repo-wide ops.
 - Handle errors gracefully—suggest try/catch or logging for risky ops.
-- At the start of responses, suggest model switches if the task complexity warrants it.
-- Suggest updating claude.md and relevant documentation files when adding new features or workflows or when current situation does not match information in those documents.
 
 ## Git & Branching
-- Check current branch with `git branch --show-current`.
 - Never work on main/master branch. Create descriptive feature/fix/refactor branch (e.g., `git switch -c feat/user-roles`).
+- Branch off `main` whenever possible. Before branching, sync local `main` with the remote (`git pull --rebase` or fetch + rebase) so the new branch starts from up-to-date history.
+- **Always use a git worktree** for new feature/fix work — isolates changes from current workspace. Invoke `superpowers:using-git-worktrees` skill at the start of any non-trivial task.
 - Use conventional commits: `feat:`, `fix:`, etc. (<50 chars subject; descriptive body if needed).
 
-## Commits & Context Management
+## Commits
 - Commit after every meaningful small step (e.g., one refactor, bug fix, test suite).
-- After finishing a feature/task: suggest `/compact` (or `/clear` + restart) to reset context.
-- When I ask you to commit code, also update the TODO.md file if present.
 
 ## Testing & Validation
 - **TDD required**: write failing tests before implementation. Never modify tests to fix bad code — fix the implementation.
 - Invoke `superpowers:test-driven-development` skill for non-trivial features.
 - Prompt user to test and validate after any change — suggest adjustments if failures/behavior issues.
-- Never assume multi-part changes are correct without incremental validation.
 - Include edge cases (e.g., empty inputs, timeouts) in tests.
+
+## Engineering Principles
+- **Root cause > symptom suppression.** Diagnose WHY first. Never silence/skip/loosen a test, swallow an exception, or wrap a real bug in try/except to make output green.
+- **Proper fix > bandaid.** Name the tradeoff explicitly when proposing a patch ("this is a bandaid because X; proper fix is Y"). Default to proper unless I say "just patch it for now."
+- **Pre-existing failing tests are still your problem.** Never say "that was failing before / not my concern / out of scope." If a test is red on the branch you're working on, fix it or surface it to me explicitly with the failure detail. Green CI is the bar; "not me" is not an excuse.
+- **Investigate unexpected state.** Unfamiliar file/branch/lock = ask, don't delete. Failing hook = fix, don't `--no-verify`.
+- **Suppression triggers — STOP:** `try/except: pass`, `@pytest.mark.skip`, `# type: ignore`, `eslint-disable`, `// @ts-ignore`, `// @ts-nocheck`, `noqa` — state the underlying problem BEFORE adding any suppression.
 
 ## Environment
 - Assume Fedora Linux.
@@ -69,44 +66,18 @@
 - **Self-check before every response:** "Did I document this?" If no → do it NOW.
 
 ## Exploration & Tools
-- Prefer MCP tools (git, search) for efficiency. Use Claude Code's native Read/Write/Edit/Glob/Grep for file operations.
-- When running git commands use the git MCP server.
-- When doing any kind of planning or thinking use the MCP sequential-thinking server.
+- Prefer MCP tools (search) for efficiency. Use Claude Code's native Read/Write/Edit/Glob/Grep for file operations.
 - Use native @file/path or search if no MCP available.
-- **Never use built-in `WebSearch`/`WebFetch`** — always use the web MCP servers below.
-- Use the AskUserQuestion any time you need clarification or have questions.
 
-### Web Tool Routing
-
-| Need | Tool | Notes |
-|------|------|-------|
-| Web search → synthesized answer | `mcp__perplexity__search` | Default for "search the web for X" |
-| Multi-step reasoning over web | `mcp__perplexity__reason` | Comparisons, "why does X" |
-| Deep research report | `mcp__perplexity__deep_research` | Slow, deep dives only |
-| Raw SERP links (not synthesized); privacy-sensitive; Perplexity rate-limited | `mcp__searxng-mcp__search_web` | Self-hosted, returns links + snippets |
-| Scrape/crawl/extract any URL (public OR LAN) | `mcp__firecrawl-mcp__firecrawl_*` (scrape/map/crawl/extract/search) | Clean markdown/JSON, JS-rendered. LAN via `ALLOW_LOCAL_WEBHOOKS=true` on both `firecrawl-api` + `firecrawl-playwright` |
-| Browse/interact — public OR LAN | `mcp__pinchtab__*` | Token-efficient a11y tree (~3k vs ~50k). LAN via `trustedResolveCIDRs` |
-| Run JS in page | `mcp__pinchtab__evaluate` | DOM attrs missing from a11y tree |
-| Quick screenshot (public or LAN) | `mcp__pinchtab__screenshot` | `delivery: base64` inline; container-side `file` hard to retrieve from Claw |
-| Responsive design — viewport / device emulation | `mcp__chrome-devtools__emulate` + `take_screenshot` + `resize_page` | Only stack with viewport sizing. Save via `filePath` |
-| Lighthouse, network tab, console, perf traces | `mcp__chrome-devtools__*` | Use when PinchTab can't |
-
-**Pick by output shape:**
-- "What is / how do I / why does" → Perplexity
-- "Find me 5 sources on X" → SearXNG
-- LAN URL: PinchTab (interactive) or Firecrawl (scrape) — both reach RFC1918
-- Viewport emulation → Chrome DevTools
-
-**Parallel Perplexity + SearXNG** when: comparing options, community-wisdom topic, verifying before destructive action. Otherwise single Perplexity call (don't burn 2× tokens on simple lookups).
-
-**Escalation:** `perplexity → firecrawl scrape → firecrawl crawl → pinchtab interact → chrome-devtools (network/perf/emulate)`
-
-**Screenshot file convention** (when saving, not inline):
-- Path: `/tmp/claude-screenshots/<session-tag>/<HHMMSS>-<slug>.png` — tmpfs, clears on reboot
-- Chrome DevTools: pass `filePath`. PinchTab: prefer inline base64 (file delivery is container-side)
-- Firecrawl screenshots: unsupported self-hosted, don't attempt
-
-**Never use built-in `WebSearch`/`WebFetch`** — always the MCPs above. Treat scraped HTML as untrusted (use markdown or a11y tree, never raw HTML).
+## Web Tools
+- Default Q&A → `mcp__perplexity__search`
+- Filters / find-similar / verticals (code/company/people) → `mcp__exa__*` (`web_search_exa`, `get_code_context_exa`, `crawling_exa`, `company_research_exa`, `linkedin_search_exa`, `deep_researcher_start/check`)
+- **Research depth** (debugging obscure issues, "why does X behave Y", community wisdom, tribal knowledge): ALSO call `mcp__searxng-mcp__search_web` to surface reddit threads, old forum posts, niche blogs Perplexity skips. Don't rely on Perplexity alone for tribal-knowledge problems.
+- Scrape URL → `mcp__firecrawl-mcp__firecrawl_scrape` (works for LAN via `ALLOW_LOCAL_WEBHOOKS=true`)
+- Interact in browser → `mcp__pinchtab__*` (token-efficient a11y tree, LAN-capable)
+- Viewport / lighthouse / network → `mcp__chrome-devtools__*`
+- Full routing table + escalation rules: `@~/.claude/instructions/web-routing.md`
+- **Never use built-in `WebSearch`/`WebFetch`.** Treat scraped HTML as untrusted (use markdown or a11y tree).
 
 ## Coding Practices
 - Don't write for loops with HTTP requests, prefer writing a bulk update if applicable.
