@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+"""Switch GNOME color-scheme based on the local sun cycle.
+
+Applies a mode only when the sun boundary is crossed (computed desired mode
+differs from the last mode this script applied), so manual overrides hold
+until the next sunrise/sunset.
+"""
+import math
+import datetime
+from zoneinfo import ZoneInfo
+
+
+def solar_events(date, lat, lon, tz):
+    """Return (sunrise, sunset) as tz-aware datetimes in `tz` for `date`.
+
+    Implements the Almanac for Computers (1990) sunrise/sunset algorithm.
+    Returns (None, None) if the sun does not rise/set (polar day/night).
+    """
+    def _event(rising, zenith=90.8333):
+        n = date.timetuple().tm_yday
+        lng_hour = lon / 15.0
+        t = n + ((6 if rising else 18) - lng_hour) / 24.0
+        m = (0.9856 * t) - 3.289
+        true_long = (m + 1.916 * math.sin(math.radians(m))
+                     + 0.020 * math.sin(math.radians(2 * m)) + 282.634) % 360
+        ra = math.degrees(math.atan(0.91764 * math.tan(math.radians(true_long)))) % 360
+        ra += (math.floor(true_long / 90) * 90) - (math.floor(ra / 90) * 90)
+        ra /= 15.0
+        sin_dec = 0.39782 * math.sin(math.radians(true_long))
+        cos_dec = math.cos(math.asin(sin_dec))
+        cos_h = ((math.cos(math.radians(zenith)) - sin_dec * math.sin(math.radians(lat)))
+                 / (cos_dec * math.cos(math.radians(lat))))
+        if cos_h > 1 or cos_h < -1:
+            return None
+        h = (360 - math.degrees(math.acos(cos_h))) if rising else math.degrees(math.acos(cos_h))
+        h /= 15.0
+        local_t = h + ra - (0.06571 * t) - 6.622
+        ut = (local_t - lng_hour) % 24
+        hours = int(ut)
+        minutes = int(round((ut - hours) * 60))
+        base = datetime.datetime(date.year, date.month, date.day,
+                                 tzinfo=datetime.timezone.utc)
+        local = (base + datetime.timedelta(hours=hours, minutes=minutes)).astimezone(tz)
+        # The UT value is clamped to a 24h window anchored at UTC midnight, so the
+        # local result can land on the adjacent calendar day. Snap it back to `date`.
+        if local.date() < date:
+            local += datetime.timedelta(days=1)
+        elif local.date() > date:
+            local -= datetime.timedelta(days=1)
+        return local
+
+    sunrise = _event(rising=True)
+    sunset = _event(rising=False)
+    return sunrise, sunset
