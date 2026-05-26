@@ -1,0 +1,9 @@
+[Unit]
+Description=Poll the sun cycle every 5 minutes to set the theme
+
+[Timer]
+OnStartupSec=30s
+OnUnitActiveSec=5min
+
+[Install]
+WantedBy=timers.target
