@@ -48,3 +48,15 @@ def test_decide_boundary_crossed_applies():
 
 def test_decide_same_period_skips():
     assert tst.decide("light", "light") == ("skip", "light")
+
+def test_read_config_parses_lat_lon(tmp_path):
+    p = tmp_path / "config"
+    p.write_text("LAT=40.7619\nLON=-111.903\n# comment\n\n")
+    cfg = tst.read_config(p)
+    assert cfg == {"LAT": 40.7619, "LON": -111.903}
+
+def test_state_roundtrip(tmp_path):
+    p = tmp_path / "last-mode"
+    assert tst.read_state(p) is None
+    tst.write_state(p, "dark")
+    assert tst.read_state(p) == "dark"
