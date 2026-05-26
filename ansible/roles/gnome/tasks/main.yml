@@ -114,5 +114,25 @@
 - name: Include xremap setup
   ansible.builtin.include_tasks: xremap.yml
 
-- name: Include darkman setup
-  ansible.builtin.include_tasks: darkman.yml
+- name: Disable and stop darkman (replaced by theme-sun timer)
+  ansible.builtin.systemd:
+    name: darkman
+    enabled: false
+    state: stopped
+    scope: user
+  become: false
+  failed_when: false
+
+- name: Reload systemd user daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+    scope: user
+  become: false
+
+- name: Enable and start theme-sun timer
+  ansible.builtin.systemd:
+    name: theme-sun.timer
+    enabled: true
+    state: started
+    scope: user
+  become: false
