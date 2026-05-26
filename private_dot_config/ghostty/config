@@ -1,5 +1,8 @@
 # Ghostty terminal configuration
 
+font-family = MonoLisa Nerd Font
+font-size = 12
+
 theme = dark:dracula,light:alucard
 
 # Rebind tab switching from alt+N to ctrl+alt+N (frees alt+N for tmux)
