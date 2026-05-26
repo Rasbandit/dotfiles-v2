@@ -5,8 +5,11 @@ Applies a mode only when the sun boundary is crossed (computed desired mode
 differs from the last mode this script applied), so manual overrides hold
 until the next sunrise/sunset.
 """
+import os
 import math
 import datetime
+import subprocess
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 
@@ -66,3 +69,56 @@ def decide(desired, last):
     if last is None or desired != last:
         return ("apply", desired)
     return ("skip", last)
+
+
+CONFIG_PATH = Path(os.path.expanduser("~/.config/theme-sun/config"))
+STATE_PATH = Path(os.path.expanduser("~/.local/state/theme-sun/last-mode"))
+
+
+def read_config(path=CONFIG_PATH):
+    cfg = {}
+    for line in Path(path).read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, val = line.partition("=")
+        cfg[key.strip()] = float(val.strip())
+    return cfg
+
+
+def read_state(path=STATE_PATH):
+    p = Path(path)
+    if not p.exists():
+        return None
+    val = p.read_text().strip()
+    return val or None
+
+
+def write_state(path, mode):
+    p = Path(path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(mode + "\n")
+
+
+def apply_mode(mode):
+    value = "prefer-dark" if mode == "dark" else "prefer-light"
+    subprocess.run(
+        ["gsettings", "set", "org.gnome.desktop.interface", "color-scheme", value],
+        check=True,
+    )
+
+
+def main():
+    cfg = read_config()
+    tz = datetime.datetime.now().astimezone().tzinfo
+    now = datetime.datetime.now(tz)
+    sunrise, sunset = solar_events(now.date(), cfg["LAT"], cfg["LON"], tz)
+    desired = desired_mode(now, sunrise, sunset)
+    action, _ = decide(desired, read_state())
+    if action == "apply":
+        apply_mode(desired)
+        write_state(STATE_PATH, desired)
+
+
+if __name__ == "__main__":
+    main()
