@@ -52,3 +52,17 @@ def solar_events(date, lat, lon, tz):
     sunrise = _event(rising=True)
     sunset = _event(rising=False)
     return sunrise, sunset
+
+
+def desired_mode(now, sunrise, sunset):
+    """Return 'light' between sunrise (inclusive) and sunset (exclusive), else 'dark'."""
+    if sunrise is None or sunset is None:
+        return "dark"
+    return "light" if sunrise <= now < sunset else "dark"
+
+
+def decide(desired, last):
+    """Return ('apply', desired) on first run or sun-boundary crossing; else ('skip', last)."""
+    if last is None or desired != last:
+        return ("apply", desired)
+    return ("skip", last)

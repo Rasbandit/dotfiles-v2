@@ -24,3 +24,27 @@ def test_solar_events_returns_local_tz():
     sunrise, sunset = tst.solar_events(d, SLC_LAT, SLC_LON, MDT)
     assert sunrise.tzinfo == MDT and sunset.tzinfo == MDT
     assert sunrise < sunset
+
+def _dt(h, m=0):
+    return datetime.datetime(2026, 5, 26, h, m, tzinfo=MDT)
+
+def test_desired_mode_daytime_is_light():
+    assert tst.desired_mode(_dt(12), _dt(6), _dt(20)) == "light"
+
+def test_desired_mode_before_sunrise_is_dark():
+    assert tst.desired_mode(_dt(5), _dt(6), _dt(20)) == "dark"
+
+def test_desired_mode_after_sunset_is_dark():
+    assert tst.desired_mode(_dt(21), _dt(6), _dt(20)) == "dark"
+
+def test_desired_mode_at_sunrise_boundary_is_light():
+    assert tst.desired_mode(_dt(6), _dt(6), _dt(20)) == "light"
+
+def test_decide_first_run_applies():
+    assert tst.decide("dark", None) == ("apply", "dark")
+
+def test_decide_boundary_crossed_applies():
+    assert tst.decide("dark", "light") == ("apply", "dark")
+
+def test_decide_same_period_skips():
+    assert tst.decide("light", "light") == ("skip", "light")
