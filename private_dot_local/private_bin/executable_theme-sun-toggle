@@ -56,11 +56,15 @@ def solar_events(date, lat, lon, tz):
     return sunrise, sunset
 
 
+DARK_OFFSET_MINUTES = 30  # delay dark mode this many minutes past official sunset
+
+
 def desired_mode(now, sunrise, sunset):
-    """Return 'light' between sunrise (inclusive) and sunset (exclusive), else 'dark'."""
+    """Return 'light' between sunrise and sunset+DARK_OFFSET_MINUTES (exclusive), else 'dark'."""
     if sunrise is None or sunset is None:
         return "dark"
-    return "light" if sunrise <= now < sunset else "dark"
+    dark_start = sunset + datetime.timedelta(minutes=DARK_OFFSET_MINUTES)
+    return "light" if sunrise <= now < dark_start else "dark"
 
 
 def decide(desired, last):

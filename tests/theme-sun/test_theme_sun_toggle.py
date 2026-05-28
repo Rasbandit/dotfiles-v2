@@ -34,7 +34,15 @@ def test_desired_mode_daytime_is_light():
 def test_desired_mode_before_sunrise_is_dark():
     assert tst.desired_mode(_dt(5), _dt(6), _dt(20)) == "dark"
 
-def test_desired_mode_after_sunset_is_dark():
+def test_desired_mode_after_sunset_still_light_within_offset():
+    # sunset 20:00, dark starts 20:30 — at 20:15 should still be light
+    assert tst.desired_mode(_dt(20, 15), _dt(6), _dt(20)) == "light"
+
+def test_desired_mode_after_offset_is_dark():
+    # at 20:30 (sunset + 30 min) dark mode kicks in
+    assert tst.desired_mode(_dt(20, 30), _dt(6), _dt(20)) == "dark"
+
+def test_desired_mode_well_after_sunset_is_dark():
     assert tst.desired_mode(_dt(21), _dt(6), _dt(20)) == "dark"
 
 def test_desired_mode_at_sunrise_boundary_is_light():
