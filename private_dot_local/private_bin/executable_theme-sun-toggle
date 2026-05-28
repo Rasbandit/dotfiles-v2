@@ -100,7 +100,7 @@ def write_state(path, mode):
 
 
 def apply_mode(mode):
-    value = "prefer-dark" if mode == "dark" else "prefer-light"
+    value = "prefer-dark" if mode == "dark" else "default"
     subprocess.run(
         ["gsettings", "set", "org.gnome.desktop.interface", "color-scheme", value],
         check=True,
