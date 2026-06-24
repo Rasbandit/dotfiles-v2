@@ -6,27 +6,32 @@ argument-hint: [init | <description of work done>]
 
 Write to the daily work log. If `$ARGUMENTS` is `init` or empty, run the session-start procedure. Otherwise append a single entry describing the work in `$ARGUMENTS`.
 
-## Log file location
+## Step 0 — Resolve the destination (vault + folder)
 
-```
-1. Alignment/4. Work Log/YYYY-MM/YYYY-MM-DD.md
-```
+The destination vault and base folder come from the project's `## Life OS` block — the same block that supplies the tags. Read the current project's CLAUDE.md (CWD or nearest parent dir) and extract:
 
-Use today's date. Never read-then-write.
-
----
-
-## Step 0 — Write backend
-
-**You MUST use the Engram MCP.** Do NOT install or invoke any local Obsidian CLI/app — they have crash-looped and OOM'd this machine before. The Engram MCP is a remote HTTP service; never reach for a local vault mirror.
-
-```
-mcp__engram__append_to_note(path="1. Alignment/4. Work Log/YYYY-MM/YYYY-MM-DD.md", text="<text>")
+```markdown
+## Life OS
+worklog_vault: <vault name>          # e.g. "Engram" or "My Vault"
+worklog_path: <base folder>          # e.g. "1. Alignment/4. Work Log"
 ```
 
-- Creates the file if missing. Use `\n` for newlines.
+**If both fields are present:**
 
-**If Engram MCP is unavailable or errors:** surface the error to the user. Do NOT silently write to any local path — there is no local vault on this machine anymore.
+1. Call `mcp__engram__list_vaults`. Match `worklog_vault` to a vault by name, **case-insensitive, exact**.
+   - No match, or more than one match → **STOP**. Tell the user the name is unresolvable and list the available vault names. Do NOT write anything.
+2. Record the resolved vault ID (a UUID string) and the base folder. The note path is `<worklog_path>/YYYY-MM/YYYY-MM-DD.md` using today's date.
+
+**If the fields are absent (or there is no CLAUDE.md at all):**
+
+Do NOT guess a vault. Help the user choose, then persist:
+
+1. `mcp__engram__list_vaults` — show the available vaults.
+2. For the likely candidate vault(s), call `mcp__engram__set_vault(vault_id="<id>")` then `mcp__engram__list_folders` to show existing work-log folders, then reset with `mcp__engram__set_vault()`.
+3. Ask the user which vault + base folder to use.
+4. **Persist** the answer: use the Edit tool to add `worklog_vault:` and `worklog_path:` to the project's `## Life OS` block so this is a one-time question. If there is no CLAUDE.md to edit, proceed and append `(worklog destination not persisted — no CLAUDE.md)` to the entry description.
+
+Never read-then-write the log file. Use today's date.
 
 ---
 
@@ -59,12 +64,36 @@ Format: `[HH:MM-HH:MM]` — e.g. `[14:05-14:35]`
 
 ---
 
-## Step 3 — Append the entry
+## Step 3 — Write the entry
 
-Use `mcp__engram__append_to_note` with:
+**Use the Engram MCP only.** Do NOT install or invoke any local Obsidian CLI/app — they have crash-looped and OOM'd this machine. The Engram MCP is a remote HTTP service.
 
-- `path`: `1. Alignment/4. Work Log/YYYY-MM/YYYY-MM-DD.md`
-- `text`: the entry line (plus `# YYYY-MM-DD\n\n` prefix **only** if this is the very first entry of the day)
+1. Switch to the destination vault resolved in Step 0:
+
+   ```
+   mcp__engram__set_vault(vault_id="<resolved UUID string>")
+   ```
+
+   > GOTCHA: the tool schema declares `vault_id` as an **integer**, but real vault IDs are **UUID strings**. Pass the UUID as a quoted string anyway — the server expects it. (Skip this call only if the destination is already the default vault AND you have not switched away from it this session.)
+
+2. Append the entry:
+
+   ```
+   mcp__engram__append_to_note(path="<worklog_path>/YYYY-MM/YYYY-MM-DD.md", text="<entry>")
+   ```
+
+   - Creates the file if missing. Use `\n` for newlines.
+   - Prefix the text with `# YYYY-MM-DD\n\n` **only** if this is the very first entry of the day.
+
+3. Reset the vault context so the switch does not leak into later MCP calls this session:
+
+   ```
+   mcp__engram__set_vault()
+   ```
+
+   (no `vault_id` → back to default).
+
+**If the Engram MCP is unavailable or errors:** surface the error to the user. Do NOT silently write to any local path — there is no local vault on this machine.
 
 Entry format:
 ```
@@ -114,7 +143,7 @@ Entry format:
 ## Session-start procedure (`init`)
 
 1. Read the current project's CLAUDE.md and resolve slugs (Step 1 above) — background prep only
-2. Note today's log path — but **do NOT write any entry yet**
+2. Resolve the destination vault + base folder (Step 0) and note today's log path — but **do NOT write any entry yet**. If the project has no `worklog_vault`/`worklog_path`, defer the choose-and-persist flow until the first real entry (do not prompt at init).
 3. Write the first entry only after the first meaningful action occurs in this session
 4. Use the format: `Session start — <what was done>`
 
