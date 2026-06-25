@@ -100,7 +100,7 @@ Format: `[HH:MM-HH:MM]` — e.g. `[14:05-14:35]`
    ```
 
    - Creates the file if missing. Use `\n` for newlines.
-   - Prefix the text with `# YYYY-MM-DD\n\n` (the **work-day date**) **only** if this is the very first entry of the work-day.
+   - **Do NOT add a `# YYYY-MM-DD` heading.** The filename already *is* the work-day date (`YYYY-MM-DD.md`), which Obsidian/engram render as the note title. Just append the `[HH:MM-…]` entry. (An in-body H1 caused duplicate date headers: the skill can't read the file to tell whether one already exists, so each session prepended its own.)
 
 3. Reset the vault context so the switch does not leak into later MCP calls this session:
 
@@ -124,6 +124,7 @@ Entry format:
 - Past tense, concrete verb: "fixed", "added", "removed", "decided", "merged", "root-caused".
 - Skip filler: "worked on", "made changes to", "did some", "updated things".
 - One entry = one completed unit of work, not a whole session crammed together.
+- **Don't leak stray tags.** Only the leading `#project/ #goal/ #value/` are meant to be tags. A bare `#` before an *alphanumeric* word elsewhere (`#NNN`, `#00F0FF`, `#FixMe`) gets parsed as a vault tag and pollutes the note. Write PR/issue refs as `PR #745` (pure-numeric `#745` is fine — not a tag) and wrap any other `#token` in backticks (`` `#NNN` ``) or drop the `#`.
 
 **Good entries (compact):**
 ```
