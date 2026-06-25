@@ -52,6 +52,14 @@ value: <slug>     →  #value/<slug>
 
 **If working across multiple projects in one block:** use the primary project's tags.
 
+**Multi-repo workspace — tag by what the work TOUCHED, not by CWD.** Some projects are a workspace root that contains sub-repos (e.g. `engram-workspace` with `backend/` and `plugin/`). Most work happens *from* the workspace root but targets a sub-repo. Do **not** default to the workspace's own `project:` slug just because that's the current directory. Decide the `#project/` tag from the files the work actually changed:
+
+- Work touched files under a sub-repo dir → use **that sub-repo's** `project:` slug (read its own CLAUDE.md/AGENTS.md `## Life OS` block for the slug).
+- Work touched only workspace-level files (root docs, Makefile, the root CLAUDE.md) → use the workspace's own slug.
+- The workspace root CLAUDE.md may list an explicit sub-repo → tag map — follow it if present.
+
+The destination vault/folder stays the workspace's `worklog_vault`/`worklog_path` (one shared log); only the `#project/` tag changes per sub-repo.
+
 ---
 
 ## Step 2 — Get the time
@@ -100,24 +108,31 @@ Entry format:
 [HH:MM-HH:MM] #project/<slug> #goal/<slug> #value/<slug> <Description>
 ```
 
-**Description rules:**
-- Past tense, one sentence, specific enough to reconstruct what happened without reading code
-- Name the artifact: file, function, service, config, decision
-- Include outcome or state change: "fixed", "added", "removed", "decided", "discovered", "debugged"
-- Skip filler: "worked on", "made changes to", "did some", "updated things"
+**Description rules — keep it to ONE compact line:**
+- **Hard cap ~240 chars (~35 words). One sentence.** If it won't fit, you're logging too much — trim or split into separate entries.
+- **Lead with the outcome + the artifact.** What changed and where: file, function, service, config, decision, PR/issue #.
+- **Cut the play-by-play.** No "then I… then I…" chains, no diagnostic narrative, no listing every file touched or every CI step, no parenthetical asides. Reference `PR #123` instead of retelling what's in it.
+- Past tense, concrete verb: "fixed", "added", "removed", "decided", "merged", "root-caused".
+- Skip filler: "worked on", "made changes to", "did some", "updated things".
+- One entry = one completed unit of work, not a whole session crammed together.
 
-**Good entries:**
+**Good entries (compact):**
 ```
-[14:00-14:30] #project/gobigger-doterra #goal/gobigger #value/self-reliance Migrated user-service.ts from Firestore to Drizzle/Postgres — session auth now fully on Supabase
-[09:15-09:45] #project/open-claw-manager #goal/self-hosting #value/self-reliance Debugged Navigator cron not firing — root cause was missing CLAUDE.md Life OS block, added it
-[20:00-20:20] #project/audiobook-tools #goal/self-hosting #value/self-reliance Decided to decouple audiobook-tools from ops-dispatcher — removes single point of failure
+[14:00-14:30] #project/gobigger-doterra #goal/gobigger #value/self-reliance Migrated user-service.ts Firestore→Drizzle/Postgres; session auth now on Supabase
+[09:15-09:45] #project/open-claw-manager #goal/self-hosting #value/self-reliance Root-caused Navigator cron not firing → missing CLAUDE.md Life OS block; added it
+[20:00-20:20] #project/audiobook-tools #goal/self-hosting #value/self-reliance Decided to decouple audiobook-tools from ops-dispatcher — kills a single point of failure
 ```
 
 **Bad entries (do not write these):**
 ```
+# too vague:
 [14:00-14:30] #project/gobigger-doterra #goal/gobigger #value/self-reliance Worked on the database migration
 [09:15-09:45] #project/open-claw-manager #goal/self-hosting #value/self-reliance Fixed bug
-[20:00-20:20] #project/audiobook-tools #goal/self-hosting #value/self-reliance Made some updates
+
+# too verbose — a whole session in one entry (trim to the outcome + PR #):
+[16:30-18:05] #project/engram Built PR #741 — TDD'd Helpers.scrub_utf8/2 telemetry + PromEx counter + :data log category + #738 regression test + #739 backfill task, ran the full format/credo/dialyzer/test gauntlet, bumped 0.5.529, pushed, opened PR, remaining is the Grafana alert which depends on the metric reaching prod via a release tag...
+# →
+[16:30-18:05] #project/engram #goal/income #value/financial-freedom Shipped PR #741 — UTF-8 scrub telemetry + PromEx counter + #739 backfill task; full gauntlet green, v0.5.529. Follow-up: Grafana alert pending prod metric
 ```
 
 ---
