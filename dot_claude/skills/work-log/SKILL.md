@@ -18,7 +18,7 @@ worklog_path: <base folder>          # e.g. "1. Alignment/4. Work Log"
 
 **If both fields are present:**
 
-1. Call `mcp__engram__list_vaults`. Match `worklog_vault` to a vault by name, **case-insensitive, exact**.
+1. Call `mcp__claude_ai_Engram__list_vaults`. Match `worklog_vault` to a vault by name, **case-insensitive, exact**.
    - No match, or more than one match → **STOP**. Tell the user the name is unresolvable and list the available vault names. Do NOT write anything.
 2. Record the resolved vault ID (a UUID string) and the base folder. The note path is `<worklog_path>/YYYY-MM/YYYY-MM-DD.md` using the **work-day date** (defined below — *not* the raw calendar date).
 
@@ -26,8 +26,8 @@ worklog_path: <base folder>          # e.g. "1. Alignment/4. Work Log"
 
 Do NOT guess a vault. Help the user choose, then persist:
 
-1. `mcp__engram__list_vaults` — show the available vaults.
-2. For the likely candidate vault(s), call `mcp__engram__set_vault(vault_id="<id>")` then `mcp__engram__list_folders` to show existing work-log folders, then reset with `mcp__engram__set_vault()`.
+1. `mcp__claude_ai_Engram__list_vaults` — show the available vaults.
+2. For the likely candidate vault(s), call `mcp__claude_ai_Engram__list_folders(vault_id="<id>")` to show existing work-log folders.
 3. Ask the user which vault + base folder to use.
 4. **Persist** the answer: use the Edit tool to add `worklog_vault:` and `worklog_path:` to the project's `## Life OS` block so this is a one-time question. If there is no CLAUDE.md to edit, proceed and append `(worklog destination not persisted — no CLAUDE.md)` to the entry description.
 
@@ -85,30 +85,16 @@ Format: `[HH:MM-HH:MM]` — e.g. `[14:05-14:35]`
 
 **Use the Engram MCP only.** Do NOT install or invoke any local Obsidian CLI/app — they have crash-looped and OOM'd this machine. The Engram MCP is a remote HTTP service.
 
-1. Switch to the destination vault resolved in Step 0:
+The tools are `mcp__claude_ai_Engram__*` (deferred — load with `ToolSearch select:` first). The server keeps **no active-vault state**: pass `vault_id` (vault name or UUID) on every call. There is no `set_vault` step.
+
+1. Append the entry:
 
    ```
-   mcp__engram__set_vault(vault_id="<resolved UUID string>")
+   mcp__claude_ai_Engram__append_to_note(vault_id="<resolved vault>", path="<worklog_path>/YYYY-MM/YYYY-MM-DD.md", text="<entry>")
    ```
 
-   > GOTCHA: the tool schema declares `vault_id` as an **integer**, but real vault IDs are **UUID strings**. Pass the UUID as a quoted string anyway — the server expects it. (Skip this call only if the destination is already the default vault AND you have not switched away from it this session.)
-
-2. Append the entry:
-
-   ```
-   mcp__engram__append_to_note(path="<worklog_path>/YYYY-MM/YYYY-MM-DD.md", text="<entry>")
-   ```
-
-   - Creates the file if missing. Use `\n` for newlines.
-   - **Do NOT add a `# YYYY-MM-DD` heading.** The filename already *is* the work-day date (`YYYY-MM-DD.md`), which Obsidian/engram render as the note title. Just append the `[HH:MM-…]` entry. (An in-body H1 caused duplicate date headers: the skill can't read the file to tell whether one already exists, so each session prepended its own.)
-
-3. Reset the vault context so the switch does not leak into later MCP calls this session:
-
-   ```
-   mcp__engram__set_vault()
-   ```
-
-   (no `vault_id` → back to default).
+   - Creates the file if missing (the server adds a `# <name>` title line itself). Use `\n` for newlines.
+   - **Do NOT add your own `# YYYY-MM-DD` heading.** The filename already *is* the work-day date. Just append the `[HH:MM-…]` entry.
 
 **If the Engram MCP is unavailable or errors:** surface the error to the user. Do NOT silently write to any local path — there is no local vault on this machine.
 
