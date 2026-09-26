@@ -13,7 +13,7 @@ Detect backends silently — no output to the user yet.
 ### Engram MCP
 
 ```
-mcp__engram__search_notes(query="test", limit=1)
+mcp__claude_ai_Engram__search_notes(query="test", limit=1)
 ```
 
 - Returns a list (empty or populated) → Engram is connected (`engram = true`)

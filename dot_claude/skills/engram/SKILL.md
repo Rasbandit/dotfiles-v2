@@ -46,7 +46,7 @@ Read `~/.engram/skill-config.json`. Then run a quick health check against what c
 
 **Engram MCP check** — if `backends.engram` is `true` in config:
 ```
-mcp__engram__search_notes(query="health_check", limit=1)
+mcp__claude_ai_Engram__search_notes(query="health_check", limit=1)
 ```
 If the call throws or returns an error: set `engram_available = false`, downgrade tier.
 

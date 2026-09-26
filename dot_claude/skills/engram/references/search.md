@@ -31,8 +31,8 @@ User asked to find notes. Show results.
 **Tier 3 (Full):**
 
 1. Resolve topic scope — if the query contains obvious category words (health, work, tech, etc.), consult `references/scoping.md` to check for a matching scope in config.
-2. Run semantic search: `mcp__engram__search_notes(query=<query>, limit=5)`
-3. If category words are present: run `mcp__engram__list_tags()`, then re-run search with a relevant `tags` filter if it would meaningfully narrow results (i.e. a tag maps clearly to the category word).
+2. Run semantic search: `mcp__claude_ai_Engram__search_notes(query=<query>, limit=5)`
+3. If category words are present: run `mcp__claude_ai_Engram__list_tags()`, then re-run search with a relevant `tags` filter if it would meaningfully narrow results (i.e. a tag maps clearly to the category word).
 4. Present results:
    ```
    **[Note Title]**
@@ -40,7 +40,7 @@ User asked to find notes. Show results.
    > Excerpt showing the relevant part...
    ```
 5. Offer: "Want me to read any of these in full?"
-6. If yes: `mcp__engram__get_note(source_path=<path>)` — summarize the relevant sections. Do not dump raw content.
+6. If yes: `mcp__claude_ai_Engram__get_note(source_path=<path>)` — summarize the relevant sections. Do not dump raw content.
 
 **Tier 2 (CLI):**
 
@@ -67,7 +67,7 @@ A term, name, or concept appeared mid-conversation that you don't have context f
 
 **Tier 3 (Full):**
 
-`mcp__engram__search_notes(query=<term>, limit=3)` — silently.
+`mcp__claude_ai_Engram__search_notes(query=<term>, limit=3)` — silently.
 
 **Tier 2 (CLI):**
 

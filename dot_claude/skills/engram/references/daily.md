@@ -28,8 +28,8 @@ Reading today's (or a specific date's) daily note.
    - Explicit dates pass through as-is
 
 2. Read the daily note:
-   - `mcp__engram__search_notes(query="daily note YYYY-MM-DD", limit=3)` to locate the note
-   - If found, use `mcp__engram__get_note(source_path=<path>)` to read it
+   - `mcp__claude_ai_Engram__search_notes(query="daily note YYYY-MM-DD", limit=3)` to locate the note
+   - If found, use `mcp__claude_ai_Engram__get_note(source_path=<path>)` to read it
    - Summarize key content, don't dump raw markdown
 
 3. If no note found for that date:
@@ -71,11 +71,11 @@ Create today's daily note (from template if available).
 **Tier 3 (Full):**
 
 1. Check for existing daily note for today:
-   - `mcp__engram__search_notes(query="daily note today", limit=1)`
+   - `mcp__claude_ai_Engram__search_notes(query="daily note today", limit=1)`
    - If exists, tell the user and ask if they want to append or open instead
 
 2. Create the note:
-   - `mcp__engram__create_note(title="<YYYY-MM-DD>", content="# YYYY-MM-DD\n\n", tags=["daily"])`
+   - `mcp__claude_ai_Engram__create_note(title="<YYYY-MM-DD>", content="# YYYY-MM-DD\n\n", tags=["daily"])`
    - Engram will auto-place in the appropriate folder
    - Confirm creation with path
 
@@ -117,10 +117,10 @@ Add content to today's daily note.
 1. Resolve date (default to today if not specified)
 
 2. Check if daily note exists:
-   - `mcp__engram__search_notes(query="daily note YYYY-MM-DD", limit=1)`
+   - `mcp__claude_ai_Engram__search_notes(query="daily note YYYY-MM-DD", limit=1)`
 
 3. If it exists:
-   - Read it: `mcp__engram__get_note(source_path=<path>)`
+   - Read it: `mcp__claude_ai_Engram__get_note(source_path=<path>)`
    - Append the new content as a new paragraph or section
    - Update it using search/update pattern (treat as update-note operation from `references/update.md`)
 

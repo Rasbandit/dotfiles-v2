@@ -41,7 +41,7 @@ If no config mapping exists, discover what's in the vault:
 
 **Tier 3 (CLI + Engram):**
 ```
-mcp__engram__list_tags()
+mcp__claude_ai_Engram__list_tags()
 ```
 
 **Tier 2 (CLI only):**
@@ -113,7 +113,7 @@ When a topic scope is active during note creation:
 
 | Tier | Behavior |
 |---|---|
-| **Tier 3** | Use the scoped folder as the suggested path; pass it to `mcp__engram__suggest_folder` as validation/fallback |
+| **Tier 3** | Use the scoped folder as the suggested path; pass it to `mcp__claude_ai_Engram__suggest_folder` as validation/fallback |
 | **Tier 2** | Use the scoped folder directly, or ask the user if the scoped path is ambiguous |
 | **Tier 1** | Use the scoped folder directly, or ask the user |
 

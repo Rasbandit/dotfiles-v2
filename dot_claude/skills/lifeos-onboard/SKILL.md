@@ -21,8 +21,8 @@ Read the project's `CLAUDE.md` (current working directory or provided path).
 ### 3. Research existing goals
 Use Engram MCP to read all active goal files (folder-per-goal structure):
 ```
-mcp__engram__list_folder(path="1. Alignment/1. Goals/1. Value/1. Active")
-mcp__engram__list_folder(path="1. Alignment/1. Goals/2. Outcome/1. Active")
+mcp__claude_ai_Engram__list_folder(path="1. Alignment/1. Goals/1. Value/1. Active")
+mcp__claude_ai_Engram__list_folder(path="1. Alignment/1. Goals/2. Outcome/1. Active")
 ```
 Then read each goal file at `<slug>/<slug>.md` to understand slugs, emojis, values, and project associations.
 
@@ -46,11 +46,11 @@ If the user wants a new goal:
 - Include `emoji:` in the frontmatter
 - Save via Engram MCP (goal gets its own folder):
 ```
-mcp__engram__create_note(title=<goal name>, content=<filled template>, suggested_folder="1. Alignment/1. Goals/1. Value/1. Active/<slug>")
+mcp__claude_ai_Engram__create_note(title=<goal name>, content=<filled template>, suggested_folder="1. Alignment/1. Goals/1. Value/1. Active/<slug>")
 ```
 - Also create a project file if the repo maps to this goal:
 ```
-mcp__engram__create_note(title=<project-slug>, content=<project template>, suggested_folder="1. Alignment/1. Goals/.../Active/<goal-slug>/projects")
+mcp__claude_ai_Engram__create_note(title=<project-slug>, content=<project template>, suggested_folder="1. Alignment/1. Goals/.../Active/<goal-slug>/projects")
 ```
 
 ### 6. Add the Life OS block

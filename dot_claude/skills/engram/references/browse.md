@@ -18,7 +18,7 @@ User asks what they have on a broad subject — check both tags and folders.
 
 **Tier 3 (Full):**
 
-1. Call `mcp__engram__list_tags()` and `mcp__engram__list_folders()` in parallel.
+1. Call `mcp__claude_ai_Engram__list_tags()` and `mcp__claude_ai_Engram__list_folders()` in parallel.
 2. Surface tags that match or relate to the topic (with counts).
 3. Surface folders whose names overlap the topic.
 4. Present concisely — do not dump full lists. Highlight the most relevant matches.
@@ -43,7 +43,7 @@ User asks what they have on a broad subject — check both tags and folders.
 
 High-level vault structure overview.
 
-**Tier 3 (Full):** `mcp__engram__list_folders()`
+**Tier 3 (Full):** `mcp__claude_ai_Engram__list_folders()`
 
 **Tier 2 (CLI):** `obsidian vault` or `obsidian folders`
 
@@ -65,7 +65,7 @@ List the top Knowledge Vault sub-areas with their note counts. Invite the user t
 
 Contents of a specific folder the user named.
 
-**Tier 3 (Full):** `mcp__engram__list_folder(folder=<path>)`
+**Tier 3 (Full):** `mcp__claude_ai_Engram__list_folder(folder=<path>)`
 
 **Tier 2 (CLI):** `obsidian folders --path "<folder>"`
 
@@ -79,7 +79,7 @@ If the user named a folder loosely (e.g. "health"), fuzzy-match against availabl
 
 Display and explore the vault's tags.
 
-**Tier 3 (Full):** `mcp__engram__list_tags()`
+**Tier 3 (Full):** `mcp__claude_ai_Engram__list_tags()`
 
 **Tier 2 (CLI):** `obsidian tags counts`
 
@@ -90,7 +90,7 @@ Sort by count. Group visually if there are obvious clusters (health-related, tec
 > "Want me to pull all notes tagged `supplements`?"
 
 If yes:
-- **Tier 3:** `mcp__engram__search_notes(query=<tag or related phrase>, tags=[<tag>], limit=10)`
+- **Tier 3:** `mcp__claude_ai_Engram__search_notes(query=<tag or related phrase>, tags=[<tag>], limit=10)`
 - **Tier 2:** `obsidian search "<tag>"` or equivalent tag filter
 - **Tier 1:** `grep -rl "tags:.*<tag>" <vaultPath>/` then list matches
 
@@ -109,7 +109,7 @@ If yes:
 
 Preserve these exact signatures in Tier 3:
 
-- `mcp__engram__list_tags()` — all tags with counts
-- `mcp__engram__list_folders()` — top-level vault structure
-- `mcp__engram__list_folder(folder=<path>)` — contents of a specific folder
-- `mcp__engram__search_notes(query=<phrase>, tags=[<tag>], limit=10)` — tag-scoped semantic search
+- `mcp__claude_ai_Engram__list_tags()` — all tags with counts
+- `mcp__claude_ai_Engram__list_folders()` — top-level vault structure
+- `mcp__claude_ai_Engram__list_folder(folder=<path>)` — contents of a specific folder
+- `mcp__claude_ai_Engram__search_notes(query=<phrase>, tags=[<tag>], limit=10)` — tag-scoped semantic search

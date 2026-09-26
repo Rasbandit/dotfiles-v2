@@ -19,11 +19,11 @@ All update operations start with finding the note (search-then-act pattern).
 
 ### find-note (shared first step)
 
-**Tier 3 (Full):** `mcp__engram__search_notes(query=<topic>, limit=5)`
+**Tier 3 (Full):** `mcp__claude_ai_Engram__search_notes(query=<topic>, limit=5)`
 **Tier 2 (CLI):** `obsidian search "<topic>"`
 **Tier 1 (Files):** `grep -ril "<topic>" <vaultPath>/`
 
-If all returned scores are identical (Tier 3) or no clear match: try one alternative phrasing, then browse likely folders with `mcp__engram__list_folder` (Tier 3) or `obsidian folders` (Tier 2) or `ls` (Tier 1). If still not found, ask the user to clarify.
+If all returned scores are identical (Tier 3) or no clear match: try one alternative phrasing, then browse likely folders with `mcp__claude_ai_Engram__list_folder` (Tier 3) or `obsidian folders` (Tier 2) or `ls` (Tier 1). If still not found, ask the user to clarify.
 
 If multiple plausible matches: show top 2–3 titles and confirm before editing.
 
@@ -35,9 +35,9 @@ Add content to the end of a note.
 
 **Tier 3 (Full):**
 
-`mcp__engram__append_to_note(path=<path>, text=<content>)`
+`mcp__claude_ai_Engram__append_to_note(path=<path>, text=<content>)`
 
-Note: `append_to_note` creates the note if it doesn't exist. If creating via append, use `mcp__engram__suggest_folder` to pick the right path first.
+Note: `append_to_note` creates the note if it doesn't exist. If creating via append, use `mcp__claude_ai_Engram__suggest_folder` to pick the right path first.
 
 **Tier 2 (CLI):**
 
@@ -55,9 +55,9 @@ Replace content under a specific heading.
 
 **Tier 3 (Full):**
 
-1. Read first: `mcp__engram__get_note(source_path=<path>)`
+1. Read first: `mcp__claude_ai_Engram__get_note(source_path=<path>)`
 2. Locate the exact heading string (case-sensitive).
-3. `mcp__engram__update_section(path=<path>, heading=<heading>, new_content=<content>)`
+3. `mcp__claude_ai_Engram__update_section(path=<path>, heading=<heading>, new_content=<content>)`
 
 **Tier 2 (CLI):**
 
@@ -83,9 +83,9 @@ Surgical text swap — find and replace specific text within a note.
 
 **Tier 3 (Full):**
 
-1. Read first: `mcp__engram__get_note(source_path=<path>)`
+1. Read first: `mcp__claude_ai_Engram__get_note(source_path=<path>)`
 2. Copy the target text VERBATIM from the note content.
-3. `mcp__engram__patch_note(path=<path>, find=<old_text>, replace=<new_text>)`
+3. `mcp__claude_ai_Engram__patch_note(path=<path>, find=<old_text>, replace=<new_text>)`
 
 **Tier 2 (CLI) / Tier 1 (Files):**
 
@@ -103,8 +103,8 @@ Full note replacement — ONLY when user explicitly asks to replace everything.
 
 **Tier 3 (Full):**
 
-1. Read first: `mcp__engram__get_note(source_path=<path>)` — preserve content the user didn't mention.
-2. `mcp__engram__write_note(path=<path>, content=<new_content>)`
+1. Read first: `mcp__claude_ai_Engram__get_note(source_path=<path>)` — preserve content the user didn't mention.
+2. `mcp__claude_ai_Engram__write_note(path=<path>, content=<new_content>)`
 
 **Tier 2 (CLI):**
 

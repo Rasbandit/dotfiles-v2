@@ -32,7 +32,7 @@ From the user's content, extract:
 
 Search for existing notes on the same topic:
 
-**Tier 3 (Full):** `mcp__engram__search_notes(query=<summary>, limit=3)`
+**Tier 3 (Full):** `mcp__claude_ai_Engram__search_notes(query=<summary>, limit=3)`
 **Tier 2 (CLI):** `obsidian search "<summary>"`
 **Tier 1 (Files):** `grep -ril "<key terms>" <vaultPath>/`
 
@@ -68,7 +68,7 @@ Use today's date. Keep content faithful — don't summarize or trim unless the i
 
 **Tier 3 (Full):**
 - Do NOT pass `suggested_folder` — let Engram's semantic index place it automatically.
-- `mcp__engram__create_note(title=<title>, content=<formatted markdown>)`
+- `mcp__claude_ai_Engram__create_note(title=<title>, content=<formatted markdown>)`
 - Response includes the path where it was placed.
 
 **Tier 2 (CLI):**

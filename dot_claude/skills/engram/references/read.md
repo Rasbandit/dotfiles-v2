@@ -22,13 +22,13 @@ Reading a specific note by name or topic.
 **Tier 3 (Full):**
 
 1. **If path is known** (user provided full path or breadcrumbs):
-   - `mcp__engram__get_note(source_path=<path>)`
+   - `mcp__claude_ai_Engram__get_note(source_path=<path>)`
    - Summarize or quote relevant sections — do not dump raw content.
 
 2. **If path is unknown** (user provided only a topic or partial name):
-   - Run `mcp__engram__search_notes(query=<topic>, limit=5)` to find candidates.
+   - Run `mcp__claude_ai_Engram__search_notes(query=<topic>, limit=5)` to find candidates.
    - If multiple matches: show top 2–3 titles and ask which one to read.
-   - Once confirmed, run `mcp__engram__get_note(source_path=<path>)`.
+   - Once confirmed, run `mcp__claude_ai_Engram__get_note(source_path=<path>)`.
    - Summarize relevant sections.
 
 **Tier 2 (CLI):**
@@ -93,7 +93,7 @@ Reading a specific section from a note.
 ## Examples
 
 1. **"show me my note on Docker networking"**
-   - Tier 3: Search semantically for "Docker networking", confirm the note, read with `mcp__engram__get_note`, present key content.
+   - Tier 3: Search semantically for "Docker networking", confirm the note, read with `mcp__claude_ai_Engram__get_note`, present key content.
    - Tier 2: CLI search for "Docker networking", confirm, read with `obsidian read`, present key content.
    - Tier 1: Grep for "Docker networking", read top match with filesystem, present key content.
 
@@ -113,7 +113,7 @@ Reading a specific section from a note.
    - Extract the "Troubleshooting" section and present it.
 
 5. **"open my note on morning routine"**
-   - Tier 3: `mcp__engram__search_notes(query="morning routine", limit=3)`, confirm best match, read.
+   - Tier 3: `mcp__claude_ai_Engram__search_notes(query="morning routine", limit=3)`, confirm best match, read.
    - Tier 2: `obsidian search "morning routine"`, confirm, read.
    - Tier 1: Grep, confirm, read.
 
