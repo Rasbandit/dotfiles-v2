@@ -27,6 +27,10 @@ Unified skill for Obsidian vault management. Adapts to available backends and di
 
 ---
 
+## Vault selection (Tier 3 only)
+
+Every `mcp__claude_ai_Engram__*` call takes `vault_id` — the server keeps no active-vault state between calls, so pass it every time. Default to `Engram` unless the user names a different vault (e.g. Health, Northwind Studio). Call `mcp__claude_ai_Engram__list_vaults` if a named vault doesn't obviously match.
+
 ## Step 1: Capability Detection
 
 ### First Run (no config file)

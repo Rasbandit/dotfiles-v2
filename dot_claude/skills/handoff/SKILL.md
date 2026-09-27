@@ -25,7 +25,7 @@ Available context sources:
 - **`git log <base>..HEAD --oneline`** — local commits on this branch since divergence from main
 - **`git branch --show-current`** — current branch name
 - **`gh pr view <n>` / `gh issue view <n>`** — resolve titles + status for any PR/issue numbers referenced in the conversation
-- **Today's work-log entries** — `1. Alignment/4. Work Log/YYYY-MM/YYYY-MM-DD.md` via `mcp__claude_ai_Engram__get_note` for a timeline of actions taken this session
+- **Today's work-log entries** — `1. Alignment/4. Work Log/YYYY-MM/YYYY-MM-DD.md` via `mcp__claude_ai_Engram__get_note(vault_id="Engram", ...)` for a timeline of actions taken this session
 - **`docs/context/` index** — repo-local context docs to reference by path (don't duplicate their content)
 - **Recent file edits in this session** — already in your context; list them by path with one-line "why"
 - **Memory files** — `MEMORY.md` index entries relevant to the focus, referenced by `[[name]]`

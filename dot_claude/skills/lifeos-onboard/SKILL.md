@@ -8,6 +8,8 @@ Onboard a project into Life OS so work log entries get correct `#project/`, `#go
 
 Project: $ARGUMENTS
 
+**Vault:** every `mcp__claude_ai_Engram__*` call needs `vault_id` — default to `Engram` unless the user names a different vault.
+
 ## Steps
 
 ### 1. Read the reference doc
