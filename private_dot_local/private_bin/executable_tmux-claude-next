@@ -9,6 +9,10 @@ for state in input done; do
   target=$(echo "$ordered" | awk -v s="$state" '$2==s {print $1; exit}')
   if [ -n "$target" ]; then
     tmux switch-client -t "$target"
+    # zoom it full screen, unless it is already zoomed or alone in its window
+    if [ "$(tmux display -p -t "$target" '#{&&:#{!=:#{window_panes},1},#{!:#{window_zoomed_flag}}}')" = 1 ]; then
+      tmux resize-pane -Z -t "$target"
+    fi
     exit 0
   fi
 done
