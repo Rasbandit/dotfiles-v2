@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Jump to the next Claude pane that needs you: blocked (input) first, then finished (done).
+# Searches every session, starting after the current pane and wrapping around.
+cur=$(tmux display -p '#{pane_id}')
+panes=$(tmux list-panes -a -F '#{pane_id} #{@claude_state}')
+# rotate the list so it starts right after the current pane
+ordered=$( { echo "$panes" | sed -n "/^$cur /,\$p" | tail -n +2; echo "$panes" | sed -n "/^$cur /q;p"; } )
+for state in input done; do
+  target=$(echo "$ordered" | awk -v s="$state" '$2==s {print $1; exit}')
+  if [ -n "$target" ]; then
+    tmux switch-client -t "$target"
+    exit 0
+  fi
+done
+tmux display-message "No Claude is waiting on you"
