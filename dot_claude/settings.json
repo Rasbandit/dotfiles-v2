@@ -1,6 +1,7 @@
 {
   "env": {
-    "ENABLE_TOOL_SEARCH": "true"
+    "ENABLE_TOOL_SEARCH": "true",
+    "CHROME_DEVTOOLS_MCP_NO_USAGE_STATISTICS": "1"
   },
   "permissions": {
     "allow": [
@@ -20,6 +21,10 @@
       "Powershell",
       "Pwsh"
     ],
+    "deny": [
+      "Artifact",
+      "Artifact(*)"
+    ],
     "defaultMode": "auto",
     "allowMCPServers": [
       "git",
@@ -36,6 +41,7 @@
       "whisper"
     ]
   },
+  "model": "opus",
   "hooks": {
     "PreToolUse": [
       {
@@ -47,6 +53,16 @@
             "statusMessage": "Enforcing safe Pinchtab screenshot delivery..."
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/tmux-claude-state.sh input",
+            "async": true
+          }
+        ],
+        "matcher": "AskUserQuestion|ExitPlanMode"
       }
     ],
     "SessionStart": [
@@ -57,6 +73,25 @@
             "type": "command",
             "command": "echo 'MANDATORY: Run /work-log init NOW to prepare tag slugs for this session. Do not proceed with any work until this is done.'",
             "statusMessage": "Work log init reminder"
+          }
+        ]
+      },
+      {
+        "matcher": "startup|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo TERSE\\ STYLE\\ ACTIVE.\\ Line\\ 1\\ =\\ status\\ word\\ \\(DONE/FAILED/BLOCKED/WORKING\\)\\ ONLY\\ if\\ you\\ took\\ an\\ action\\;\\ a\\ pure\\ answer\\ gets\\ NO\\ status\\ word\\,\\ lead\\ with\\ the\\ answer.\\ NO\\ LINE\\ COUNT\\,\\ NO\\ LENGTH\\ TARGET\\:\\ stop\\ when\\ the\\ question\\ is\\ answered.\\ Write\\ like\\ a\\ colleague\\ who\\ already\\ has\\ the\\ context\\;\\ direct\\,\\ plain\\,\\ no\\ jargon\\,\\ no\\ background.\\ Dials\\ \\(short\\ report\\ /\\ report\\ /\\ deep\\)\\ ask\\ for\\ more\\ ground\\ covered\\,\\ never\\ more\\ words\\ per\\ point\\,\\ and\\ relax\\ nothing\\ else.\\ Answer\\ the\\ question\\ asked\\ and\\ nothing\\ adjacent.\\ Cut\\ arguments\\ for\\ a\\ conclusion\\ they\\ already\\ accepted\\,\\ the\\ counter-case\\ unless\\ it\\ changes\\ the\\ call\\,\\ and\\ why\\ the\\ fix\\ works.\\ ONE\\ point\\ per\\ reply\\;\\ they\\ ask\\ if\\ they\\ want\\ the\\ second.\\ NEVER\\ VALIDATE\\ THE\\ USER:\\ no\\ You\\ are\\ right\\,\\ Good\\ catch\\,\\ Great\\ point\\,\\ Exactly\\,\\ You\\ found\\ a\\ real\\,\\ Sharp\\ catch\\,\\ That\\ is\\ the\\ key\\ insight.\\ IF\\ THEY\\ SAID\\ IT\\,\\ DO\\ NOT\\ SAY\\ IT\\ BACK:\\ when\\ they\\ hand\\ you\\ the\\ diagnosis\\,\\ apply\\ the\\ fix\\ and\\ show\\ it\\,\\ never\\ restate\\ their\\ reasoning\\ or\\ explain\\ why\\ the\\ fix\\ works.\\ SHOW\\,\\ DO\\ NOT\\ ANNOUNCE:\\ no\\ narrating\\ a\\ change\\ before\\ showing\\ it.\\ SUMMARY\\ LENGTH\\ IS\\ FIXED\\,\\ NOT\\ PROPORTIONAL\\ TO\\ WORK\\ DONE:\\ a\\ 40-file\\ refactor\\ gets\\ the\\ same\\ summary\\ as\\ a\\ one-line\\ fix.\\ Never\\ list\\ files\\ changed\\ or\\ narrate\\ decisions\\ that\\ went\\ fine.\\ FINISHING:\\ report\\ only\\ two\\ things\\,\\ did\\ it\\ work\\ \\(with\\ proof\\)\\ and\\ what\\ to\\ do\\ next.\\ Add\\ a\\ third\\ caveat\\ line\\ ONLY\\ if\\ something\\ is\\ still\\ broken\\,\\ you\\ guessed\\ and\\ could\\ be\\ wrong\\,\\ or\\ a\\ choice\\ now\\ constrains\\ future\\ work.\\ Otherwise\\ omit\\ it\\ and\\ never\\ write\\ no\\ gotchas.\\ Never\\ hunt\\ for\\ something\\ to\\ put\\ there.\\ DENSITY:\\ sentences\\ under\\ 20\\ words\\,\\ one\\ instruction\\ per\\ sentence\\,\\ active\\ voice\\ and\\ imperative\\,\\ one\\ word\\ per\\ concept\\ reused\\ verbatim.\\ No\\ padding\\,\\ no\\ inflation\\,\\ no\\ filler\\ openers\\ or\\ closers\\,\\ no\\ self-praise\\ adverbs\\,\\ no\\ unquantified\\ significantly\\ or\\ dramatically.\\ Max\\ ONE\\ question\\,\\ at\\ the\\ very\\ end\\,\\ own\\ line\\,\\ prefixed\\ \\>\\>\\ NEED:\\,\\ with\\ the\\ default\\ you\\ will\\ take\\ if\\ they\\ do\\ not\\ reply.\\ Nothing\\ after\\ it.",
+            "statusMessage": "Terse style reminder"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/tmux-claude-state.sh clear",
+            "async": true
           }
         ]
       }
@@ -71,6 +106,15 @@
             "statusMessage": "Checking for git commit..."
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/tmux-claude-state.sh clear",
+            "async": true
+          }
+        ]
       }
     ],
     "Stop": [
@@ -80,6 +124,15 @@
             "type": "command",
             "command": "LAST_LOG=/tmp/claude-worklog-last; NOW=$(date +%s); if [ -f \"$LAST_LOG\" ]; then LAST=$(cat \"$LAST_LOG\"); DIFF=$((NOW - LAST)); if [ \"$DIFF\" -ge 300 ]; then echo \"$NOW\" > \"$LAST_LOG\"; echo 'WORK LOG SELF-CHECK: 5+ minutes since last log entry. If any meaningful work was done (file edits, debugging, research, decisions, planning), invoke /work-log NOW before continuing.'; fi; else echo \"$NOW\" > \"$LAST_LOG\"; fi",
             "statusMessage": "Work log check"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/tmux-claude-state.sh done",
+            "async": true
           }
         ]
       }
@@ -127,6 +180,51 @@
           }
         ]
       }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/tmux-claude-state.sh input",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/tmux-claude-state.sh input",
+            "async": true
+          }
+        ],
+        "matcher": "elicitation_dialog|elicitation_url_dialog|agent_needs_input"
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/tmux-claude-state.sh clear",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/tmux-claude-state.sh clear",
+            "async": true
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
@@ -138,16 +236,18 @@
     "frontend-design@claude-plugins-official": true,
     "code-review@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true,
-    "typescript-lsp@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": false,
     "supabase@claude-plugins-official": false,
     "firebase@claude-plugins-official": false,
-    "explanatory-output-style@claude-plugins-official": true,
+    "explanatory-output-style@claude-plugins-official": false,
     "claude-md-management@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true,
     "superpowers@claude-plugins-official": true,
-    "chrome-devtools-mcp@claude-plugins-official": true,
+    "chrome-devtools-mcp@claude-plugins-official": false,
     "codex@openai-codex": true,
-    "caveman@caveman": true
+    "paddle@paddle-agent-skills": true,
+    "elixir-lsp@engram-lsp": true,
+    "ponytail@ponytail": true
   },
   "extraKnownMarketplaces": {
     "openai-codex": {
@@ -156,15 +256,33 @@
         "repo": "openai/codex-plugin-cc"
       }
     },
-    "caveman": {
+    "paddle-agent-skills": {
       "source": {
         "source": "github",
-        "repo": "JuliusBrussee/caveman"
+        "repo": "PaddleHQ/paddle-agent-skills"
+      }
+    },
+    "engram-lsp": {
+      "source": {
+        "source": "directory",
+        "path": "/home/open-claw/.claude/local-marketplaces/engram-lsp"
+      }
+    },
+    "ponytail": {
+      "source": {
+        "source": "github",
+        "repo": "DietrichGebert/ponytail"
       }
     }
   },
+  "outputStyle": "Terse",
   "effortLevel": "high",
+  "autoCompactWindow": 700000,
+  "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
+  "skipWorkflowUsageWarning": true,
+  "theme": "auto",
+  "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
   "bypassPermissionsAllowed": true
 }
