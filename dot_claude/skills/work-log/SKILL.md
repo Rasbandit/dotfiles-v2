@@ -6,6 +6,10 @@ argument-hint: [init | <description of work done>]
 
 Write to the daily work log. If `$ARGUMENTS` is `init` or empty, run the session-start procedure. Otherwise append a single entry describing the work in `$ARGUMENTS`.
 
+## Where the Life OS config lives (read this first)
+
+Check `~/.claude/lifeos-projects.json` FIRST. Key = repo dir name (`basename "$(git rev-parse --path-format=absolute --git-common-dir | xargs dirname)"`, so worktrees resolve to the main checkout). An entry there supplies `project/goal/value/worklog_vault/worklog_path` and replaces the `## Life OS` CLAUDE.md block everywhere below. `subrepo_tags` maps sub-repo dirs to `project:` slugs for multi-repo workspaces. Only fall back to a CLAUDE.md `## Life OS` block when the repo has no entry. Never add Life OS blocks to shared (team) repos; add a JSON entry instead.
+
 ## Step 0 — Resolve the destination (vault + folder)
 
 The destination vault and base folder come from the project's `## Life OS` block — the same block that supplies the tags. Read the current project's CLAUDE.md (CWD or nearest parent dir) and extract:

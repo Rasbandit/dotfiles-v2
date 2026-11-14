@@ -8,11 +8,20 @@ ordered=$( { echo "$panes" | sed -n "/^$cur /,\$p" | tail -n +2; echo "$panes" |
 for state in input done; do
   target=$(echo "$ordered" | awk -v s="$state" '$2==s {print $1; exit}')
   if [ -n "$target" ]; then
-    tmux switch-client -t "$target"
-    # zoom it full screen, unless it is already zoomed or alone in its window
-    if [ "$(tmux display -p -t "$target" '#{&&:#{!=:#{window_panes},1},#{!:#{window_zoomed_flag}}}')" = 1 ]; then
-      tmux resize-pane -Z -t "$target"
-    fi
+    tmux select-pane -t "$target" \; switch-client -t "$target"
+    # ponytail: zooming in the same pass as a cross-session switch gets undone (cause unknown);
+    # zoom after a short delay instead. Raise the sleep if it stops sticking.
+    (
+      sleep 0.15
+      tmux if -F -t "$target" '#{&&:#{!=:#{window_panes},1},#{!:#{window_zoomed_flag}}}' "resize-pane -Z -t $target"
+    ) >/dev/null 2>&1 &
+    # DEBUG: zoom timeline, remove after diagnosing
+    (
+      for i in $(seq 1 30); do
+        echo "$(date +%T.%N) $(tmux display -p -t "$target" '#{pane_id} zoom=#{window_zoomed_flag} active=#{pane_active} win=#{window_width}x#{window_height}') clients=$(tmux list-clients -F '#{client_name}:#{client_width}x#{client_height}:#{session_name}' | tr '\n' ' ')" >> /tmp/tmux-claude-next.log
+        sleep 0.02
+      done
+    ) >/dev/null 2>&1 &
     exit 0
   fi
 done

@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+# cron runs with a minimal PATH; chezmoi lives in ~/.local/bin
+export PATH="$HOME/.local/bin:$PATH"
+
 CHEZMOI_DIR="$HOME/.local/share/chezmoi"
 
 cd "$CHEZMOI_DIR"

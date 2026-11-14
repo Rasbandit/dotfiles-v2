@@ -51,12 +51,14 @@ Does `docs/context/[system-slug].md` exist in the current repo?
 - Create `docs/context/` directory if it doesn't exist
 - Use the template below
 
-### Step 5 — Add soft reference to repo CLAUDE.md
-Append under a `## Context Docs` section (create section if missing):
+### Step 5 — Add the trigger line to the repo's index (NOT CLAUDE.md)
+If the repo has `docs/context/INDEX.md`, add ONE line under the matching category there:
 ```
-If you need info on [System Name], see `docs/context/[system-slug].md`
+- <the situation an agent would be in, in the words they'd search for> → `docs/context/[system-slug].md`
 ```
-**Do NOT use `@` import syntax.**
+Write the trigger as the symptom or task ("folder delete 500s", "adding a tenant table"), not the doc title: a prompt hook greps these lines against the user's words.
+Only if the repo has no `INDEX.md`: create it (header `# Context doc index`) and leave CLAUDE.md alone, apart from a one-line pointer to the index if it has none.
+**Never add index lines to CLAUDE.md/AGENTS.md** (they load into every session). **Do NOT use `@` import syntax.**
 
 ### Step 6 — Confirm
 Report the file path that was created/updated.
@@ -128,7 +130,7 @@ When any of the following events occur **inside a git repo**, create or update t
 This skill is **repo-only**. If you're outside a repo or the knowledge is cross-project, use `/engram-save` directly instead.
 
 ### How to execute
-**Spawn a background Agent** with a brief summary of what was discovered/fixed and which system it relates to. The agent checks for an existing doc in `docs/context/`, updates or creates it using the template, and adds the soft reference to CLAUDE.md.
+**Spawn a background Agent** with a brief summary of what was discovered/fixed and which system it relates to. The agent checks for an existing doc in `docs/context/`, updates or creates it using the template, and adds the trigger line to `docs/context/INDEX.md`.
 
 **No permission needed. Do not ask "Should I save this as a context doc?" — just do it.**
 

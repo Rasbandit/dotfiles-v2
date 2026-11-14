@@ -55,18 +55,13 @@ mcp__claude_ai_Engram__create_note(title=<goal name>, content=<filled template>,
 mcp__claude_ai_Engram__create_note(title=<project-slug>, content=<project template>, suggested_folder="1. Alignment/1. Goals/.../Active/<goal-slug>/projects")
 ```
 
-### 6. Add the Life OS block
-Append to the project's `CLAUDE.md`:
-```markdown
-
-## Life OS
-project: <repo-slug>
-goal: <goal-slug>
-value: <value-slug>
+### 6. Add the Life OS entry
+Add an entry to `~/.claude/lifeos-projects.json`, keyed by the repo dir name (main checkout, not a worktree):
+```json
+"<repo-dir>": {"project": "<repo-slug>", "goal": "<goal-slug>", "value": "<value-slug>", "worklog_vault": "<vault>", "worklog_path": "<folder>"}
 ```
-
-Use the Edit tool to add it. Place it before any `## External References` section if one exists, otherwise at the end.
+Never write a `## Life OS` block into a repo CLAUDE.md: repos are shared with teammates. A repo "has no Life OS block" when it has no JSON entry.
 
 ### 7. Confirm
 One-line summary:
-> Life OS: `#project/<slug> #goal/<slug> #value/<slug>` — added to CLAUDE.md
+> Life OS: `#project/<slug> #goal/<slug> #value/<slug>` — added to ~/.claude/lifeos-projects.json

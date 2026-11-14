@@ -41,7 +41,7 @@
       "whisper"
     ]
   },
-  "model": "opus",
+  "model": "sonnet",
   "hooks": {
     "PreToolUse": [
       {
@@ -55,14 +55,24 @@
         ]
       },
       {
+        "matcher": "AskUserQuestion|ExitPlanMode",
         "hooks": [
           {
             "type": "command",
             "command": "~/.claude/hooks/tmux-claude-state.sh input",
             "async": true
           }
-        ],
-        "matcher": "AskUserQuestion|ExitPlanMode"
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/block-heavy-local.sh",
+            "statusMessage": "Checking for heavy local commands..."
+          }
+        ]
       }
     ],
     "SessionStart": [
@@ -194,14 +204,14 @@
     ],
     "Notification": [
       {
+        "matcher": "elicitation_dialog|elicitation_url_dialog|agent_needs_input",
         "hooks": [
           {
             "type": "command",
             "command": "~/.claude/hooks/tmux-claude-state.sh input",
             "async": true
           }
-        ],
-        "matcher": "elicitation_dialog|elicitation_url_dialog|agent_needs_input"
+        ]
       }
     ],
     "UserPromptSubmit": [
@@ -211,6 +221,15 @@
             "type": "command",
             "command": "~/.claude/hooks/tmux-claude-state.sh clear",
             "async": true
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.claude/hooks/context-index-router.py",
+            "timeout": 5
           }
         ]
       }
@@ -282,6 +301,7 @@
   "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,
   "theme": "auto",
+  "switchModelsOnFlag": true,
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
   "bypassPermissionsAllowed": true

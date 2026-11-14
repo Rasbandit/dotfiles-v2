@@ -18,3 +18,26 @@ Host gh-runner
     Port 2222
     User github-runner
     StrictHostKeyChecking accept-new
+
+Host gaming-pc
+  HostName 10.0.20.210
+  User rasbandit
+
+# Gaming-PC runner VM (libvirt NAT on gaming-pc, 10.20.98.10)
+Host gpc-runner
+    HostName 10.20.98.10
+    User github-runner
+    ProxyJump gaming-pc
+    StrictHostKeyChecking accept-new
+
+# Mini PC (hosts minipc-runner-vm). Remote toggle: ssh -i ~/.ssh/id_ed25519_gpc_ci rasbandit@10.0.20.184 status
+Host mini-pc
+  HostName 10.0.20.135
+  User rasbandit
+
+# Mini-PC runner VM (libvirt NAT on mini-pc, 10.20.97.10)
+Host minipc-runner
+    HostName 10.20.97.10
+    User github-runner
+    ProxyJump mini-pc
+    StrictHostKeyChecking accept-new
