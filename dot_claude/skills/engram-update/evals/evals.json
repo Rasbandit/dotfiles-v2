@@ -1,0 +1,92 @@
+{
+  "skill_name": "engram-update",
+  "evals": [
+    {
+      "id": 0,
+      "eval_name": "eval-append",
+      "prompt": "Add a note to my git workflow notes that before merging you should always run git pull --rebase to avoid unnecessary merge commits",
+      "expected_output": "Appends the rebase tip to the git workflow note using append_to_note. Should search for the note, confirm it found the right one, then append formatted markdown content. Ends with a one-line confirmation.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Agent called search_notes to find the git workflow note",
+          "weight": 1
+        },
+        {
+          "text": "Agent chose append_to_note (not update_section, patch_note, or write_note) as the operation",
+          "weight": 2
+        },
+        {
+          "text": "Agent produced a one-line confirmation in the format: Updated \"[title]\" → append_to_note [path]",
+          "weight": 1
+        },
+        {
+          "text": "Agent did NOT unnecessarily call get_note before appending (skip is correct for plain appends)",
+          "weight": 1
+        },
+        {
+          "text": "Appended content is formatted as clean markdown",
+          "weight": 1
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "eval_name": "eval-section-update",
+      "prompt": "Update the setup section in my tmux notes with the correct config path — it should be ~/.tmux.conf not ~/.config/tmux.conf",
+      "expected_output": "Reads the tmux note to find the exact heading for the setup section, then uses update_section to replace it. Should NOT use patch_note here since the intent is to update the whole section. Reads before editing. Confirms at the end.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Agent called search_notes to find the tmux note",
+          "weight": 1
+        },
+        {
+          "text": "Agent called get_note to read the note before editing",
+          "weight": 2
+        },
+        {
+          "text": "Agent chose update_section (not patch_note, append_to_note, or write_note) since the intent is to update the whole section",
+          "weight": 2
+        },
+        {
+          "text": "Agent produced a one-line confirmation in the format: Updated \"[title]\" → update_section [path]",
+          "weight": 1
+        },
+        {
+          "text": "Agent confirmed the heading exists verbatim in the note before calling update_section",
+          "weight": 1
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "eval_name": "eval-surgical-patch",
+      "prompt": "In my SSH notes, fix the example command — it says ssh user@host but it should say ssh -p 2222 user@host",
+      "expected_output": "Reads the SSH note to copy the exact string 'ssh user@host', then uses patch_note with that exact find string. Does NOT rewrite the whole section. Confirms at the end.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Agent called search_notes to find the SSH note",
+          "weight": 1
+        },
+        {
+          "text": "Agent called get_note to read the note before patching (required to copy find string verbatim)",
+          "weight": 2
+        },
+        {
+          "text": "Agent chose patch_note (not update_section, append_to_note, or write_note) for this surgical replacement",
+          "weight": 2
+        },
+        {
+          "text": "Agent's find string in patch_note was copied verbatim from the note content (not guessed)",
+          "weight": 2
+        },
+        {
+          "text": "Agent produced a one-line confirmation in the format: Updated \"[title]\" → patch_note [path]",
+          "weight": 1
+        }
+      ]
+    }
+  ]
+}
