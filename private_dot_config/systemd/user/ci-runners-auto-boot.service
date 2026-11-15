@@ -1,0 +1,9 @@
+[Unit]
+Description=Start the CI runner quiet-period timer once per boot (desktop)
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/ci-runners-auto boot
+
+[Install]
+WantedBy=default.target

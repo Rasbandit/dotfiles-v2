@@ -5,6 +5,8 @@
 #
 #   game-start   cancel a pending resume; if runners are up, `ci-runners off` (finish jobs, take no new ones)
 #   game-end     if WE turned the runners off, resume them after RESUME_AFTER_MIN quiet minutes
+#   boot         once per boot, at login: if runners are off, start the same quiet-period timer
+#                (the runners no longer start at boot; they start 15 quiet minutes after it)
 #   resume       (timer) bring runners back unless a game is running again
 #
 # A manual `ci-runners off` is never undone: only the marker written by game-start triggers a resume.
@@ -30,11 +32,19 @@ case "${1:-}" in
     systemctl --user stop "$UNIT.timer" "$UNIT.service" 2>/dev/null
     systemd-run --user --quiet --collect --unit="$UNIT" --on-active="${RESUME_AFTER_MIN}m" "$0" resume
     log "game ended: runners resume in ${RESUME_AFTER_MIN} min unless a game starts" ;;
+  boot)
+    BOOT_STATE="$HOME/.local/state/ci-runners-auto/boot-id"; mkdir -p "${BOOT_STATE%/*}"
+    [[ $(cat "$BOOT_STATE" 2>/dev/null) == "$(cat /proc/sys/kernel/random/boot_id)" ]] && exit 0   # already handled this boot
+    cat /proc/sys/kernel/random/boot_id > "$BOOT_STATE"
+    [[ $($CI status 2>/dev/null) == off ]] || exit 0
+    : > "$MARK"
+    systemd-run --user --quiet --collect --unit="$UNIT" --on-active="${RESUME_AFTER_MIN}m" "$0" resume
+    log "boot: runners start in ${RESUME_AFTER_MIN} min unless a game is running" ;;
   resume)
     [[ -e $MARK ]] || exit 0
     if [[ -n $(gamemodelist 2>/dev/null | grep -v "No clients") ]]; then log "game still registered; not resuming"; exit 0; fi
     rm -f "$MARK"
     log "quiet period over: resuming runners"
     "$CI" on ;;
-  *) sed -n 2,11p "$0" | sed 's/^# \{0,1\}//'; exit 64 ;;
+  *) sed -n 2,13p "$0" | sed 's/^# \{0,1\}//'; exit 64 ;;
 esac
