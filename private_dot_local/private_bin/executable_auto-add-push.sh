@@ -70,7 +70,7 @@ if git diff --name-only "$OLD_HEAD" HEAD -- ansible/ | grep -q .; then
 fi
 
 # --- 4. Apply remote changes + sync watched paths ---
-if chezmoi diff --no-pager | grep -q .; then
+if [ -n "$(chezmoi diff --no-pager)" ]; then  # not "| grep -q": SIGPIPE + pipefail made this always false
     echo "Changes detected, applying..."
     if ! chezmoi apply; then
         notify-send "Chezmoi sync ERROR" "Failed to apply changes! Run 'chezmoi apply -v' to see details."
