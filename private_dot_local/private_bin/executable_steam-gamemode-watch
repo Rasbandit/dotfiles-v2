@@ -18,7 +18,7 @@ INTERVAL=${STEAM_GM_INTERVAL:-4}
 steam_reapers() {
   local pid
   for pid in $(pgrep -x reaper); do
-    grep -qa 'SteamLaunch AppId=' "/proc/$pid/cmdline" 2>/dev/null && echo "$pid"
+    tr '\0' ' ' < "/proc/$pid/cmdline" 2>/dev/null | grep -q 'SteamLaunch AppId=' && echo "$pid"
   done
 }
 
