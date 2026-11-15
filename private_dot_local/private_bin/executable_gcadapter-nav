@@ -110,9 +110,6 @@ def find_adapters() -> Optional[tuple[int, set[int]]]:
                 busnum = int(f.read().strip())
             with open(os.path.join(dev_dir, "devnum")) as f:
                 devnum = int(f.read().strip())
-            if devnum == 0:
-                log.info("GC adapter at %s has devnum=0 (still enumerating), skipping", dev_dir)
-                continue
             log.info("Found GC adapter at %s (bus=%d dev=%d)", dev_dir, busnum, devnum)
             results.setdefault(busnum, set()).add(devnum)
         except OSError:

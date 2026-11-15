@@ -22,6 +22,12 @@ Download missing media and fill gamelist.xml metadata for any ES-DE game system.
 - "upgrade covers"
 - "check media quality"
 
+## Media selection guidelines
+
+**IMPORTANT:** Read `~/Documents/claude-home/docs/esde-media-guidelines.md` before downloading
+or selecting any media. It defines quality standards for covers, marquees, and screenshots
+that all automated and manual processes must follow.
+
 ## Instructions
 
 1. Verify `$STEAMGRIDDB_API_KEY` is set (needed for Steam system; optional for others):
@@ -36,12 +42,20 @@ Download missing media and fill gamelist.xml metadata for any ES-DE game system.
    ```
    If missing, install with `pip install requests`.
 
-3. **For obscure/failing games:** Before running the script, do a `--dry-run --verbose` first.
-   If there are games that failed in previous runs or look obscure (demos, early access, indie),
-   research those games briefly (Steam store page, web search) and tell the user what they are
-   and whether artwork/metadata is likely to exist. This sets expectations before downloading.
+3. **Check for existing media BEFORE downloading.** For each game, check whether media files
+   already exist in `~/ES-DE/downloaded_media/<system>/<media_type>/` before making any API
+   calls, web searches, or vision evaluations. A game that already has a cover, marquee, or
+   screenshot file (any extension) should be **skipped entirely** for that media type.
+   This avoids burning API tokens and AI vision tokens on redundant downloads.
 
-4. Run the downloader. Pass through any user-specified arguments:
+   Quick check: run `--dry-run --verbose` first to see what's actually missing.
+
+4. **For obscure/failing games:** If there are games that failed in previous runs or look
+   obscure (demos, early access, indie), research those games briefly (Steam store page,
+   web search) and tell the user what they are and whether artwork/metadata is likely to
+   exist. This sets expectations before downloading.
+
+5. Run the downloader. Pass through any user-specified arguments:
    - `--system <name>` — ES-DE system (default: `steam`). E.g., `ports`, `n64`, etc.
    - `--dry-run` — show gaps without downloading
    - `--type <covers|marquees|screenshots|physicalmedia>` — limit to one media type
@@ -60,7 +74,7 @@ Download missing media and fill gamelist.xml metadata for any ES-DE game system.
    python3 ~/Documents/claude-home/scripts/esde-steam-media.py $ARGUMENTS
    ```
 
-5. **Web-search fallback for failures:** After the script runs, check for any
+6. **Web-search fallback for failures:** After the script runs, check for any
    `[MISS]` or `[SKEL]` entries (games where automated sources returned no data).
 
    For each failed game:
@@ -75,11 +89,11 @@ Download missing media and fill gamelist.xml metadata for any ES-DE game system.
    since there are no automated API sources. This web-search step is the primary data source
    for these systems — research every game that has gaps.
 
-6. Report the summary output to the user. If there were media failures, suggest running again
+7. Report the summary output to the user. If there were media failures, suggest running again
    with `--game` for specific titles, or explain why they failed (delisted, demo with no
    assets, etc.)
 
-7. If any media was downloaded, regenerate miximages using the CLI generator:
+8. If any media was downloaded, regenerate miximages using the CLI generator:
    ```bash
    python3 ~/Documents/claude-home/scripts/esde-miximage-gen.py --system <system> --verbose
    ```
