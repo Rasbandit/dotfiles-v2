@@ -34,9 +34,6 @@ Host gpc-runner
 Host mini-pc
   HostName 10.0.20.135
   User rasbandit
-  IdentityAgent none
-  IdentityFile ~/.ssh/id_ed25519_minipc
-  IdentitiesOnly yes
 
 # Mini-PC runner VM (libvirt NAT on mini-pc, 10.20.97.10)
 Host minipc-runner
