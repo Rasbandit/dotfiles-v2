@@ -10,7 +10,7 @@ Actions=RunnerMode;DeskMode;RunnersOn;RunnersOff;
 
 [Desktop Action RunnerMode]
 Name=Runner mode (quiet PC, runners on)
-Exec=sh -c 'runner-mode && /usr/local/bin/ci-runners on'
+Exec=sh -c "runner-mode && /usr/local/bin/ci-runners on"
 
 [Desktop Action DeskMode]
 Name=Desk mode
