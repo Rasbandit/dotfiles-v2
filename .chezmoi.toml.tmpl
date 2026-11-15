@@ -14,12 +14,12 @@
     gpuPciBus = {{ promptStringOnce . "gpuPciBus" "GPU PCI bus for MangoHud (e.g. 0:03:00.0, blank for iGPU/auto)" | quote }}
 {{- end }}
 {{ if lookPath "op" -}}
-    openaiApiKey = {{ onepasswordRead "op://Personal/AI API Keys/openai" | quote }}
-    xaiApiKey = {{ onepasswordRead "op://Personal/AI API Keys/xai" | quote }}
-    mistralApiKey = {{ onepasswordRead "op://Personal/AI API Keys/mistral" | quote }}
-    anthropicApiKey = {{ onepasswordRead "op://Personal/AI API Keys/anthropic" | quote }}
-    geminiApiKey = {{ onepasswordRead "op://Personal/AI API Keys/gemini" | quote }}
-    resendApiKey = {{ onepasswordRead "op://Personal/AI API Keys/resend" | quote }}
+    openaiApiKey = {{ onepasswordRead "op://DevKeys/AI API Keys/openai" | quote }}
+    xaiApiKey = {{ onepasswordRead "op://DevKeys/AI API Keys/xai" | quote }}
+    mistralApiKey = {{ onepasswordRead "op://DevKeys/AI API Keys/mistral" | quote }}
+    anthropicApiKey = {{ onepasswordRead "op://DevKeys/AI API Keys/anthropic" | quote }}
+    geminiApiKey = {{ onepasswordRead "op://DevKeys/AI API Keys/gemini" | quote }}
+    resendApiKey = {{ get . "resendApiKey" | quote }}
 {{ else -}}
     openaiApiKey = {{ promptStringOnce . "openaiApiKey" "OpenAI API key (Enter to skip)" | quote }}
     xaiApiKey = {{ promptStringOnce . "xaiApiKey" "xAI API key (Enter to skip)" | quote }}
