@@ -267,3 +267,43 @@ dh() {
 # AI
 # ============================================================================
 alias claude='claude --dangerously-skip-permissions'
+
+
+claw-ssh() {
+  echo "Stopping existing claw session..."
+  ssh -O stop claw 2>/dev/null || true
+  ssh claw 'ss -tlnp sport = :8234 | grep -q LISTEN && pkill -u "$(id -un)" -f "sshd-session.*@pts"' 2>/dev/null || true
+  fuser -k 5173/tcp 4000/tcp 4337/tcp 2>/dev/null || true
+  sleep 1
+  ssh -o ExitOnForwardFailure=yes -o ServerAliveInterval=15 \
+    -L 5173:127.0.0.1:5173 \
+    -L 4000:127.0.0.1:4000 \
+    -L 4337:127.0.0.1:4337 \
+    -R 8234:127.0.0.1:9222 \
+    -L 4321:127.0.0.1:4321 \
+    claw
+}
+
+# claw-t — same forwards/cleanup as claw-ssh, but land straight in tmux on claw.
+# -t forces a TTY (tmux needs a real terminal); the trailing command replaces
+# the login shell, so ssh runs tmux the instant it connects. Detach -> ssh exits.
+claw-t() {
+  echo "Stopping existing claw session..."
+  ssh -O stop claw 2>/dev/null || true
+  ssh claw 'ss -tlnp sport = :8234 | grep -q LISTEN && pkill -u "$(id -un)" -f "sshd-session.*@pts"' 2>/dev/null || true
+  fuser -k 5173/tcp 4000/tcp 4337/tcp 2>/dev/null || true
+  sleep 1
+  ssh -t -o ExitOnForwardFailure=yes -o ServerAliveInterval=15 \
+    -L 5173:127.0.0.1:5173 \
+    -L 4000:127.0.0.1:4000 \
+    -L 4337:127.0.0.1:4337 \
+    -R 8234:127.0.0.1:9222 \
+    -L 4321:127.0.0.1:4321 \
+    claw 'tmux attach-session'
+}
+
+# chw — Connect Home VPN, then ssh into claw and attach tmux.
+# `&&` gates the ssh: if ch's VPN cascade fails, we never try to connect.
+chw() {
+  ch && claw-t
+}
