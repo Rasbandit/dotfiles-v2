@@ -65,3 +65,53 @@
     daemon_reload: true
   become: false
   ignore_errors: true
+
+# Gaming-friendly kernel/IO defaults. Fedora's own kernel already ships most of these; the
+# CachyOS kernel (mini PC) defaults THP to "always" and NVMe to mq-deadline, so set them
+# explicitly and identically everywhere. Idempotent; reversible by deleting the files.
+- name: Transparent hugepages only on request (madvise), not always
+  ansible.builtin.copy:
+    dest: /etc/tmpfiles.d/gaming-thp.conf
+    content: |
+      # Managed by ansible (role: gamemode)
+      w /sys/kernel/mm/transparent_hugepage/enabled - - - - madvise
+    mode: "0644"
+  become: true
+  register: gamemode_thp
+
+- name: NVMe uses no I/O scheduler
+  ansible.builtin.copy:
+    dest: /etc/udev/rules.d/60-nvme-scheduler.rules
+    content: |
+      # Managed by ansible (role: gamemode)
+      ACTION=="add|change", KERNEL=="nvme[0-9]*n[0-9]*", ATTR{queue/scheduler}="none"
+    mode: "0644"
+  become: true
+  register: gamemode_ioscheduler
+
+- name: Directory for user-manager drop-ins
+  ansible.builtin.file:
+    path: /etc/systemd/user.conf.d
+    state: directory
+    mode: "0755"
+  become: true
+
+- name: High open-file limit for the user session (esync/fsync games)
+  ansible.builtin.copy:
+    dest: /etc/systemd/user.conf.d/10-gaming-nofile.conf
+    content: |
+      # Managed by ansible (role: gamemode)
+      [Manager]
+      DefaultLimitNOFILE=1048576
+    mode: "0644"
+  become: true
+  register: gamemode_nofile
+
+- name: Apply the new settings now (no reboot)
+  ansible.builtin.shell: |
+    systemd-tmpfiles --create /etc/tmpfiles.d/gaming-thp.conf
+    udevadm control --reload-rules
+    udevadm trigger --subsystem-match=block --action=change
+  become: true
+  when: gamemode_thp.changed or gamemode_ioscheduler.changed
+  changed_when: true
