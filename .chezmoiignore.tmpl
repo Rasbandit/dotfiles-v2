@@ -54,3 +54,10 @@ firebase-debug.log
 .config/systemd/user/gnome-keyring-daemon.service
 .config/systemd/user/gnome-keyring-daemon.socket
 {{- end }}
+
+{{ if eq .machineType "server" -}}
+# GNOME-only (theme-sun); headless servers skip it
+.config/theme-sun
+.config/systemd/user/theme-sun.*
+.local/bin/theme-sun-toggle
+{{ end -}}

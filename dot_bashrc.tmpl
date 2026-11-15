@@ -169,3 +169,10 @@ command -v starship &>/dev/null && eval "$(starship init bash)"
 command -v zoxide &>/dev/null && eval "$(zoxide init bash)"
 command -v direnv &>/dev/null && eval "$(direnv hook bash)"
 export PATH="$HOME/.bun/bin:$PATH"
+
+# Added by flyctl installer
+export FLYCTL_INSTALL="{{ .chezmoi.homeDir }}/.fly"
+export PATH="$FLYCTL_INSTALL/bin:$PATH"
+
+# Paddle MCP keys
+[ -f ~/.config/environment.d/paddle.conf ] && { set -a; . ~/.config/environment.d/paddle.conf; set +a; }
