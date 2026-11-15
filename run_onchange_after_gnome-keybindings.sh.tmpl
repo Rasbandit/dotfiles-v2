@@ -1,0 +1,54 @@
+#!/bin/bash
+# Applies GNOME custom keybindings via gsettings.
+# Managed by chezmoi — runs whenever this file changes.
+
+set -euo pipefail
+
+add_keybinding() {
+    local NAME="$1"
+    local COMMAND="$2"
+    local BINDING="$3"
+    local INDEX="$4"
+
+    local KB_PATH="/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom${INDEX}/"
+    local SCHEMA="org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:${KB_PATH}"
+
+    gsettings set "${SCHEMA}" name "${NAME}"
+    gsettings set "${SCHEMA}" command "${COMMAND}"
+    gsettings set "${SCHEMA}" binding "${BINDING}"
+}
+
+add_keybinding "1pass Quick"  "1password --quick-access"                                                                                                              "<Control><Shift>space"       0
+add_keybinding "1pass"        "1password"                                                                                                                              "<Control><Shift>backslash"   1
+add_keybinding "Ghostty"      "{{ .chezmoi.homeDir }}/.local/bin/focus-or-run.sh 'com.mitchellh.ghostty' 'ghostty'"                                                    "<Control><Shift><Alt>t"      2
+add_keybinding "Vivaldi"      "{{ .chezmoi.homeDir }}/.local/bin/focus-or-run.sh 'vivaldi-stable' 'vivaldi'"                                                           "<Control><Shift><Alt>v"      3
+add_keybinding "VS Code"      "{{ .chezmoi.homeDir }}/.local/bin/focus-or-run.sh 'code' 'code'"                                                                        "<Control><Shift><Alt>c"      4
+add_keybinding "Obsidian"     "{{ .chezmoi.homeDir }}/.local/bin/focus-or-run.sh 'md.obsidian.Obsidian' 'flatpak run md.obsidian.Obsidian'"                            "<Control><Shift><Alt>q"      5
+add_keybinding "Discord"      "{{ .chezmoi.homeDir }}/.local/bin/focus-or-run.sh 'discord' 'flatpak run com.discordapp.Discord'"                                       "<Control><Shift><Alt>d"      6
+add_keybinding "Spotify"      "{{ .chezmoi.homeDir }}/.local/bin/focus-or-run.sh 'spotify' 'flatpak run com.spotify.Client'"                                           "<Control><Shift><Alt>m"      7
+add_keybinding "Slack"        "{{ .chezmoi.homeDir }}/.local/bin/focus-or-run.sh 'slack' 'flatpak run com.slack.Slack'"                                                "<Control><Shift><Alt>s"      8
+add_keybinding "1pass App"    "1password"                                                                                                                              "<Control><Shift><Alt>1"      9
+
+# Register all custom keybinding paths
+gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings \
+    "['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/', \
+'/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/', \
+'/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom2/', \
+'/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom3/', \
+'/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom4/', \
+'/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom5/', \
+'/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom6/', \
+'/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom7/', \
+'/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom8/', \
+'/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom9/']"
+
+# Clear GNOME WM bindings that conflict with CapsLock-held (Ctrl+Shift+Alt) combos
+gsettings set org.gnome.desktop.wm.keybindings cycle-panels-backward "['']"
+gsettings set org.gnome.desktop.wm.keybindings move-to-workspace-up "['']"
+gsettings set org.gnome.desktop.wm.keybindings switch-panels-backward "['']"
+
+# Clear IBus hotkeys that conflict with CapsLock-held (Alt+Shift fires next-engine)
+gsettings set org.freedesktop.ibus.general.hotkey next-engine "[]"
+gsettings set org.freedesktop.ibus.general.hotkey next-engine-in-menu "[]"
+
+echo "GNOME keybindings applied."
