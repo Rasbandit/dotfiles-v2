@@ -7,3 +7,5 @@
     /usr/bin/tuned-adm profile {{ profile }}, \
     /usr/sbin/tuned-adm profile {{ profile }}{{ ', \\' if not loop.last else '' }}
 {% endfor %}
+# X3D CCD preference while a game runs (the hook writes "cache"/"frequency"; the file only accepts those).
+{{ gamemode_user }} ALL=(root) NOPASSWD: /usr/bin/tee /sys/bus/platform/drivers/amd_x3d_vcache/AMDI0101\:00/amd_x3d_mode

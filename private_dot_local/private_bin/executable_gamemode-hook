@@ -19,6 +19,13 @@ GAME_PROFILE=throughput-performance
 
 command -v tuned-adm >/dev/null 2>&1 || exit 0
 
+# Dual-CCD X3D CPUs (e.g. 9900X3D): the amd_x3d_vcache driver steers scheduling toward either the
+# V-Cache CCD ("cache") or the high-clock CCD ("frequency"). Games want "cache" while they run.
+# File absent on other CPUs: the whole block is skipped.
+X3D_MODE=/sys/bus/platform/drivers/amd_x3d_vcache/AMDI0101:00/amd_x3d_mode
+X3D_PREV="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/gamemode-prev-x3d-mode"
+x3d_set() { sudo -n /usr/bin/tee "$X3D_MODE" <<<"$1" >/dev/null || logger -t gamemode-hook "failed to set x3d mode $1"; }
+
 PREV_FILE="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/gamemode-prev-tuned-profile"
 active_profile() { tuned-adm active 2>/dev/null | sed 's/.*: //'; }
 
@@ -29,8 +36,17 @@ case "${1:-}" in
       echo "$cur" > "$PREV_FILE"
     fi
     sudo -n tuned-adm profile "$GAME_PROFILE" || logger -t gamemode-hook "failed to set $GAME_PROFILE"
+    if [[ -w /dev/null && -r $X3D_MODE ]]; then
+      xcur=$(<"$X3D_MODE")
+      [[ $xcur != cache ]] && { echo "$xcur" > "$X3D_PREV"; x3d_set cache; }
+    fi
     ;;
   end)
+    if [[ -f $X3D_PREV ]]; then
+      xprev=$(<"$X3D_PREV")
+      [[ $xprev =~ ^(frequency|cache)$ ]] && x3d_set "$xprev"
+      rm -f "$X3D_PREV"
+    fi
     [[ -f $PREV_FILE ]] || exit 0
     prev=$(<"$PREV_FILE")
     # Only ever restore a plain profile name (it feeds a sudo command).
