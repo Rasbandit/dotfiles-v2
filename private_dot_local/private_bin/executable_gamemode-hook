@@ -31,6 +31,7 @@ active_profile() { tuned-adm active 2>/dev/null | sed 's/.*: //'; }
 
 case "${1:-}" in
   start)
+    "$HOME/.local/bin/ci-runners-auto" game-start 2>/dev/null   # desktop only: drain the CI VM while gaming
     cur=$(active_profile)
     if [[ -n $cur && $cur != "$GAME_PROFILE" ]]; then
       echo "$cur" > "$PREV_FILE"
@@ -42,6 +43,7 @@ case "${1:-}" in
     fi
     ;;
   end)
+    "$HOME/.local/bin/ci-runners-auto" game-end 2>/dev/null     # resume runners after a quiet period
     if [[ -f $X3D_PREV ]]; then
       xprev=$(<"$X3D_PREV")
       [[ $xprev =~ ^(frequency|cache)$ ]] && x3d_set "$xprev"

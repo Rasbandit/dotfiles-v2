@@ -1,0 +1,40 @@
+#!/bin/bash
+# ci-runners-auto — drain the CI runner VM while a game runs, bring it back after a quiet period.
+# Called by gamemode-hook (start = first game, end = last game quit). Desktop only: the travel
+# mini PC is a dedicated runner and is handled by travel-mode.
+#
+#   game-start   cancel a pending resume; if runners are up, `ci-runners off` (finish jobs, take no new ones)
+#   game-end     if WE turned the runners off, resume them after RESUME_AFTER_MIN quiet minutes
+#   resume       (timer) bring runners back unless a game is running again
+#
+# A manual `ci-runners off` is never undone: only the marker written by game-start triggers a resume.
+set -u
+RESUME_AFTER_MIN=${CI_RUNNERS_RESUME_MIN:-15}
+CI=${CI_RUNNERS_BIN:-/usr/local/bin/ci-runners}
+MARK="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/ci-runners-auto-off"
+UNIT=ci-runners-auto-resume
+
+grep -qx travel-runner "$HOME/.config/chezmoi/features" 2>/dev/null && exit 0
+[[ -x $CI ]] || exit 0
+log() { logger -t ci-runners-auto -- "$*"; }
+
+case "${1:-}" in
+  game-start)
+    systemctl --user stop "$UNIT.timer" "$UNIT.service" 2>/dev/null
+    case "$($CI status 2>/dev/null)" in
+      active*) : > "$MARK"; log "game started: draining runners"; setsid "$CI" off >/dev/null 2>&1 < /dev/null & ;;
+      draining*) [[ -e $MARK ]] || :;;   # already draining (ours or manual): leave the marker as it is
+    esac ;;
+  game-end)
+    [[ -e $MARK ]] || exit 0
+    systemctl --user stop "$UNIT.timer" "$UNIT.service" 2>/dev/null
+    systemd-run --user --quiet --collect --unit="$UNIT" --on-active="${RESUME_AFTER_MIN}m" "$0" resume
+    log "game ended: runners resume in ${RESUME_AFTER_MIN} min unless a game starts" ;;
+  resume)
+    [[ -e $MARK ]] || exit 0
+    if [[ -n $(gamemodelist 2>/dev/null | grep -v "No clients") ]]; then log "game still registered; not resuming"; exit 0; fi
+    rm -f "$MARK"
+    log "quiet period over: resuming runners"
+    "$CI" on ;;
+  *) sed -n 2,11p "$0" | sed 's/^# \{0,1\}//'; exit 64 ;;
+esac

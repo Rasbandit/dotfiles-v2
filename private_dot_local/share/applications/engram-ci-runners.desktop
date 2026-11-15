@@ -1,0 +1,25 @@
+[Desktop Entry]
+Type=Application
+Name=CI Runners / Machine Mode
+Comment=Click: toggle the CI runner VM (drains jobs first). Right-click: runner mode, desk mode.
+Exec=/usr/local/bin/ci-runners toggle
+Icon=system-run
+Terminal=false
+Categories=Utility;
+Actions=RunnerMode;DeskMode;RunnersOn;RunnersOff;
+
+[Desktop Action RunnerMode]
+Name=Runner mode (quiet PC, runners on)
+Exec=sh -c 'runner-mode && /usr/local/bin/ci-runners on'
+
+[Desktop Action DeskMode]
+Name=Desk mode
+Exec=desk-mode
+
+[Desktop Action RunnersOn]
+Name=Runners on
+Exec=/usr/local/bin/ci-runners on
+
+[Desktop Action RunnersOff]
+Name=Runners off (finish jobs first)
+Exec=/usr/local/bin/ci-runners off
