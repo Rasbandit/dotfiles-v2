@@ -1,0 +1,15 @@
+{
+  "/home/rasbandit/Documents/Obsidian/Health": {
+    "destination": "2. Knowledge Vault/Video Notes",
+    "frontmatter_extra": {
+      "tags": ["health", "video", "reference"],
+      "synthesis": "unprocessed"
+    }
+  },
+  "_default": {
+    "destination": "Video Notes",
+    "frontmatter_extra": {
+      "tags": ["video"]
+    }
+  }
+}
