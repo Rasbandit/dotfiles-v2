@@ -61,3 +61,12 @@ firebase-debug.log
 .config/systemd/user/theme-sun.*
 .local/bin/theme-sun-toggle
 {{ end -}}
+{{- /* travel-runner feature: travel-mode gate drop-ins + 1Password x11 autostart (mini PC only) */}}
+{{- if not (contains "travel-runner" $features) }}
+.config/systemd/user/evmapy.service.d/
+.config/systemd/user/gcadapter-evdev@.service.d/
+.config/systemd/user/steam-gamemode-watch.service.d/
+.config/systemd/user/steam-autostart.service.d/
+.config/systemd/user/gnome-software.service.d/
+.config/autostart/1password.desktop
+{{- end }}
