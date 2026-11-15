@@ -1,0 +1,67 @@
+#!/bin/bash
+# gm-launch — run an emulator under GameMode, chosen by the name this is invoked as.
+# Installed as symlinks in /usr/local/bin (created by the ansible `gamemode` role), named
+# dolphin-emu / xemu. ES-DE looks for emulators on PATH *before* its flatpak fallbacks, and
+# /usr/local/bin is on the graphical session's PATH, so these apply GameMode once per
+# emulator without touching the shared ES-DE config (which also syncs to Android).
+# RetroArch needs no shim: its flatpak registers with GameMode itself.
+#
+# Fail-safe by design: flatpak export script missing → use a real binary elsewhere on PATH;
+# no GameMode → run the emulator plain. A machine missing any piece still launches games.
+# Add an emulator: add a case below + an entry in the ansible role's emulator list.
+#
+# Safety: never calls itself (candidates resolving to this script are skipped, and
+# GM_LAUNCH_ACTIVE stops any accidental recursion). GM_LAUNCH_DRYRUN=1 prints the
+# command instead of running it.
+set -u
+
+if [[ ${GM_LAUNCH_ACTIVE:-} == 1 ]]; then
+  echo "gm-launch: recursion detected, aborting" >&2
+  exit 126
+fi
+export GM_LAUNCH_ACTIVE=1
+
+name=$(basename "$0")
+self=$(readlink -f "$0")
+case $name in
+  dolphin-emu) app=org.DolphinEmu.dolphin-emu ;;
+  xemu)        app=app.xemu.xemu ;;
+  *) echo "gm-launch: no emulator mapped for '$name'" >&2; exit 127 ;;
+esac
+
+cmd=()
+# Preferred: flatpak's own export script (it pins the right branch/arch/command, which
+# matters when several branches such as stable+beta are installed).
+for dir in /var/lib/flatpak/exports/bin "$HOME/.local/share/flatpak/exports/bin"; do
+  if [[ -x $dir/$app ]]; then
+    cmd=("$dir/$app")
+    break
+  fi
+done
+
+# Otherwise: a real binary elsewhere on PATH, skipping anything that is this script.
+if [[ ${#cmd[@]} -eq 0 ]]; then
+  IFS=: read -ra path_dirs <<< "$PATH"
+  for dir in "${path_dirs[@]}"; do
+    candidate=$dir/$name
+    if [[ -x $candidate && $(readlink -f "$candidate") != "$self" ]]; then
+      cmd=("$candidate")
+      break
+    fi
+  done
+fi
+
+if [[ ${#cmd[@]} -eq 0 ]]; then
+  echo "gm-launch: neither flatpak $app nor a native '$name' found" >&2
+  exit 127
+fi
+
+if command -v gamemoderun >/dev/null 2>&1; then
+  cmd=(gamemoderun "${cmd[@]}")
+fi
+
+if [[ ${GM_LAUNCH_DRYRUN:-} == 1 ]]; then
+  printf '%q ' "${cmd[@]}" "$@"; echo
+  exit 0
+fi
+exec "${cmd[@]}" "$@"

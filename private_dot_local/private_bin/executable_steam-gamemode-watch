@@ -1,0 +1,74 @@
+#!/bin/bash
+# steam-gamemode-watch — put Steam games under GameMode without per-game launch options.
+#
+# Steam runs every game under a `reaper SteamLaunch AppId=<id> -- …` process that lives
+# for the whole session. This registers each new one with GameMode via `gamemoded -r`,
+# so the gamemode-hook flips the power profile while any Steam game runs.
+#
+# Safety: `gamemoded -r <pid>` TOGGLES, so a pid that is already registered would be
+# ended. We ask `gamemoded -s <pid>` first and only register pids that are not.
+# No Steam game running → one cheap pgrep per interval and nothing else.
+set -u
+
+INTERVAL=${STEAM_GM_INTERVAL:-4}
+
+# Steam game reaper processes: exact process name `reaper` (so Steam's wrappers, the
+# launch client and gamescope helpers, whose command lines merely *contain* the same
+# text, are not matched), confirmed by the SteamLaunch argument.
+steam_reapers() {
+  local pid
+  for pid in $(pgrep -x reaper); do
+    grep -qa 'SteamLaunch AppId=' "/proc/$pid/cmdline" 2>/dev/null && echo "$pid"
+  done
+}
+
+# Wine/Proton games launched outside Steam (Lutris, Battle.net, scripts). Registering the
+# game's own process, not its launcher, means GameMode ends when the game quits even if
+# Battle.net/Lutris stay open.
+# Matched on the command line, NOT the process name: games often rename their main
+# thread (SC2 shows as "Play Main Threa"), so `comm` is unreliable. A real Wine game
+# process has a command line that starts with its Windows path, `C:\...\Game.exe`; launcher
+# wrappers (umu-run, steam.exe shims) merely contain the exe name later, so anchoring on
+# `^C:\` matches only the game itself.
+# Extend in ~/.config/steam-gamemode-watch.conf:  EXTRA_GAME_PATTERNS+=('^C:\\.*\\Game\.exe')
+EXTRA_GAME_PATTERNS=(
+  '^C:\\.*\\SC2_x64\.exe'                    # StarCraft II
+  '^C:\\.*\\HeroesOfTheStorm(_x64)?\.exe'    # Heroes of the Storm
+)
+# shellcheck disable=SC1090
+[[ -r $HOME/.config/steam-gamemode-watch.conf ]] && . "$HOME/.config/steam-gamemode-watch.conf"
+
+game_pids() {
+  steam_reapers
+  local pattern
+  for pattern in "${EXTRA_GAME_PATTERNS[@]}"; do
+    pgrep -f "$pattern"
+  done
+}
+
+declare -A seen   # pids already handled this session
+
+while true; do
+  declare -A current=()
+  while read -r pid; do
+    [[ -n $pid ]] || continue
+    current[$pid]=1
+    [[ -n ${seen[$pid]:-} ]] && continue
+    seen[$pid]=1
+    status=$(gamemoded -s"$pid" 2>&1)
+    if [[ $status == *"] registered"* && $status != *"not registered"* ]]; then
+      logger -t steam-gamemode-watch "pid $pid already registered, skipping"
+    elif gamemoded -r"$pid" >/dev/null 2>&1; then
+      logger -t steam-gamemode-watch "registered game pid $pid"
+    else
+      logger -t steam-gamemode-watch "failed to register pid $pid"
+    fi
+  done < <(game_pids)
+
+  # Forget pids that are gone so a reused pid is handled again.
+  for pid in "${!seen[@]}"; do
+    [[ -n ${current[$pid]:-} ]] || unset "seen[$pid]"
+  done
+  unset current
+  sleep "$INTERVAL"
+done

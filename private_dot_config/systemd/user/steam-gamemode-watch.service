@@ -1,0 +1,11 @@
+[Unit]
+Description=Register Steam games with GameMode
+After=graphical-session.target
+
+[Service]
+ExecStart=%h/.local/bin/steam-gamemode-watch
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=graphical-session.target

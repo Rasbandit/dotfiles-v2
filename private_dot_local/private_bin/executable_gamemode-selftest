@@ -1,0 +1,81 @@
+#!/bin/bash
+# gamemode-selftest — prove the GameMode setup works on THIS machine, without a real game.
+#
+# Starts harmless fake "games" and checks the power profile flips to the game profile and
+# restores afterwards, through each path:
+#   1. gamemoderun            (what Ports, RetroArch and the emulator helpers rely on)
+#   2. fake Steam `reaper`    (picked up by steam-gamemode-watch)
+#   3. fake Wine game process (command line `C:\...\SC2_x64.exe`, picked up by the watcher)
+# Plus static checks of the pieces ansible/chezmoi should have installed.
+#
+# Run it after `chezmoi apply` + `ansible-playbook setup.yml --tags gamemode` on any new
+# machine. Takes about a minute. Refuses to run while a real game holds the profile.
+set -u
+
+GAME_PROFILE=throughput-performance
+# shellcheck disable=SC1090
+[[ -r $HOME/.config/gamemode-hook.conf ]] && . "$HOME/.config/gamemode-hook.conf"
+
+pass=0; fail=0; skip=0
+ok()   { echo "  PASS  $*"; pass=$((pass + 1)); }
+bad()  { echo "  FAIL  $*"; fail=$((fail + 1)); }
+note() { echo "  skip  $*"; skip=$((skip + 1)); }
+active_profile() { tuned-adm active 2>/dev/null | sed 's/.*: //'; }
+
+# Wait up to $1 seconds for the active profile to equal $2.
+wait_profile() {
+  local i
+  for ((i = 0; i < $1; i++)); do
+    [[ $(active_profile) == "$2" ]] && return 0
+    sleep 1
+  done
+  return 1
+}
+
+tmp=$(mktemp -d)
+trap 'kill $(jobs -p) 2>/dev/null; rm -rf "$tmp"' EXIT
+
+echo "== static checks"
+command -v gamemoderun >/dev/null && ok "gamemoderun installed" || bad "gamemoderun missing (install gamemode)"
+command -v tuned-adm   >/dev/null && ok "tuned-adm installed"   || { bad "tuned-adm missing"; echo "cannot continue"; exit 1; }
+[[ -x $HOME/.local/bin/gamemode-hook ]] && ok "gamemode-hook installed" || bad "gamemode-hook missing (chezmoi apply)"
+grep -q 'gamemode-hook' "$HOME/.config/gamemode.ini" 2>/dev/null && ok "gamemode.ini calls the hook" || bad "~/.config/gamemode.ini missing or has no hook"
+sudo -n -l 2>/dev/null | grep -q 'tuned-adm profile' && ok "passwordless tuned-adm allowed" || bad "no passwordless tuned-adm (ansible --tags gamemode)"
+systemctl --user is-active --quiet steam-gamemode-watch.service && ok "watcher service active" || bad "steam-gamemode-watch.service not active"
+for link in dolphin-emu xemu; do
+  if [[ -L /usr/local/bin/$link ]]; then
+    ok "/usr/local/bin/$link -> $(readlink /usr/local/bin/$link)"
+  else
+    note "/usr/local/bin/$link absent (fine if that emulator isn't installed here)"
+  fi
+done
+
+start_profile=$(active_profile)
+if [[ $start_profile == "$GAME_PROFILE" ]]; then
+  echo "A game (or test) seems active: profile is already $GAME_PROFILE. Quit it and re-run."
+  exit 2
+fi
+echo "== behaviour tests (starting profile: $start_profile, game profile: $GAME_PROFILE)"
+
+# run_case <label> <how long fake lives> <command...>: start it, expect flip, expect restore.
+run_case() {
+  local label=$1 life=$2; shift 2
+  "$@" &
+  local pid=$!
+  if wait_profile 12 "$GAME_PROFILE"; then ok "$label: profile flipped to $GAME_PROFILE"; else bad "$label: profile did not flip"; fi
+  wait "$pid" 2>/dev/null
+  if wait_profile 20 "$start_profile"; then ok "$label: profile restored to $start_profile"; else bad "$label: profile not restored (now $(active_profile))"; fi
+}
+
+run_case "gamemoderun"       8 gamemoderun sleep 8
+
+if systemctl --user is-active --quiet steam-gamemode-watch.service; then
+  cp "$(command -v sleep)" "$tmp/reaper"
+  run_case "Steam reaper"    14 bash -c "exec -a '$tmp/reaper SteamLaunch AppId=999 --' '$tmp/reaper' 14"
+  run_case "Wine game exe"   14 bash -c "exec -a 'C:\\fake\\StarCraft II\\SC2_x64.exe' sleep 14"
+else
+  note "watcher not running: skipped Steam reaper and Wine game cases"
+fi
+
+echo "== result: $pass passed, $fail failed, $skip skipped"
+[[ $fail -eq 0 ]]

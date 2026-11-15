@@ -1,0 +1,46 @@
+#!/bin/bash
+# GameMode start/end hook (see ~/.config/gamemode.ini [custom]).
+#
+# Fedora's GameMode polkit policy denies cpugovctl to a normal user, so GameMode registers
+# games but never changes the CPU. tuned stays the single owner of power state; this hook
+# flips the tuned profile instead. gamemoded refcounts clients: `start` fires on the first
+# game, `end` after the last.
+#
+#   gamemode-hook start   save the active tuned profile, switch to the game profile
+#   gamemode-hook end     restore the saved profile
+#
+# Per-machine override (optional): ~/.config/gamemode-hook.conf  →  GAME_PROFILE=...
+# No tuned-adm on this machine → quietly does nothing.
+set -u
+
+GAME_PROFILE=throughput-performance
+# shellcheck disable=SC1090
+[[ -r $HOME/.config/gamemode-hook.conf ]] && . "$HOME/.config/gamemode-hook.conf"
+
+command -v tuned-adm >/dev/null 2>&1 || exit 0
+
+PREV_FILE="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/gamemode-prev-tuned-profile"
+active_profile() { tuned-adm active 2>/dev/null | sed 's/.*: //'; }
+
+case "${1:-}" in
+  start)
+    cur=$(active_profile)
+    if [[ -n $cur && $cur != "$GAME_PROFILE" ]]; then
+      echo "$cur" > "$PREV_FILE"
+    fi
+    sudo -n tuned-adm profile "$GAME_PROFILE" || logger -t gamemode-hook "failed to set $GAME_PROFILE"
+    ;;
+  end)
+    [[ -f $PREV_FILE ]] || exit 0
+    prev=$(<"$PREV_FILE")
+    # Only ever restore a plain profile name (it feeds a sudo command).
+    if [[ $prev =~ ^[a-z][a-z-]*$ ]]; then
+      sudo -n tuned-adm profile "$prev" || logger -t gamemode-hook "failed to restore $prev"
+    fi
+    rm -f "$PREV_FILE"
+    ;;
+  *)
+    echo "usage: ${0##*/} start|end" >&2
+    exit 1
+    ;;
+esac

@@ -120,3 +120,7 @@
 
     - role: projects
       tags: [projects]
+
+    # GameMode performance profile while games run (system-level parts; user files via chezmoi)
+    - role: gamemode
+      tags: [gamemode, gaming-desktop, gaming-laptop]

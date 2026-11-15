@@ -1,0 +1,9 @@
+# Managed by ansible (role: gamemode). Lets the GameMode hook (~/.local/bin/gamemode-hook)
+# switch tuned profiles without a password. Exact commands only, no wildcards.
+# Fedora's /usr/sbin is a symlink to /usr/bin; both spellings are listed because sudo
+# logs (and matches) whichever path the caller resolved.
+{{ gamemode_user }} ALL=(root) NOPASSWD: \
+{% for profile in gamemode_tuned_profiles %}
+    /usr/bin/tuned-adm profile {{ profile }}, \
+    /usr/sbin/tuned-adm profile {{ profile }}{{ ', \\' if not loop.last else '' }}
+{% endfor %}

@@ -1,0 +1,21 @@
+---
+# The invoking user (not root, even if privilege escalation is on). Matches the repo's
+# convention of using lookup('env', ...) instead of ansible_user_id.
+gamemode_user: "{{ lookup('env', 'USER') }}"
+gamemode_home: "{{ lookup('env', 'HOME') }}"
+
+# tuned profiles the GameMode hook may switch to/from without a password.
+# Must include every profile a machine might be in when a game starts, because the hook
+# restores the previous profile afterwards.
+gamemode_tuned_profiles:
+  - balanced
+  - balanced-battery
+  - powersave
+  - throughput-performance
+
+# Emulators wrapped by gm-launch (flatpak app id → /usr/local/bin name ES-DE looks for).
+# RetroArch is not listed: its flatpak registers with GameMode itself.
+# Keep in sync with the `case` in chezmoi's executable_gm-launch.
+gamemode_emulators:
+  - { name: dolphin-emu, flatpak: org.DolphinEmu.dolphin-emu }
+  - { name: xemu, flatpak: app.xemu.xemu }

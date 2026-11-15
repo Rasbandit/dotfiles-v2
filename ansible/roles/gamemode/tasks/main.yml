@@ -1,0 +1,67 @@
+---
+# GameMode: switch to the performance power profile while games run, restore afterwards.
+#
+# Split of responsibilities (see claude-home docs/gamemode.md):
+#   chezmoi  → user-level files: gm-launch, gamemode-hook, steam-gamemode-watch (+ its user
+#              unit), ~/.config/gamemode.ini. Run `chezmoi apply` BEFORE this role.
+#   this role → system-level: packages, sudoers rule, /usr/local/bin emulator links,
+#              enabling the watcher user service.
+#
+# Manual, per-machine app settings that live outside git are listed in docs/gamemode.md
+# (Lutris global GameMode off, Battle.net "exit on game launch").
+
+- name: Install GameMode and tuned (Fedora)
+  ansible.builtin.dnf:
+    name:
+      - gamemode
+      - tuned
+    state: present
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Install GameMode (Debian)
+  ansible.builtin.apt:
+    name: gamemode
+    state: present
+  become: true
+  when: os_family == 'debian'
+
+# tuned is Fedora-only here; on other distros the hook quietly does nothing.
+- name: Allow passwordless tuned profile switching for the GameMode hook
+  ansible.builtin.template:
+    src: sudoers-gamemode.j2
+    dest: /etc/sudoers.d/gamemode
+    owner: root
+    group: root
+    mode: "0440"
+    validate: /usr/sbin/visudo -cf %s
+  become: true
+  when: os_distribution == 'fedora'
+
+# Only wrap emulators that are actually installed on this machine.
+- name: List installed flatpak apps
+  ansible.builtin.command: flatpak list --app --columns=application
+  register: gamemode_flatpaks
+  changed_when: false
+  failed_when: false
+
+- name: Link emulator wrappers into /usr/local/bin (installed emulators only)
+  ansible.builtin.file:
+    src: "{{ gamemode_home }}/.local/bin/gm-launch"
+    dest: "/usr/local/bin/{{ item.name }}"
+    state: link
+  become: true
+  loop: "{{ gamemode_emulators }}"
+  when: item.flatpak in gamemode_flatpaks.stdout_lines
+
+# Registers Steam games and listed Wine games (SC2, Heroes) with GameMode.
+# The unit file itself is deployed by chezmoi. Needs a logged-in user session.
+- name: Enable the game watcher user service
+  ansible.builtin.systemd:
+    name: steam-gamemode-watch.service
+    scope: user
+    enabled: true
+    state: started
+    daemon_reload: true
+  become: false
+  ignore_errors: true
