@@ -1,3 +1,7 @@
 dot_claude.json
 **/__pycache__
 .claude/skills/synced
+
+# Claude Code skill trash
+.claude/skills/.trash
+.claude/skills/.trash/**
