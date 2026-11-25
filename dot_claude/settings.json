@@ -69,7 +69,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "f=\"$HOME/.claude/hooks/block-heavy-local.sh\"; [ -x \"$f\" ] || exit 0; exec \"$f\"",
+            "command": "~/.claude/hooks/block-heavy-local.sh",
             "statusMessage": "Checking for heavy local commands..."
           }
         ]

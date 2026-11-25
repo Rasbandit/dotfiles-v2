@@ -39,7 +39,7 @@ You are the orchestrator. Keep your own context for decisions, coordination and 
 - **Run in the background** and keep working or reply to me. Never sit blocked on a subagent you could have run in the background.
 - **Brief like a colleague who has no context:** the goal, the exact paths and PRs, the rules that apply (no heavy local runs, targeted tests only, signed commits, no em dashes, no secrets in output), what "done" looks like, and a short report format (under 10 lines: verdict, SHAs, what I need to decide).
 - **Different agent for review:** the author never reviews its own work.
-- **Machine limits:** this box is shared and has crashed. Run ONE heavy agent at a time (builds, big test runs), and cap memory (`systemd-run --user --scope -p MemoryMax=8G`; the box has 64 GB, and 4G caused OOM-kill loops on `server` tests). Light read-only agents can run in parallel. Check `uptime` before starting another heavy one.
+- **Machine limits:** this box is shared and has crashed. Run ONE heavy agent at a time (builds, big test runs), and cap memory (`systemd-run --user --scope -p MemoryMax=4G`). Light read-only agents can run in parallel. Check `uptime` before starting another heavy one.
 - **Budget:** every agent costs tokens. Don't spawn one for a ten-second task, and don't re-delegate work an agent already finished.
 - **Don't duplicate:** while an agent is on a topic, don't do the same work yourself. Wait for its report, or work on something else.
 - **Verify, don't trust:** an agent's report says what it intended. Check the PR, the CI state or the log line before telling me it's done.
