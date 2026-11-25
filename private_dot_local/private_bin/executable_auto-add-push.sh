@@ -8,6 +8,12 @@ CHEZMOI_DIR="$HOME/.local/share/chezmoi"
 
 cd "$CHEZMOI_DIR"
 
+# --- 0. Recover from a rebase a killed/older run left behind ---
+if [ -d .git/rebase-merge ] || [ -d .git/rebase-apply ]; then
+    git rebase --abort || { notify-send "Chezmoi sync ERROR" "Stuck rebase in $CHEZMOI_DIR, abort failed"; exit 1; }
+    echo "Aborted a leftover rebase."
+fi
+
 REMOTE_BRANCH="origin/main"
 LOCAL_BRANCH="main"
 
@@ -40,6 +46,7 @@ if [ "$LOCAL_COMMIT" = "$REMOTE_COMMIT" ]; then
 elif [ "$LOCAL_COMMIT" = "$BASE_COMMIT" ]; then
     echo "Pulling and rebasing new changes from remote..."
     if ! git pull --rebase origin main; then
+        git rebase --abort 2>/dev/null || true  # never leave the repo mid-rebase; next run retries clean
         notify-send "Chezmoi sync ERROR" "Rebase failed! Resolve manually in $CHEZMOI_DIR"
         exit 1
     fi
@@ -48,6 +55,7 @@ elif [ "$REMOTE_COMMIT" = "$BASE_COMMIT" ]; then
 else
     echo "Branches have diverged! Attempting rebase..."
     if ! git rebase "$REMOTE_BRANCH"; then
+        git rebase --abort 2>/dev/null || true  # never leave the repo mid-rebase; next run retries clean
         notify-send "Chezmoi sync ERROR" "Rebase failed! Resolve manually in $CHEZMOI_DIR"
         exit 1
     fi
