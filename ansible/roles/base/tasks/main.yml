@@ -2,15 +2,17 @@
 # Base tasks: always run on all systems (dirs, cron, bash_secrets)
 # Starship is now in the terminal role.
 
+# Modes match chezmoi's private_ source dirs; a mismatch makes `chezmoi apply`
+# prompt, which fails under cron (no TTY).
 - name: Ensure common directories exist
   ansible.builtin.file:
-    path: "{{ item }}"
+    path: "{{ item.path }}"
     state: directory
-    mode: '0755'
+    mode: "{{ item.mode }}"
   loop:
-    - "{{ lookup('env', 'HOME') }}/.local/bin"
-    - "{{ lookup('env', 'HOME') }}/.config"
-    - "{{ lookup('env', 'HOME') }}/.config/systemd/user"
+    - { path: "{{ lookup('env', 'HOME') }}/.local/bin", mode: '0700' }
+    - { path: "{{ lookup('env', 'HOME') }}/.config", mode: '0700' }
+    - { path: "{{ lookup('env', 'HOME') }}/.config/systemd/user", mode: '0755' }
   become: false
 
 - name: Create bash_secrets if it doesn't exist
@@ -27,6 +29,28 @@
     cmd: sh -c "$(curl -fsLS get.chezmoi.io)" -- -b ~/.local/bin
     creates: "{{ lookup('env', 'HOME') }}/.local/bin/chezmoi"
   become: false
+
+# Write-enabled deploy key so the hourly sync can push with 1Password locked.
+# Private key lives in 1Password; fetched once at provision time.
+- name: Fetch dotfiles deploy key from 1Password
+  ansible.builtin.shell:
+    cmd: >-
+      umask 077 &&
+      op read "op://Private/dotfiles-v2 deploy key (rw)/private key?ssh-format=openssh"
+      > ~/.ssh/dotfiles_deploy_rw.tmp &&
+      mv ~/.ssh/dotfiles_deploy_rw.tmp ~/.ssh/dotfiles_deploy_rw
+    creates: "{{ lookup('env', 'HOME') }}/.ssh/dotfiles_deploy_rw"
+  become: false
+  when: "'auto-sync' in features"
+
+- name: Point the chezmoi repo at the deploy key
+  community.general.git_config:
+    scope: file
+    file: "{{ lookup('env', 'HOME') }}/.local/share/chezmoi/.git/config"
+    name: core.sshCommand
+    value: "ssh -i {{ lookup('env', 'HOME') }}/.ssh/dotfiles_deploy_rw -o IdentitiesOnly=yes -o IdentityAgent=none"
+  become: false
+  when: "'auto-sync' in features"
 
 - name: Set up hourly chezmoi sync cron job
   ansible.builtin.cron:
