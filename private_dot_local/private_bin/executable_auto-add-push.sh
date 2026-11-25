@@ -72,7 +72,7 @@ fi
 # --- 4. Apply remote changes + sync watched paths ---
 if [ -n "$(chezmoi diff --no-pager)" ]; then  # not "| grep -q": SIGPIPE + pipefail made this always false
     echo "Changes detected, applying..."
-    if ! chezmoi apply; then
+    if ! chezmoi apply --force --no-tty; then
         notify-send "Chezmoi sync ERROR" "Failed to apply changes! Run 'chezmoi apply -v' to see details."
         exit 1
     fi
