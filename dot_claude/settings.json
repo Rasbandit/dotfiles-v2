@@ -41,7 +41,7 @@
       "whisper"
     ]
   },
-  "model": "sonnet",
+  "model": "fable",
   "hooks": {
     "PreToolUse": [
       {
@@ -304,5 +304,10 @@
   "switchModelsOnFlag": true,
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,
-  "bypassPermissionsAllowed": true
+  "bypassPermissionsAllowed": true,
+  "modelSettings": {
+    "claude-fable-5-2": {
+      "effortLevel": "medium"
+    }
+  }
 }
