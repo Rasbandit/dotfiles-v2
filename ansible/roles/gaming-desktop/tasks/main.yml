@@ -476,3 +476,37 @@
     special_time: reboot
     job: "sleep 300 && {{ lookup('env', 'HOME') }}/Documents/claude-home/scripts/esde-audit-cron.sh"
     state: present
+
+# --- InputPlumber: identical virtual Xbox pads for Ryujinx (Switch) ---
+# Off by default; ES-DE game-start/game-end hooks toggle it for switch games only.
+- name: Add InputPlumber COPR repository
+  community.general.copr:
+    name: shadowblip/InputPlumber
+    state: enabled
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Install InputPlumber
+  ansible.builtin.dnf:
+    name: inputplumber
+    state: present
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Keep InputPlumber disabled at boot (ES-DE starts it per switch game)
+  ansible.builtin.systemd:
+    name: inputplumber
+    enabled: false
+  become: true
+  when: os_distribution == 'fedora'
+
+- name: Let ES-DE hooks start/stop InputPlumber without a password
+  ansible.builtin.copy:
+    dest: /etc/sudoers.d/inputplumber-esde
+    content: "{{ ansible_user_id }} ALL=(root) NOPASSWD: /usr/bin/systemctl start inputplumber, /usr/bin/systemctl stop inputplumber\n"
+    owner: root
+    group: root
+    mode: "0440"
+    validate: visudo -cf %s
+  become: true
+  when: os_distribution == 'fedora'
