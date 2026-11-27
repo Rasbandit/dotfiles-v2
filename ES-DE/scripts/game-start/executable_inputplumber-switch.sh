@@ -2,15 +2,20 @@
 # Switch games only: wrap physical pads in identical virtual Xbox pads so Ryujinx's saved ids always match.
 [ "$3" = "switch" ] || exit 0
 
+VIRTUAL='Microsoft Xbox Series S|X Controller'
 count() { grep -c "^N: Name=\"$1\"" /proc/bus/input/devices; }
-physical=$(count "Microsoft Xbox Controller")
+need=$(( $(count "Microsoft Xbox Controller") - $(count "$VIRTUAL") ))
 
-sudo -n /usr/bin/systemctl start inputplumber && inputplumber devices manage-all --enable \
-  || { logger -t inputplumber-switch "failed to enable InputPlumber"; exit 0; }
+# Ryujinx numbers players in the order pads appear, so block until every virtual pad exists.
+# Listen to udev before enabling so no add event is missed.
+coproc UDEV { exec stdbuf -oL udevadm monitor --udev --subsystem-match=input --property; }
 
-# Ryujinx numbers players in the order pads appear; wait so all exist before it starts.
-for _ in $(seq 50); do
-  [ "$(count "Microsoft Xbox Series S|X Controller")" -ge "$physical" ] && exit 0
-  sleep 0.2
+sudo -n /usr/bin/systemctl start inputplumber && inputplumber devices manage-all --enable >/dev/null \
+  || { logger -t inputplumber-switch "failed to enable InputPlumber"; kill "$UDEV_PID"; exit 0; }
+
+deadline=$((SECONDS + 10))
+while [ "$need" -gt 0 ] && IFS= read -r -t $((deadline - SECONDS)) line <&"${UDEV[0]}"; do
+  [ "$line" = "NAME=\"$VIRTUAL\"" ] && need=$((need - 1))
 done
-logger -t inputplumber-switch "timed out waiting for $physical virtual pads"
+kill "$UDEV_PID"
+[ "$need" -le 0 ] || logger -t inputplumber-switch "timed out, $need virtual pad(s) missing"
